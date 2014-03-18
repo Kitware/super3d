@@ -50,7 +50,7 @@ int main (int argc, char *argv[])
   vtkPolyData *polydata = polyreader->GetOutput();
 
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInput(polydata);
+  mapper->SetInputData(polydata);
 
   vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
   actor->SetMapper(mapper);

@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 
   vcl_cout << "Triangulating...\n";
   vtkSmartPointer<vtkDelaunay2D> del = vtkSmartPointer<vtkDelaunay2D>::New();
-  del->SetInput(polydata);
+  del->SetInputData(polydata);
   del->Update();
 
   vtkPolyData *triangulated = del->GetOutput();
@@ -322,7 +322,7 @@ void WriteMesh(const vcl_vector<Vertex> &verts, const vcl_vector<Triangle *> &tr
   polydata->SetPolys(cells);
 
   vtkSmartPointer<vtkXMLPolyDataWriter> writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
-  writer->SetInput(polydata);
+  writer->SetInputData(polydata);
   writer->SetFileName(filename);
   writer->Update();
 }
