@@ -27,7 +27,7 @@
  */
 
 #include "super_res.h"
-#include "config.h"
+#include "super_config.h"
 #include <video_transforms/adjoint_image_derivs.h>
 
 

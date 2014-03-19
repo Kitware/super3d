@@ -31,7 +31,7 @@
 #include "file_io.h"
 #include "depth_map.h"
 #include "multiscale.h"
-#include "config.h"
+#include "super_config.h"
 
 #include <video/gaussian_pyramid_builder.h>
 

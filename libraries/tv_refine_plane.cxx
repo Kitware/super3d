@@ -43,7 +43,7 @@
 #include <video_transforms/dual_rof_denoise.h>
 
 #include "tv_utils.h"
-#include "config.h"
+#include "super_config.h"
 #include "meanshift_normals.h"
 #include "rof_normals.h"
 

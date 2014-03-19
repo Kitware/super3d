@@ -27,7 +27,7 @@
  */
 
 #include "super_res.h"
-#include "config.h"
+#include "super_config.h"
 #include "adjoint_image_op.h"
 #include "image_derivs.h"
 
