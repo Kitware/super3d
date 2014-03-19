@@ -39,7 +39,10 @@ include_directories(SYSTEM ${VIDTK_INCLUDE_DIRS})
 include_directories(SYSTEM ${VTK_INCLUDE_DIRS})
 include_directories(SYSTEM ${OPENCL_INCLUDE_DIR})
 
-link_directories(${VTK_LIBRARY_DIRS})
+if(VTK_FOUND)
+  INCLUDE(${USE_VTK_FILE})
+  link_directories(${VTK_LIBRARY_DIRS})
+endif()
 link_directories(${VISCL_LIBRARY_DIRS})
 
 include_directories(libraries)
