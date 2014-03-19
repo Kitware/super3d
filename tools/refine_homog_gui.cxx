@@ -267,7 +267,7 @@ int main(int argc, char* argv[])
 
   for (unsigned int i = 0; i < 50; i++)
   {
-    match_edgels(H, e_fixed, e_moving, index_map, 5, matches);
+    match_edgels(H, e_fixed, e_moving, index_map, 15, matches);
     estimate_homog_lm(matches, H);
   }
 

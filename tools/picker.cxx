@@ -155,14 +155,14 @@ void Picker::UpdateChart(unsigned int picked)
   observed->SetValue(1, 1, values.max_value());
 
   vtkPlot *plot = chart->AddPlot(vtkChart::LINE);
-  plot->SetInput(observed, 0, 1);
+  plot->SetInputData(observed, 0, 1);
   plot->SetColor(255, 0, 0, 255);
   plot->SetWidth(2.0);
   plot->Update();
 
   // Add multiple line plots, setting the colors etc
   plot = chart->AddPlot(vtkChart::LINE);
-  plot->SetInput(table, 0, 1);
+  plot->SetInputData(table, 0, 1);
   plot->SetColor(255, 255, 0, 255);
   plot->SetWidth(2.0);
   plot->Update();
@@ -275,11 +275,7 @@ void Picker::PlaceArrow(double *picked)
   arrow->SetTipRadius(.2);
   arrow->Update();
 
-#if VTK_MAJOR_VERSION <= 5
   selectedMapper->SetInputConnection(arrow->GetOutputPort());
-#else
-  selectedMapper->SetInputData(arrow);
-#endif
 
   selectedActor->SetUserMatrix(xform->GetMatrix());
   selectedActor->SetMapper(selectedMapper);

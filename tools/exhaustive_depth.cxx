@@ -26,6 +26,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "super_config.h"
+
 #include "tv_refine_search.h"
 #include "cost_volume.h"
 
@@ -36,7 +38,7 @@
 #include "world_rectilinear.h"
 #include "world_frustum.h"
 
-#include "config.h"
+
 #include "exposure.h"
 
 // VXL includes

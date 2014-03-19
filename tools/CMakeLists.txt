@@ -29,17 +29,17 @@ target_link_libraries(refine_homog_batch vnl vil vil_algo vul vgl vgl_algo vgui 
 
 if(VTK_FOUND)
   add_executable(ply2vtp ply2vtp.cxx)
-  target_link_libraries(ply2vtp vtkIO vtkGraphics vnl)
+  target_link_libraries(ply2vtp ${VTK_LIBRARIES} vnl)
 
   add_executable(viewer viewer.cxx picker.h picker.cxx)
-  target_link_libraries(viewer vtkIO vtkGraphics vnl vil vul depthl vtkHybrid vtkRendering vtkCharts)
+  target_link_libraries(viewer vnl vil vul depthl ${VTK_LIBRARIES})
 
-  target_link_libraries(exhaustive_depth vtkGraphics vtkIO)
+  target_link_libraries(exhaustive_depth ${VTK_LIBRARIES})
   set_source_files_properties(exhaustive_depth.cxx
       PROPERTIES
       COMPILE_DEFINITIONS HAVE_VTK)
 
-  target_link_libraries(bundler2vpgl vtkIO)
+  target_link_libraries(bundler2vpgl ${VTK_LIBRARIES})
   set_source_files_properties(bundler2vpgl.cxx
       PROPERTIES
       COMPILE_DEFINITIONS HAVE_VTK)
