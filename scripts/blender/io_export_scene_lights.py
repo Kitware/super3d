@@ -13,6 +13,7 @@ bl_info = {
 
 import bpy
 from bpy_extras.io_utils import ExportHelper
+import mathutils
 
 
 def export_scene_lights(bl_context, file_path):
@@ -21,10 +22,10 @@ def export_scene_lights(bl_context, file_path):
         f.write(
             "# Format:\n"
             "# +- lamp type\n"
-            "# |   +- location       +- rotation quaternion  +- scale\n"
-            "# |   |                 |                       |\n"
-            "# vvv vvvvvvvvvvvvvvvvv vvvvvvvvvvvvvvvvvvvvvvv vvvvvvvvvvvvvvvvv\n"
-            "# str float float float float float float float float float float\n"
+            "# |   +- location       +- rotation quaternion  +- scale          +- look vector\n"
+            "# |   |                 |                       |                 |\n"
+            "# vvv vvvvvvvvvvvvvvvvv vvvvvvvvvvvvvvvvvvvvvvv vvvvvvvvvvvvvvvvv vvvvvvvvvvvvvvvvv\n"
+            "# str float float float float float float float float float float float float float\n"
             "#\n"
             )
 
@@ -42,7 +43,7 @@ def export_scene_lights(bl_context, file_path):
             l_type = l.data.type            # str
             print("\tlamp type :", l_type)
 
-            l_lamp_name = l.data.name       # str
+            l_name = l.data.name       # str
             print("\tlamp name :", l_name)
 
             l_loc = l.location              # Vector
@@ -60,11 +61,16 @@ def export_scene_lights(bl_context, file_path):
             l_scale = l.scale               # Vector
             print("\tlamp scale:", l_scale)
 
-            f.write("%s %f %.14f %.14f %.14f %.14f %.14f %.14f %.14f %.14f %.14f\n"
+            l_look = mathutils.Vector()
+            l_look.z = -1
+            l_look.rotate(l_rot)
+
+            f.write("%s %.14f %.14f %.14f %.14f %.14f %.14f %.14f %.14f %.14f %.14f %.14f %.14f %.14f\n"
                     % (l_type,
                        l_loc.x, l_loc.y, l_loc.z,
                        l_rot.w, l_rot.x, l_rot.y, l_rot.z,
-                       l_scale.x, l_scale.y, l_scale.z) )
+                       l_scale.x, l_scale.y, l_scale.z,
+                       l_look.x, l_look.y, l_look.z) )
 
 
 class LightExporter (bpy.types.Operator):
