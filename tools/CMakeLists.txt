@@ -21,11 +21,11 @@ target_link_libraries(super_res_image depthl vil vidtk_video_transforms
 add_executable(bundler2vpgl bundler2vpgl.cxx)
 target_link_libraries(bundler2vpgl vpgl vpgl_algo vgl vgl_algo vnl vil)
 
-#add_executable(refine_homog refine_homog_gui.cxx refine_homog.h refine_homog.cxx)
-#target_link_libraries(refine_homog vnl vil vil_algo vul vgl vgl_algo vgui vidtk_video_transforms rrel)
+add_executable(refine_homog refine_homog_gui.cxx refine_homog.h refine_homog.cxx)
+target_link_libraries(refine_homog vnl vil vil_algo vul vgl vgl_algo vgui vidtk_video_transforms rrel)
 
-#add_executable(refine_homog_batch refine_homog_batch.cxx)
-#target_link_libraries(refine_homog_batch vnl vil vil_algo vul vgl vgl_algo vgui vidtk_video_transforms vidtk_tracking rrel)
+add_executable(refine_homog_batch refine_homog_batch.cxx)
+target_link_libraries(refine_homog_batch vnl vil vil_algo vul vgl vgl_algo vgui vidtk_video_transforms vidtk_tracking rrel)
 
 if(VTK_FOUND)
   INCLUDE(${VTK_USE_FILE})
@@ -51,13 +51,13 @@ endif()
 add_executable(ply2pts ply2pts.cxx)
 target_link_libraries(ply2pts)
 
-#add_executable(depth_from_flow depth_from_flow.cxx)
-#target_link_libraries(depth_from_flow depthl vil vidtk_video_transforms
-#                      vidtk_tracking imesh_algo vpgl vnl vul vil_algo)
+add_executable(depth_from_flow depth_from_flow.cxx)
+target_link_libraries(depth_from_flow depthl vil vidtk_video_transforms
+                      vidtk_tracking imesh_algo vpgl vnl vul vil_algo)
 
-#add_executable(direct_depth direct_depth.cxx tv_refine.cxx tv_refine.h)
-#target_link_libraries(direct_depth depthl vil vidtk_video_transforms
-#                      vidtk_tracking imesh imesh_algo vpgl vnl vul vil_algo)
+add_executable(direct_depth direct_depth.cxx tv_refine.cxx tv_refine.h)
+target_link_libraries(direct_depth depthl vil vidtk_video_transforms
+                      vidtk_tracking imesh imesh_algo vpgl vnl vul vil_algo)
 
 #add_executable(render_depthmap render_depthmap.cxx)
 #target_link_libraries(render_depthmap vpgl imesh_algo depthl)

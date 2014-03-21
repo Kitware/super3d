@@ -96,7 +96,20 @@ int main(int argc, char *argv[])
 
   vul_sequence_filename_map frame_seq(frame_fmt());
   vcl_vector<vpgl_perspective_camera<double> >  cameras = load_cams(camera_file(), frame_seq);
-  vcl_vector<vil_image_view<double> > frames = load_frames(frame_seq);
+
+  //Read Images
+  vcl_vector<vcl_string> filenames;
+  vcl_vector<vil_image_view<double> > frames = load_frames(frame_seq, filenames);
+  if (frames.empty())
+  {
+    vcl_cerr << "No frames found"<<vcl_endl;
+    return -1;
+  }
+  else if (frames.size() < 2)
+  {
+    vcl_cerr << "At least 2 frames are required"<<vcl_endl;
+    return -1;
+  }
 
   for (unsigned int i = 0; i < frames.size(); i++)
   {
@@ -137,7 +150,26 @@ int main(int argc, char *argv[])
       char buf[30];
       sprintf(buf, "flow%d.png", i);
 
-      vidtk::optical_flow(reproj, frames[i], flow, 4, 5, 2, 5, 1, 10);
+      // vidtk::dense_optical_flow<float>(reproj, frames[i], flow, 4, 5, 2, 5, 1, 10);
+
+      vidtk::dense_optical_flow<double> dof;
+      dof.set_num_pyramid_levels(4);
+      dof.set_num_warps(5);
+      dof.set_num_outer_iterations(2);
+      dof.set_num_inner_iterations(5);
+      dof.set_num_texture_iterations(10);
+
+      dof.set_use_bicubic_interp(true);
+      //dof.set_verbose(flag);
+      //dof.set_gradient_blend(val);
+      //dof.set_structure_removal(val);
+
+      //dof.set_texture_theta(val);
+      //dof.set_theta(val);
+      //dof.set_lambda(val);
+
+      dof.compute_flow(reproj, frames[i], flow);
+
       vil_image_view<double> diff;
       DifferenceImage(reproj, frames[i], flow, diff);
       vil_image_view<vxl_byte> diff_byte;
