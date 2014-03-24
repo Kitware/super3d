@@ -27,6 +27,10 @@ def export_scene_lights(bl_context, file_path):
             "# vvv vvvvvvvvvvvvvvvvv vvvvvvvvvvvvvvvvvvvvvvv vvvvvvvvvvvvvvvvv vvvvvvvvvvvvvvvvv\n"
             "# str float float float float float float float float float float float float float\n"
             "#\n"
+            "# The look vector should be interpreted where the x-axis is positive towards\n"
+            "# the top of the image, the y-axis to the left and the z-axis towards the\n"
+            "# viewer.\n"
+            "#\n"
             )
 
         lamps = []
