@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
+#include "super_config.h"
 #include "super_res.h"
 
 #include <video_transforms/adjoint_dbw.h>

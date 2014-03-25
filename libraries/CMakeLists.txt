@@ -21,11 +21,13 @@ set(CXX_SRC_FILES
 )
 
 add_library(depthl ${CXX_SRC_FILES} )
-target_link_libraries(depthl vil vidtk_video_transforms vidtk_tracking imesh_algo vpgl
+target_link_libraries(depthl vil vidtk_video_transforms vidtk_tracking imesh imesh_algo vpgl
                       vnl vul vil_algo vgl_algo vbl)
 
 if(VTK_FOUND)
-  target_link_libraries(depthl vtkGraphics vtkIO)
+  include(${VTK_USE_FILE})
+  target_link_libraries(depthl ${VTK_LIBRARIES})
+#  target_link_libraries(depthl vtkGraphics vtkIO)
   set_source_files_properties(depth_map.cxx
       PROPERTIES
       COMPILE_DEFINITIONS HAVE_VTK)

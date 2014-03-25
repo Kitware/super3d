@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
+#include "super_config.h"
 #include "file_io.h"
 #include "multiscale.h"
 #include "super_res.h"

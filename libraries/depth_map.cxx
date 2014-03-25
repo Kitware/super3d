@@ -626,7 +626,7 @@ void save_depth_to_vtp(const char *filename,
   polydata->GetPointData()->AddArray(colors);
 
   vtkSmartPointer<vtkXMLPolyDataWriter> writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
-  writer->SetInput(polydata);
+  writer->SetInputData(polydata);
   writer->SetFileName(filename);
   writer->Update();
 }

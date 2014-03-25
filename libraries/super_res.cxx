@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Kitware, Inc.
+ * Copyright 2013-2014 Kitware, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -27,7 +27,7 @@
  */
 
 #include "super_res.h"
-#include "config.h"
+#include "super_config.h"
 #include <video_transforms/adjoint_image_derivs.h>
 
 

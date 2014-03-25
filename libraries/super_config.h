@@ -26,8 +26,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CONFIG_H_
-#define CONFIG_H_
+#ifndef SUPER3D_CONFIG_H_
+#define SUPER3D_CONFIG_H_
 
 #include <vcl_vector.h>
 #include <vcl_map.h>

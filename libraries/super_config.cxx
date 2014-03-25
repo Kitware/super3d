@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
+#include "super_config.h"
 
 #include <vcl_fstream.h>
 #include <vcl_algorithm.h>

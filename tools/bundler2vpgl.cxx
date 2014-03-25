@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
   polydata->SetVerts(verts);
 
   vtkSmartPointer<vtkXMLPolyDataWriter> writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
-  writer->SetInput(polydata);
+  writer->SetInputData(polydata);
   writer->SetFileName("cameras.vtp");
   writer->Update();
 #endif

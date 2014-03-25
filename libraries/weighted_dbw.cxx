@@ -31,7 +31,7 @@
 #include <video_transforms/adjoint_flow_warp.h>
 #include <video_transforms/adjoint_resample.h>
 
-#include "config.h"
+#include "super_config.h"
 
 #include <boost/bind.hpp>
 

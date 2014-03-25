@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
+#include "super_config.h"
 #include "file_io.h"
 #include "multiscale.h"
 #include "super_res.h"
@@ -445,9 +445,9 @@ void refine_homogs(vcl_vector<vgl_h_matrix_2d<double> > &homogs,
       img = frames[i];
 
     vnl_double_3x3 H = ref_H_inv * homogs[i].get_matrix();
-    vidtk::crop_homography(H, i0 - margin, j0 - margin);
+    vidtk::crop_homography_source(H, i0 - margin, j0 - margin);
     vidtk::refine_homography(refimg, img, H, 4, 100, 15);
-    vidtk::crop_homography(H, -i0 + margin, -j0 + margin);
+    vidtk::crop_homography_source(H, -i0 + margin, -j0 + margin);
 
     vil_image_view<double> warped(ni+2*margin, nj+2*margin);
     vnl_double_3x3 Hinv = vnl_inverse<double>(H);
