@@ -298,6 +298,7 @@ int main(int argc, char* argv[])
     srp.s_nj = warps[ref_frame].src_nj();
     srp.l_ni = warps[ref_frame].dst_ni();
     srp.l_nj = warps[ref_frame].dst_nj();
+
     srp.lambda = cfg->get_value<double>("lambda");
     srp.epsilon_data = cfg->get_value<double>("epsilon_data");
     srp.epsilon_reg = cfg->get_value<double>("epsilon_reg");
@@ -305,9 +306,61 @@ int main(int argc, char* argv[])
     srp.tau = cfg->get_value<double>("tau");
     const unsigned int iterations = cfg->get_value<unsigned int>("iterations");
     vcl_string output_image = cfg->get_value<vcl_string>("output_image");
-    super3d::super_resolve(frames, warps, super_u, srp, iterations, output_image);
+//    super3d::super_resolve(frames, warps, super_u, srp, iterations, output_image);
 
-    if (cfg->is_set("ground_truth"))
+    // additional parameters
+    srp.tv_method = cfg::inst()->get_value<vcl_string>("tv_method");
+    vcl_string str = cfg::inst()->get_value<vcl_string>("cost_function");
+    if( str.compare("HUMBER_NORM") == 0 )
+    {
+      srp.cost_function = super_res_params::HUBER_NORM;
+    }
+    else if( str.compare("TRUNCATED_QUADRATIC") == 0 )
+    {
+      srp.cost_function = super_res_params::TRUNCATED_QUADRATIC;
+    }
+    else if( str.compare("GENERALIZED_HUBER") == 0 )
+    {
+      srp.cost_function = super_res_params::GENERALIZED_HUBER;
+    }
+    else
+    {
+      srp.cost_function = super_res_params::HUBER_NORM;
+    }
+
+    srp.alpha_a = cfg::inst()->get_value<double>("alpha_a");
+    srp.gamma_a = cfg::inst()->get_value<double>("gamma_a");
+    srp.beta_a = cfg::inst()->get_value<double>("beta_a");
+    srp.sigma_a = cfg::inst()->get_value<double>("sigma_a");
+
+    srp.lambda_g = cfg::inst()->get_value<double>("lambda_g");
+    srp.alpha_g = cfg::inst()->get_value<double>("alpha_g");
+    srp.gamma_g = cfg::inst()->get_value<double>("gamma_g");
+    srp.beta_g = cfg::inst()->get_value<double>("beta_g");
+    srp.sigma_g = cfg::inst()->get_value<double>("sigma_g");
+
+    srp.lambda_r = cfg::inst()->get_value<double>("lambda_r");
+    srp.alpha_r = cfg::inst()->get_value<double>("alpha_r");
+    srp.gamma_r = cfg::inst()->get_value<double>("gamma_r");
+    srp.beta_r = cfg::inst()->get_value<double>("beta_r");
+    srp.sigma_r = cfg::inst()->get_value<double>("sigma_r");
+
+    srp.lambda_l = cfg::inst()->get_value<double>("lambda_l");
+    srp.alpha_l = cfg::inst()->get_value<double>("alpha_l");
+    srp.gamma_l = cfg::inst()->get_value<double>("gamma_l");
+    srp.beta_l = cfg::inst()->get_value<double>("beta_l");
+    srp.sigma_l = cfg::inst()->get_value<double>("sigma_l");
+
+    srp.sigma_pr = cfg::inst()->get_value<double>("sigma_pr");
+    srp.sigma_pl = cfg::inst()->get_value<double>("sigma_pl");
+    srp.sigma_qa = cfg::inst()->get_value<double>("sigma_qa");
+    srp.sigma_qg = cfg::inst()->get_value<double>("sigma_qg");
+    srp.sigma_A = cfg::inst()->get_value<double>("sigma_A");
+    srp.sigma_Y = cfg::inst()->get_value<double>("sigma_Y");
+
+    super3d::super_resolve(frames, warps, super_u, srp, iterations);
+
+    if (cfg::inst()->is_set("ground_truth"))
     {
       vil_math_scale_values(gt, normalizer);
       super3d::compare_to_original(ref_image, super_u, gt, scale_factor);
@@ -326,7 +379,7 @@ int main(int argc, char* argv[])
     vil_convert_stretch_range_limited(super_u, output, 0.0, 1.0);
     vil_save(output, output_image.c_str());
   }
-  catch (const super3d::config::cfg_exception &e)  {
+  catch (const super3d::cfg::cfg_exception &e)  {
     vcl_cout << "Error in config: " << e.what() << "\n";
   }
 
