@@ -181,15 +181,17 @@ int main(int argc, char* argv[])
       cwstream >> i0 >> ni >> j0 >> nj;
       vcl_cout << frames[ref_frame].ni() << " " << frames[ref_frame].nj() << "\n";
       ref_image.deep_copy(vil_crop(frames[ref_frame], i0, ni, j0, nj));
-      i0 = (int)(i0*camera_scale);
-      j0 = (int)(j0*camera_scale);
-      ni = (int)(ni*camera_scale);
-      nj = (int)(nj*camera_scale);
+      i0 = (int)(i0*scale_factor/camera_scale);
+      j0 = (int)(j0*scale_factor/camera_scale);
+      ni = (int)(ni*scale_factor/camera_scale);
+      nj = (int)(nj*scale_factor/camera_scale);
       vcl_cout << "Crop window: " << i0 << " " << ni << " " << j0 << " " << nj << "\n";
       if (config::inst()->is_set("ground_truth"))
-        gt = vil_crop(gt, i0*scale_factor, ni*scale_factor, j0*scale_factor, nj*scale_factor);
-      //depth = vil_crop(depth, i0, ni, j0, nj);
-      ref_cam = crop_camera(ref_cam, scale_factor*i0, scale_factor*j0);
+        gt = vil_crop(gt, i0, ni, j0, nj);
+
+      if (config::inst()->is_set("crop_depth") && config::inst()->get_value<bool>("crop_depth"))
+        depth = vil_crop(depth, i0, ni, j0, nj);
+      ref_cam = crop_camera(ref_cam, i0, j0);
     }
     else
     {
