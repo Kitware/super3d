@@ -36,6 +36,7 @@
 
 struct super_res_params {
   double lambda, epsilon_data, epsilon_reg, tau, sigma;
+  double lambda_a0, lambda_a1;
   unsigned int s_ni, s_nj, l_ni, l_nj;
   double scale_factor;
   unsigned int ref_frame;

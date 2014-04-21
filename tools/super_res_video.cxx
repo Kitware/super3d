@@ -112,15 +112,18 @@ int main(int argc, char* argv[])
     vcl_vector<vpgl_perspective_camera<double> >  cameras;
     vcl_vector<vcl_string> filenames;
 
-
     vcl_string camera_file = cfg->get_value<vcl_string>("camera_file");
     vcl_string frame_file = cfg->get_value<vcl_string>("frame_list");
-    vcl_string dir = cfg->get_value<vcl_string>("directory");
+    vcl_string dir("");
+    if (cfg->is_set("directory"))
+      dir = cfg->get_value<vcl_string>("directory");
+
     vcl_cout << "Using frame file: " << frame_file << " to find images and "
              << camera_file  << " to find cameras.\n";
     vcl_vector<int> frameindex;
-    load_from_frame_file(frame_file.c_str(), camera_file.c_str(), dir,
-                         filenames, frameindex, frames, cameras, cfg->get_value<bool>("use_color"));
+    load_from_frame_file(frame_file.c_str(), dir,
+                         filenames, frameindex, frames, cfg->get_value<bool>("use_color"));
+    load_cams(camera_file.c_str(), frameindex, cameras);
 
     const unsigned int ref_frame = cfg->get_value<unsigned int>("ref_frame");
     const double scale_factor = cfg->get_value<double>("scale_factor");
@@ -300,9 +303,12 @@ int main(int argc, char* argv[])
     srp.s_nj = warps[ref_frame].src_nj();
     srp.l_ni = warps[ref_frame].dst_ni();
     srp.l_nj = warps[ref_frame].dst_nj();
+
     srp.lambda = cfg->get_value<double>("lambda");
     srp.epsilon_data = cfg->get_value<double>("epsilon_data");
     srp.epsilon_reg = cfg->get_value<double>("epsilon_reg");
+    srp.lambda_a0 = cfg->get_value<double>("lambda_a0");
+    srp.lambda_a1 = cfg->get_value<double>("lambda_a1");
     srp.sigma = cfg->get_value<double>("sigma");
     srp.tau = cfg->get_value<double>("tau");
     const unsigned int iterations = cfg->get_value<unsigned int>("iterations");

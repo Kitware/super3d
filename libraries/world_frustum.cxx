@@ -130,4 +130,3 @@ vnl_double_3 world_frustum::map_normal_n2w(const vnl_double_3 &vec, const vnl_do
   normal(2) = -(normal(0) * wpt(0)) / wpt(2) - (normal(1) * wpt(1)) / wpt(2) + (vec[2]*f*n)/(wpt[2]*wpt[2]*(f-n));
   return normal.normalize();
 }
-

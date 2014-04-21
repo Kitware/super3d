@@ -67,22 +67,17 @@ load_exposure(const std::string& filename, vul_sequence_filename_map frame_seq);
 vcl_vector<vcl_pair<double,double> >
 load_exposure(const std::string& filename, const vcl_vector<int> &framelist);
 
-/// Loads images and cameras from a file list of frames paths and camera file
-/// \param framefile file that lists frame number and frame paths
-/// \param camerafile file containing perspective camera matrices indexed the same as framefile
-/// \param directory the working direction from which the framefile appends its paths to
-/// \param filenames vector of frame files that were read
-/// \param framelist vector of indices of the read frames
-/// \param frames images that were read and converted to greyscale
-/// \param cameras loaded perspective cameras
-void load_from_frame_file(const char *framefile,
-                          const char *camerafile,
-                          const vcl_string &directory,
-                          vcl_vector<vcl_string> &filenames,
-                          vcl_vector<int> &frameindex,
-                          vcl_vector<vil_image_view<double> > &frames,
-                          vcl_vector<vpgl_perspective_camera<double> > &cameras,
-                          bool color = false);
+//Load cameras from a single camera file with a framelist
+void load_cams(const char *camerafile,
+               vcl_vector<int> &framelist,
+               vcl_vector<vpgl_perspective_camera<double> > &cameras);
+
+//Load cameras from a file per camera
+//Assume cameras are in directory named %04d.krtd
+void
+load_krtd_cams(const vcl_string& directory,
+               vcl_vector<int> &framelist,
+               vcl_vector<vpgl_perspective_camera<double> > &cameras);
 
 /// Loads images from a file list of frames paths
 /// \param framefile file that lists frame number and frame paths
