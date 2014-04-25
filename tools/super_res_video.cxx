@@ -112,18 +112,32 @@ int main(int argc, char* argv[])
     vcl_vector<vpgl_perspective_camera<double> >  cameras;
     vcl_vector<vcl_string> filenames;
 
-    vcl_string camera_file = cfg->get_value<vcl_string>("camera_file");
     vcl_string frame_file = cfg->get_value<vcl_string>("frame_list");
     vcl_string dir("");
     if (cfg->is_set("directory"))
       dir = cfg->get_value<vcl_string>("directory");
-
-    vcl_cout << "Using frame file: " << frame_file << " to find images and "
-             << camera_file  << " to find cameras.\n";
     vcl_vector<int> frameindex;
-    load_from_frame_file(frame_file.c_str(), dir,
-                         filenames, frameindex, frames, cfg->get_value<bool>("use_color"));
-    load_cams(camera_file.c_str(), frameindex, cameras);
+
+    if (cfg->is_set("camera_file"))
+    {
+      vcl_string camera_file = cfg->get_value<vcl_string>("camera_file");
+      vcl_cout << "Using frame file: " << frame_file << " to find images and " << camera_file  << " to find cameras.\n";
+      load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames);
+      load_cams(camera_file.c_str(), frameindex, cameras);
+    }
+    else if (cfg->is_set("camera_dir"))
+    {
+      vcl_string camera_dir = cfg->get_value<vcl_string>("camera_dir");
+      vcl_cout << "Using frame file: " << frame_file << " to find images and " << camera_dir  << " to find cameras.\n";
+
+      load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames);
+      load_krtd_cams(camera_dir.c_str(), frameindex, cameras);
+    }
+    else
+    {
+      vcl_cerr << "Error: must use camera_file or camera_dir.\n";
+      return -1;
+    }
 
     const unsigned int ref_frame = cfg->get_value<unsigned int>("ref_frame");
     const double scale_factor = cfg->get_value<double>("scale_factor");
