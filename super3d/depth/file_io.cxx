@@ -30,6 +30,7 @@
 #include "multiscale.h"
 
 #include <vcl_fstream.h>
+#include <vcl_iostream.h>
 
 #include <vul/vul_file.h>
 #include <vul/vul_sequence_filename_map.h>
@@ -37,9 +38,11 @@
 #include <vil/vil_image_view.h>
 #include <vil/vil_convert.h>
 
-
 namespace super3d
 {
+
+//#include <vnl/vnl_double_3.h>
+//#include "multiscale.h"
 
 /// Load a camera file with sequence of cameras in ASCII format: i K R t
 /// where i is the frame number, K is the calibration matrix,
@@ -162,7 +165,6 @@ load_exposure(const std::string& filename, const vcl_vector<int> &framelist)
   return exposure;
 }
 
-
 /// Loads images and cameras from a file list of frames paths and camera file
 /// \param framefile file that lists frame number and frame paths
 /// \param camerafile file containing perspective camera matrices indexed the same as framefile
@@ -180,18 +182,44 @@ void load_from_frame_file(const char *framefile,
                           vcl_vector<vpgl_perspective_camera<double> > &cameras,
                           bool color)
 {
-  std::ifstream camstream(camerafile);
-  std::ifstream framestream(framefile);
-  int frame, index = 0;
-  vcl_string imagename;
-
-  while (framestream >> frame >> imagename && framestream.good())
+  vcl_cout << "Loading Cameras: ";
+  char buf[32];
+  for (unsigned int i = 0; i < framelist.size(); i++)
   {
-    framelist.push_back(frame);
-    filenames.push_back(imagename);
-  }
-  framestream.close();
+    sprintf(buf, "%04d.krtd", framelist[i]);
+    vcl_cout << buf << " ";
+    vcl_fstream ifs((directory + buf).c_str());
 
+    vpgl_perspective_camera<double> cam;
+    vnl_double_3x3 K, R;
+    vgl_vector_3d<double> t;
+
+    ifs >> K >> R >> t;
+    ifs.close();
+
+    cam.set_calibration(vpgl_calibration_matrix<double>(K));
+    cam.set_rotation(vgl_rotation_3d<double>(R));
+    cam.set_translation(t);
+
+    vpgl_calibration_matrix<double> cal = cam.get_calibration();
+    cal.set_focal_length(cal.focal_length() * cal.x_scale());
+    cal.set_y_scale(cal.y_scale() / cal.x_scale());
+    cal.set_x_scale(1.0);
+    cam.set_calibration(cal);
+
+    cameras.push_back(cam);
+  }
+
+  vcl_cout << "\n";
+}
+
+//Load cameras from a single camera file with a framelist
+void load_cams(const char *camerafile,
+               vcl_vector<int> &framelist,
+               vcl_vector<vpgl_perspective_camera<double> > &cameras)
+{
+  std::ifstream camstream(camerafile);
+  int frame;
   vcl_cout << "Looking for " << framelist.size() << " frames.\n";
 
   int cur = 0;
@@ -214,33 +242,9 @@ void load_from_frame_file(const char *framefile,
 
     cameras.push_back(cam);
   }
+
   camstream.close();
-
-  int last_frame = framelist.back();
-
   vcl_cout << "Loaded " << cameras.size() << " cameras.\n";
-
-  int cam = 0;
-  for (int i = 0; i < filenames.size(); i++)
-  {
-    vcl_cout << "Reading: " << filenames[i];
-    vil_image_resource_sptr img_rsc = vil_load_image_resource((directory + filenames[i]).c_str());
-    if (img_rsc != NULL)
-    {
-      vil_image_view<vxl_byte> img = img_rsc->get_view();
-
-     vil_image_view<double> flt;
-      if (img.nplanes() == 3 && !color)
-        vil_convert_planes_to_grey(img, flt);
-      else
-        vil_convert_cast(img, flt);
-      frames.push_back(flt);
-    }
-    else
-      std::cout << " NOT FOUND.";
-
-    std::cout << "\n";
-  }
 }
 
 
@@ -261,6 +265,7 @@ void load_from_frame_file(const char *framefile,
   std::ifstream framestream(framefile);
   int frame, index = 0;
 
+  vcl_cout << "Reading frames: ";
   while (framestream.good())
   {
     framestream >> frame;
@@ -269,7 +274,7 @@ void load_from_frame_file(const char *framefile,
     framelist.push_back(frame);
     filenames.push_back(imagename);
 
-    vcl_cout << "Reading: " << imagename;
+    vcl_cout << frame << " ";
     vil_image_resource_sptr img_rsc = vil_load_image_resource((directory + imagename).c_str());
     if (img_rsc != NULL)
     {
@@ -298,10 +303,10 @@ void load_from_frame_file(const char *framefile,
       frames.push_back(flt);
     }
     else
-      vcl_cout << " NOT FOUND.";
-    vcl_cout << "\n";
+      vcl_cout << "\n" << (directory + imagename) << " NOT FOUND.\n";
   }
 
+  vcl_cout << "\n";
   framestream.close();
 }
 
