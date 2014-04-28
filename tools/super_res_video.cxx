@@ -111,7 +111,6 @@ int main(int argc, char* argv[])
     vcl_vector<vpgl_perspective_camera<double> >  cameras;
     vcl_vector<vcl_string> filenames;
 
-
     vcl_string camera_file = cfg->get_value<vcl_string>("camera_file");
     vcl_string frame_file = cfg->get_value<vcl_string>("frame_list");
     vcl_string dir = cfg->get_value<vcl_string>("directory");
