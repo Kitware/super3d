@@ -309,7 +309,34 @@ int main(int argc, char* argv[])
 //    super3d::super_resolve(frames, warps, super_u, srp, iterations, output_image);
 
     // additional parameters
-    srp.tv_method = cfg::inst()->get_value<vcl_string>("tv_method");
+    vcl_string tv_method_str = cfg::inst()->get_value<vcl_string>("tv_method");
+    if( tv_method_str.compare("SUPER3D_BASELINE") == 0 )
+    {
+      srp.tv_method = super_res_params::SUPER3D_BASELINE;
+    }
+    else if ( tv_method_str.compare("IMAGEDATA_IMAGEPRIOR") == 0 )
+    {
+      srp.tv_method = super_res_params::IMAGEDATA_IMAGEPRIOR;
+    }
+    else if ( tv_method_str.compare("GRADIENTDATA_IMAGEPRIOR") == 0 )
+    {
+      srp.tv_method = super_res_params::GRADIENTDATA_IMAGEPRIOR;
+    }
+    else if ( tv_method_str.compare("IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR") == 0 )
+    {
+      srp.tv_method = super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR;
+    }
+    else if ( tv_method_str.compare("IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR") == 0 )
+    {
+      srp.tv_method = super_res_params::IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR;
+    }
+    else
+    {
+      vcl_cerr << "unknown tv method\n";
+      return(-1);
+    }
+    vcl_cout << "tv method : " << tv_method_str << vcl_endl;
+
     vcl_string str = cfg::inst()->get_value<vcl_string>("cost_function");
     if( str.compare("HUMBER_NORM") == 0 )
     {
@@ -325,8 +352,10 @@ int main(int argc, char* argv[])
     }
     else
     {
-      srp.cost_function = super_res_params::HUBER_NORM;
+      vcl_cerr << "unknown cost function\n";
+      return(-1);
     }
+    vcl_cout << "cost function : " << str << vcl_endl;
 
     srp.alpha_a = cfg::inst()->get_value<double>("alpha_a");
     srp.gamma_a = cfg::inst()->get_value<double>("gamma_a");
@@ -358,7 +387,8 @@ int main(int argc, char* argv[])
     srp.sigma_A = cfg::inst()->get_value<double>("sigma_A");
     srp.sigma_Y = cfg::inst()->get_value<double>("sigma_Y");
 
-    super3d::super_resolve(frames, warps, super_u, srp, iterations);
+    vcl_vector< vil_image_view<double> > As;
+    super3d::super_resolve_robust(frames, warps, super_u, srp, iterations, As);
 
     if (cfg::inst()->is_set("ground_truth"))
     {

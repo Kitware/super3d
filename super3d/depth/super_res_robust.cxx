@@ -40,7 +40,7 @@ void dual_step_pr(const vil_image_view<double> &u_bar,
     vil_transform( work, rho_truncated_quadratic_functor(srp.alpha_r, srp.gamma_r) );
     break;
   case super_res_params::GENERALIZED_HUBER:
-    denom = 1.0;  // fix me
+    denom = 1.0 + srp.sigma_pr / (2.0 * srp.gamma_r * srp.lambda_r );
     vil_transform( work, rho_generalized_huber_functor(srp.alpha_r, srp.beta_r, srp.gamma_r) );
     break;
   }
@@ -73,7 +73,7 @@ void dual_step_pl(const vil_image_view<double> &u_bar,
                   const super_res_params &srp)
 {
   vil_image_view<double> work;
-  vidtk::forward_gradient(u_bar, work);
+  vidtk::forward_gradient(u_bar, work);  // fix me
 
   double denom;
   switch( srp.cost_function )
@@ -86,7 +86,7 @@ void dual_step_pl(const vil_image_view<double> &u_bar,
     vil_transform( work, rho_truncated_quadratic_functor(srp.alpha_l, srp.gamma_l) );
     break;
   case super_res_params::GENERALIZED_HUBER:
-    denom = 1.0;  // fix me
+    denom = 1.0 + srp.sigma_pl / (2.0 * srp.gamma_l * srp.lambda_l );
     vil_transform( work, rho_generalized_huber_functor(srp.alpha_l, srp.beta_l, srp.gamma_l) );
     break;
   }
@@ -132,10 +132,8 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
     denom = 1.0 + ( srp.sigma_qa * srp.alpha_a) / sf_2;
     break;
   case super_res_params::TRUNCATED_QUADRATIC:
-    denom = 1.0 + srp.sigma_qa / (2.0 * srp.gamma_a * sf_2 );
-    break;
   case super_res_params::GENERALIZED_HUBER:
-    denom = 1.0;  // fix me
+    denom = 1.0 + srp.sigma_qa / (2.0 * srp.gamma_a * sf_2 );
     break;
   }
 
@@ -161,9 +159,6 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
 
     vil_math_truncate_range( qa[f], -sf_2, sf_2 );
 
-//          qfijk = (qfijk + srp.sigma / sf_2 * (l_u(i, j, k) - frames[f](i, j, k) * weights[f](i,j)))/denom;
-//          qfijk = vcl_max(qfijk, -sf_2);
-//          qfijk = vcl_min(qfijk, sf_2);
   }
 }
 
@@ -183,13 +178,11 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
   switch( srp.cost_function )
   {
   case super_res_params::HUBER_NORM:
-    denom = 1.0 + ( srp.sigma_qg * srp.alpha_g) / sf_2;
+    denom = 1.0 + ( srp.sigma_qg * srp.alpha_g) / ( srp.lambda_g * sf_2);
     break;
   case super_res_params::TRUNCATED_QUADRATIC:
-    denom = 1.0 + srp.sigma_qg / (2.0 * srp.gamma_g * sf_2 );
-    break;
   case super_res_params::GENERALIZED_HUBER:
-    denom = 1.0;  // fix me
+    denom = 1.0 + srp.sigma_qg / (2.0 * srp.gamma_g * srp.lambda_g * sf_2 );
     break;
   }
 
@@ -216,36 +209,46 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
     vil_math_add_image_fraction(qg[f], 1.0/denom, dot_mask, srp.sigma_qg * sf_2 / denom);
 
     vil_math_truncate_range( qg[f], -sf_2, sf_2 );
-
-//          qfijk = (qfijk + srp.sigma / sf_2 * (l_u(i, j, k) - gradient_frames[f](i, j, k) * weights[f](i,j)))/denom;
-//          qfijk = vcl_max(qfijk, -sf_2);
-//          qfijk = vcl_min(qfijk, sf_2);
   }
 }
 
 //*****************************************************************************
 
-void primal_step_u(const vcl_vector<vil_image_view<double> > &q,
+void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
+                   const vcl_vector<vil_image_view<double> > &qg,
                    const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
-                   const vil_image_view<double> &p,
+                   const vil_image_view<double> &pr,
                    vil_image_view<double> &u,
                    vil_image_view<double> &u_bar,
                    const super_res_params &srp)
 {
+  vil_image_view<double> work, div;
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
-  vil_image_view<double> sum_super_q(srp.s_ni, srp.s_nj, u.nplanes());
-  sum_super_q.fill(0.0);
-  vil_image_view<double> super_q(srp.s_ni, srp.s_nj, u.nplanes()), temp;
-  for (unsigned int i = 0; i < q.size(); i++)
+
+  vil_image_view<double> sum_super_qa(srp.s_ni, srp.s_nj, u.nplanes());
+  sum_super_qa.fill(0.0);
+  for (unsigned int i = 0; i < qa.size(); i++)
   {
     // apply transpose linear operator to upsample, blur, and warp
-    warps[i].apply_At(q[i], super_q);
-    vil_math_image_sum(sum_super_q, super_q, sum_super_q);
+    vil_image_view<double> super_qa(srp.s_ni, srp.s_nj, u.nplanes());
+    warps[i].apply_At(qa[i], super_qa);
+    vil_math_image_sum(sum_super_qa, super_qa, sum_super_qa);
   }
 
-  vil_image_view<double> work;
-  vidtk::backward_divergence(p, work);
-  vil_math_add_image_fraction(work, srp.tau, sum_super_q, -srp.tau * sf_2);
+  vil_image_view<double> sum_super_qg(srp.s_ni, srp.s_nj, u.nplanes());
+  sum_super_qg.fill(0.0);
+  for (unsigned int i = 0; i < qg.size(); i++)
+  {
+    // apply transpose linear operator to upsample, blur, and warp
+    vil_image_view<double> super_qg( srp.s_ni, srp.s_nj, u.nplanes() );
+    vidtk::backward_divergence(qg[i], div);
+    warps[i].apply_At(div, super_qg);
+    vil_math_image_sum(sum_super_qg, super_qg, sum_super_qg);
+  }
+  vil_math_add_image_fraction(sum_super_qa, 1.0, sum_super_qg, -1.0);
+
+  vidtk::backward_divergence(pr, work);
+  vil_math_add_image_fraction(work, srp.tau, sum_super_qa, -srp.tau * sf_2);
   vil_math_image_sum(u, work, work);
   u_bar.deep_copy(work);
   vil_math_add_image_fraction(u_bar, 2.0, u, -1.0);
@@ -262,48 +265,6 @@ void super_resolve_robust(
   unsigned int iterations,
   vcl_vector< vil_image_view<double> > &As)
 {
-
-  if( srp.tv_method.compare("imagedata_imageprior") == 0 && srp.cost_function == super_res_params::HUBER_NORM )
-    return super_resolve( frames, warps, Y, srp, iterations );
-
-  // determine tv_method
-  if( srp.tv_method.compare("imagedata_imageprior") == 0 )
-  {
-    srp.image_data_1=false;
-    srp.image_data_N=true;
-    srp.gradient_data=false;
-    srp.image_prior=true;
-    srp.illumination_prior=false;
-  }
-  else if ( srp.tv_method.compare("gradientdata_imageprior") == 0 )
-  {
-    srp.image_data_1=true;
-    srp.image_data_N=false;
-    srp.gradient_data=true;
-    srp.image_prior=true;
-    srp.illumination_prior=false;
-  }
-  else if ( srp.tv_method.compare("imagedata_imageprior_illuminationprior") == 0 )
-  {
-    srp.image_data_1=false;
-    srp.image_data_N=true;
-    srp.gradient_data=false;
-    srp.image_prior=true;
-    srp.illumination_prior=true;
-  }
-  else if ( srp.tv_method.compare("imagedata_radientdata_imageprior_illuminationprior") == 0 )
-  {
-    srp.image_data_1=false;
-    srp.image_data_N=true;
-    srp.gradient_data=true;
-    srp.image_prior=true;
-    srp.illumination_prior=true;
-  }
-  else
-  {
-    vcl_cerr << "unknow tv method.\n";
-    return;
-  }
 
   // determine cost_function
   switch( srp.cost_function )
@@ -347,16 +308,27 @@ void super_resolve_robust(
     u.fill(0.0);
   }
 
-  vil_image_view<double> p(srp.s_ni, srp.s_nj, 2*np);
-  p.fill(0.0);
+  vil_image_view<double> pr(srp.s_ni, srp.s_nj, 2*np);
+  pr.fill(0.0);
 
-  vcl_vector<vil_image_view<double> > q(frames.size());
+  vcl_vector<vil_image_view<double> > qa(frames.size());
+  vcl_vector<vil_image_view<double> > qg(frames.size());
+  vcl_vector<vil_image_view<double> > pl(frames.size());
   vcl_vector<vil_image_view<double> > weights;
+
   for (unsigned int i = 0; i < frames.size(); i++)
   {
     vcl_cout << warps[i].dst_ni() << " " << warps[i].dst_nj() << "\n";
-    q[i].set_size(warps[i].dst_ni(), warps[i].dst_nj(), np);
-    q[i].fill(0.0);
+
+    qa[i].set_size(warps[i].dst_ni(), warps[i].dst_nj(), np);
+    qa[i].fill(0.0);
+
+    qg[i].set_size(warps[i].dst_ni(), warps[i].dst_nj(), np);
+    qg[i].fill(0.0);
+
+    pl[i].set_size(srp.s_ni, srp.s_nj, 2*np);
+    pl[i].fill(0.0);
+
     weights.push_back(warps[i].weight_map());
   }
 
@@ -369,12 +341,66 @@ void super_resolve_robust(
   vil_image_view<vxl_byte> output;
 #endif
 
+  vcl_vector< vil_image_view<double> > frames_gradient;
+  vil_image_view<double> work;
+  for( unsigned int i=0; i<frames.size(); i++ )
+  {
+    vidtk::forward_gradient(frames[i], work);
+    frames_gradient.push_back( work );
+  }
+
   do
   {
     vcl_cout << "Iteration: " << i;
-    dual_step_pr(u, p, srp);
-    dual_step_qa(frames, warps, weights, u, q, srp);
-    primal_step_u(q, warps, p, u, u_bar, srp);
+    switch( srp.tv_method )
+    {
+    case super_res_params::SUPER3D_BASELINE:
+      return super_resolve( frames, warps, Y, srp, iterations );
+      break;
+
+    case super_res_params::IMAGEDATA_IMAGEPRIOR:
+      srp.image_data_1=false;
+      srp.image_data_N=true;
+      srp.gradient_data=false;
+      srp.image_prior=true;
+      srp.illumination_prior=false;
+
+      dual_step_pr(u, pr, srp);
+      dual_step_qa(frames, warps, weights, u, qa, srp);
+      primal_step_Y(qa, qg, warps, pr, u, u_bar, srp);
+      break;
+
+    case super_res_params::GRADIENTDATA_IMAGEPRIOR:
+      srp.image_data_1=true;
+      srp.image_data_N=false;
+      srp.gradient_data=true;
+      srp.image_prior=true;
+      srp.illumination_prior=false;
+
+      dual_step_pr(u, pr, srp);
+      dual_step_qa(frames, warps, weights, u, qa, srp);
+      dual_step_qg(frames_gradient, warps, weights, u, qg, srp);
+      primal_step_Y(qa, qg, warps, pr, u, u_bar, srp);
+      break;
+
+    case super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
+      srp.image_data_1=false;
+      srp.image_data_N=true;
+      srp.gradient_data=false;
+      srp.image_prior=true;
+      srp.illumination_prior=true;
+      break;
+    case super_res_params::IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
+      srp.image_data_1=false;
+      srp.image_data_N=true;
+      srp.gradient_data=true;
+      srp.image_prior=true;
+      srp.illumination_prior=true;
+      break;
+    default:
+      vcl_cerr << "unknown tv method.\n";
+      return;
+    }
 
     double minv, maxv;
     vil_math_value_range(u, minv, maxv);

@@ -47,9 +47,15 @@ struct super_res_params {
   unsigned int ref_frame;
 
   // illumination robust optimization parameters
-  // imagedata_imageprior; gradientdata_imageprior;
-  // imagedata_imageprior_illuminationprior; imagedata_radientdata_imageprior_illuminationprior
-  vcl_string tv_method;
+  enum TV_METHOD
+  {
+    SUPER3D_BASELINE=0,
+    IMAGEDATA_IMAGEPRIOR,
+    GRADIENTDATA_IMAGEPRIOR,
+    IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR,
+    IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR
+  } tv_method;
+
   bool image_data_1, image_data_N, gradient_data, image_prior, illumination_prior;
 
   // 0:huber_norm; 1:truncated_quadratic; 2:generalized_huber
