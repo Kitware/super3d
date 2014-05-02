@@ -67,16 +67,16 @@ struct super_res_params {
   } cost_function;
 
   // image data term (lambda, alpha, beta, gamma)
-  double alpha_a, gamma_a, beta_a, sigma_a;
+  double alpha_a, gamma_a, beta_a;
 
   // gradient data term (lambda, alpha, beta, gamma)
-  double lambda_g, alpha_g, gamma_g, beta_g, sigma_g;
+  double lambda_g, alpha_g, gamma_g, beta_g;
 
   // image prior term (lambda, alpha, beta, gamma)
-  double lambda_r, alpha_r, gamma_r, beta_r, sigma_r;
+  double lambda_r, alpha_r, gamma_r, beta_r;
 
   // illumination prior term (lambda, alpha, beta, gamma)
-  double lambda_l, alpha_l, gamma_l, beta_l, sigma_l;
+  double lambda_l, alpha_l, gamma_l, beta_l;
 
   // dual space
   double sigma_pr, sigma_pl, sigma_qa, sigma_qg, sigma_A, sigma_Y;

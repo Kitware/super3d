@@ -235,17 +235,20 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
     vil_math_image_sum(sum_super_qa, super_qa, sum_super_qa);
   }
 
-  vil_image_view<double> sum_super_qg(srp.s_ni, srp.s_nj, u.nplanes());
-  sum_super_qg.fill(0.0);
-  for (unsigned int i = 0; i < qg.size(); i++)
+  if( srp.gradient_data )
   {
-    // apply transpose linear operator to upsample, blur, and warp
-    vil_image_view<double> super_qg( srp.s_ni, srp.s_nj, u.nplanes() );
-    vidtk::backward_divergence(qg[i], div);
-    warps[i].apply_At(div, super_qg);
-    vil_math_image_sum(sum_super_qg, super_qg, sum_super_qg);
+    vil_image_view<double> sum_super_qg(srp.s_ni, srp.s_nj, u.nplanes());
+    sum_super_qg.fill(0.0);
+    for (unsigned int i = 0; i < qg.size(); i++)
+    {
+      // apply transpose linear operator to upsample, blur, and warp
+      vil_image_view<double> super_qg( srp.s_ni, srp.s_nj, u.nplanes() );
+      vidtk::backward_divergence(qg[i], div);
+      warps[i].apply_At(div, super_qg);
+      vil_math_image_sum(sum_super_qg, super_qg, sum_super_qg);
+    }
+    vil_math_add_image_fraction(sum_super_qa, 1.0, sum_super_qg, -1.0);
   }
-  vil_math_add_image_fraction(sum_super_qa, 1.0, sum_super_qg, -1.0);
 
   vidtk::backward_divergence(pr, work);
   vil_math_add_image_fraction(work, srp.tau, sum_super_qa, -srp.tau * sf_2);
@@ -265,6 +268,9 @@ void super_resolve_robust(
   unsigned int iterations,
   vcl_vector< vil_image_view<double> > &As)
 {
+
+  if( srp.tv_method == super_res_params::SUPER3D_BASELINE )
+    return super_resolve( frames, warps, Y, srp, iterations );
 
   // determine cost_function
   switch( srp.cost_function )
@@ -349,34 +355,53 @@ void super_resolve_robust(
     frames_gradient.push_back( work );
   }
 
+  switch( srp.tv_method )
+  {
+  case super_res_params::IMAGEDATA_IMAGEPRIOR:
+    srp.image_data_1=false;
+    srp.image_data_N=true;
+    srp.gradient_data=false;
+    srp.image_prior=true;
+    srp.illumination_prior=false;
+    break;
+  case super_res_params::GRADIENTDATA_IMAGEPRIOR:
+    srp.image_data_1=true;
+    srp.image_data_N=false;
+    srp.gradient_data=true;
+    srp.image_prior=true;
+    srp.illumination_prior=false;
+    break;
+  case super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
+    srp.image_data_1=false;
+    srp.image_data_N=true;
+    srp.gradient_data=false;
+    srp.image_prior=true;
+    srp.illumination_prior=true;
+    break;
+  case super_res_params::IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
+    srp.image_data_1=false;
+    srp.image_data_N=true;
+    srp.gradient_data=true;
+    srp.image_prior=true;
+    srp.illumination_prior=true;
+    break;
+  default:
+    vcl_cerr << "unknown tv method.\n";
+    return;
+  }
+
   do
   {
     vcl_cout << "Iteration: " << i;
     switch( srp.tv_method )
     {
-    case super_res_params::SUPER3D_BASELINE:
-      return super_resolve( frames, warps, Y, srp, iterations );
-      break;
-
     case super_res_params::IMAGEDATA_IMAGEPRIOR:
-      srp.image_data_1=false;
-      srp.image_data_N=true;
-      srp.gradient_data=false;
-      srp.image_prior=true;
-      srp.illumination_prior=false;
-
       dual_step_pr(u, pr, srp);
       dual_step_qa(frames, warps, weights, u, qa, srp);
       primal_step_Y(qa, qg, warps, pr, u, u_bar, srp);
       break;
 
     case super_res_params::GRADIENTDATA_IMAGEPRIOR:
-      srp.image_data_1=true;
-      srp.image_data_N=false;
-      srp.gradient_data=true;
-      srp.image_prior=true;
-      srp.illumination_prior=false;
-
       dual_step_pr(u, pr, srp);
       dual_step_qa(frames, warps, weights, u, qa, srp);
       dual_step_qg(frames_gradient, warps, weights, u, qg, srp);
@@ -384,19 +409,7 @@ void super_resolve_robust(
       break;
 
     case super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
-      srp.image_data_1=false;
-      srp.image_data_N=true;
-      srp.gradient_data=false;
-      srp.image_prior=true;
-      srp.illumination_prior=true;
-      break;
     case super_res_params::IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
-      srp.image_data_1=false;
-      srp.image_data_N=true;
-      srp.gradient_data=true;
-      srp.image_prior=true;
-      srp.illumination_prior=true;
-      break;
     default:
       vcl_cerr << "unknown tv method.\n";
       return;

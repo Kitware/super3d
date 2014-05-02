@@ -357,35 +357,52 @@ int main(int argc, char* argv[])
     }
     vcl_cout << "cost function : " << str << vcl_endl;
 
-    srp.alpha_a = cfg::inst()->get_value<double>("alpha_a");
-    srp.gamma_a = cfg::inst()->get_value<double>("gamma_a");
-    srp.beta_a = cfg::inst()->get_value<double>("beta_a");
-    srp.sigma_a = cfg::inst()->get_value<double>("sigma_a");
+    if (cfg::inst()->is_set("alpha_a"))
+      srp.alpha_a = cfg::inst()->get_value<double>("alpha_a");
+    if (cfg::inst()->is_set("gamma_a"))
+      srp.gamma_a = cfg::inst()->get_value<double>("gamma_a");
+    if (cfg::inst()->is_set("beta_a"))
+      srp.beta_a = cfg::inst()->get_value<double>("beta_a");
 
-    srp.lambda_g = cfg::inst()->get_value<double>("lambda_g");
-    srp.alpha_g = cfg::inst()->get_value<double>("alpha_g");
-    srp.gamma_g = cfg::inst()->get_value<double>("gamma_g");
-    srp.beta_g = cfg::inst()->get_value<double>("beta_g");
-    srp.sigma_g = cfg::inst()->get_value<double>("sigma_g");
+    if (cfg::inst()->is_set("lambda_g"))
+      srp.lambda_g = cfg::inst()->get_value<double>("lambda_g");
+    if (cfg::inst()->is_set("alpha_g"))
+      srp.alpha_g = cfg::inst()->get_value<double>("alpha_g");
+    if (cfg::inst()->is_set("gamma_g"))
+      srp.gamma_g = cfg::inst()->get_value<double>("gamma_g");
+    if (cfg::inst()->is_set("beta_g"))
+      srp.beta_g = cfg::inst()->get_value<double>("beta_g");
 
-    srp.lambda_r = cfg::inst()->get_value<double>("lambda_r");
-    srp.alpha_r = cfg::inst()->get_value<double>("alpha_r");
-    srp.gamma_r = cfg::inst()->get_value<double>("gamma_r");
-    srp.beta_r = cfg::inst()->get_value<double>("beta_r");
-    srp.sigma_r = cfg::inst()->get_value<double>("sigma_r");
+    if (cfg::inst()->is_set("lambda_r"))
+      srp.lambda_r = cfg::inst()->get_value<double>("lambda_r");
+    if (cfg::inst()->is_set("alpha_r"))
+      srp.alpha_r = cfg::inst()->get_value<double>("alpha_r");
+    if (cfg::inst()->is_set("gamma_r"))
+      srp.gamma_r = cfg::inst()->get_value<double>("gamma_r");
+    if (cfg::inst()->is_set("beta_r"))
+      srp.beta_r = cfg::inst()->get_value<double>("beta_r");
 
-    srp.lambda_l = cfg::inst()->get_value<double>("lambda_l");
-    srp.alpha_l = cfg::inst()->get_value<double>("alpha_l");
-    srp.gamma_l = cfg::inst()->get_value<double>("gamma_l");
-    srp.beta_l = cfg::inst()->get_value<double>("beta_l");
-    srp.sigma_l = cfg::inst()->get_value<double>("sigma_l");
+    if (cfg::inst()->is_set("lambda_l"))
+      srp.lambda_l = cfg::inst()->get_value<double>("lambda_l");
+    if (cfg::inst()->is_set("alpha_l"))
+      srp.alpha_l = cfg::inst()->get_value<double>("alpha_l");
+    if (cfg::inst()->is_set("gamma_l"))
+      srp.gamma_l = cfg::inst()->get_value<double>("gamma_l");
+    if (cfg::inst()->is_set("beta_l"))
+      srp.beta_l = cfg::inst()->get_value<double>("beta_l");
 
-    srp.sigma_pr = cfg::inst()->get_value<double>("sigma_pr");
-    srp.sigma_pl = cfg::inst()->get_value<double>("sigma_pl");
-    srp.sigma_qa = cfg::inst()->get_value<double>("sigma_qa");
-    srp.sigma_qg = cfg::inst()->get_value<double>("sigma_qg");
-    srp.sigma_A = cfg::inst()->get_value<double>("sigma_A");
-    srp.sigma_Y = cfg::inst()->get_value<double>("sigma_Y");
+    if (cfg::inst()->is_set("sigma_pr"))
+      srp.sigma_pr = cfg::inst()->get_value<double>("sigma_pr");
+    if (cfg::inst()->is_set("sigma_pl"))
+      srp.sigma_pl = cfg::inst()->get_value<double>("sigma_pl");
+    if (cfg::inst()->is_set("sigma_qa"))
+      srp.sigma_qa = cfg::inst()->get_value<double>("sigma_qa");
+    if (cfg::inst()->is_set("sigma_qg"))
+      srp.sigma_qg = cfg::inst()->get_value<double>("sigma_qg");
+    if (cfg::inst()->is_set("sigma_A"))
+      srp.sigma_A = cfg::inst()->get_value<double>("sigma_A");
+    if (cfg::inst()->is_set("sigma_Y"))
+      srp.sigma_Y = cfg::inst()->get_value<double>("sigma_Y");
 
     vcl_vector< vil_image_view<double> > As;
     super3d::super_resolve_robust(frames, warps, super_u, srp, iterations, As);
