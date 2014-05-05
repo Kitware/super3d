@@ -227,8 +227,20 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
 
   vil_image_view<double> sum_super_qa(srp.s_ni, srp.s_nj, u.nplanes());
   sum_super_qa.fill(0.0);
-  for (unsigned int i = 0; i < qa.size(); i++)
+
+  if( srp.image_data_N )
   {
+    for (unsigned int i = 0; i < qa.size(); i++)
+    {
+      // apply transpose linear operator to upsample, blur, and warp
+      vil_image_view<double> super_qa(srp.s_ni, srp.s_nj, u.nplanes());
+      warps[i].apply_At(qa[i], super_qa);
+      vil_math_image_sum(sum_super_qa, super_qa, sum_super_qa);
+    }
+  }
+  else if( srp.image_data_1 )
+  {
+    unsigned int i=0;
     // apply transpose linear operator to upsample, blur, and warp
     vil_image_view<double> super_qa(srp.s_ni, srp.s_nj, u.nplanes());
     warps[i].apply_At(qa[i], super_qa);
