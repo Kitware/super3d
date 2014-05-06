@@ -45,7 +45,7 @@ void dual_step_pr(const vil_image_view<double> &u_bar,
     break;
   }
 
-//  vil_math_add_image_fraction(pr, 1.0/denom, work, srp.sigma_pr/denom);
+  vil_math_add_image_fraction(pr, 1.0/denom, work, srp.sigma_pr/denom);
 
   for (unsigned int j = 0; j < srp.s_nj; j++)
   {
@@ -57,8 +57,8 @@ void dual_step_pr(const vil_image_view<double> &u_bar,
         const unsigned k1=k2+1;
         double &x = pr(i,j,k2), &y = pr(i,j,k1);
 
-        x = ( x + srp.sigma_pr * work(i,j,k2) ) / denom;
-        y = ( y + srp.sigma_pr * work(i,j,k1) ) / denom;
+//        x = ( x + srp.sigma_pr * work(i,j,k2) ) / denom;
+//        y = ( y + srp.sigma_pr * work(i,j,k1) ) / denom;
 
         //truncate vectors
         const double mag = sqrt(x*x + y*y)/srp.lambda_r;
@@ -220,7 +220,7 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
                   vcl_vector<vil_image_view<double> > &qg,
                   const super_res_params &srp)
 {
-  vil_image_view<double> l_u, gradient_lu, work, dot_mask;
+  vil_image_view<double> l_u, work, dot_mask;
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
 
   double denom;
@@ -242,6 +242,7 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
 
     // apply the linear operator to warp, blur, and downsample
     warps[f].apply_A(u_bar, l_u);
+    vil_image_view<double> gradient_lu;
     vidtk::forward_gradient(l_u, gradient_lu);
 
 //    vil_math_image_difference( gradient_lu, gradient_frames[f], work );
@@ -307,24 +308,24 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
   vil_image_view<double> sum_super_qa(srp.s_ni, srp.s_nj, u.nplanes());
   sum_super_qa.fill(0.0);
 
-  if( srp.image_data_N )
-  {
+  vil_image_view<double> super_qa(srp.s_ni, srp.s_nj, u.nplanes());
+//  if( srp.image_data_N )
+//  {
     for (unsigned int i = 0; i < qa.size(); i++)
     {
       // apply transpose linear operator to upsample, blur, and warp
-      vil_image_view<double> super_qa(srp.s_ni, srp.s_nj, u.nplanes());
       warps[i].apply_At(qa[i], super_qa);
       vil_math_image_sum(sum_super_qa, super_qa, sum_super_qa);
     }
-  }
-  else if( srp.image_data_1 )
-  {
-    unsigned int i=0;
+//  }
+//  else if( srp.image_data_1 )
+//  {
+//    unsigned int i=0;
     // apply transpose linear operator to upsample, blur, and warp
-    vil_image_view<double> super_qa(srp.s_ni, srp.s_nj, u.nplanes());
-    warps[i].apply_At(qa[i], super_qa);
-    vil_math_image_sum(sum_super_qa, super_qa, sum_super_qa);
-  }
+//    vil_image_view<double> super_qa(srp.s_ni, srp.s_nj, u.nplanes());
+//    warps[i].apply_At(qa[i], super_qa);
+//    vil_math_image_sum(sum_super_qa, super_qa, sum_super_qa);
+//  }
 
     /*
   if( srp.gradient_data )
@@ -422,7 +423,7 @@ void super_resolve_robust(
     qa[i].set_size(warps[i].dst_ni(), warps[i].dst_nj(), np);
     qa[i].fill(0.0);
 
-    qg[i].set_size(warps[i].dst_ni(), warps[i].dst_nj(), np);
+    qg[i].set_size(warps[i].dst_ni(), warps[i].dst_nj(), 2*np);
     qg[i].fill(0.0);
 
     pl[i].set_size(srp.s_ni, srp.s_nj, 2*np);
