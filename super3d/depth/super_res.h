@@ -80,10 +80,6 @@ struct super_res_params {
 
   // dual space
   double sigma_pr, sigma_pl, sigma_qa, sigma_qg, sigma_A, sigma_Y;
-
-  // robust functions
-  double (*rho)( const vcl_vector<double>& params, double x);  // function iteslef
-  double (*psi)( const vcl_vector<double>& params, double x);  // first order derivative
 };
 
 SUPER3D_DEPTH_EXPORT
