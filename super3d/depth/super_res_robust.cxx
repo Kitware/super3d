@@ -37,11 +37,11 @@ void dual_step_pr(const vil_image_view<double> &u_bar,
     break;
   case super_res_params::TRUNCATED_QUADRATIC:
     denom = 1.0 + srp.sigma_pr / (2.0 * srp.gamma_r * srp.lambda_r );
-    vil_transform( work, rho_truncated_quadratic_functor(srp.alpha_r, srp.gamma_r) );
+//    vil_transform( work, rho_truncated_quadratic_functor(srp.alpha_r, srp.gamma_r) );
     break;
   case super_res_params::GENERALIZED_HUBER:
     denom = 1.0 + srp.sigma_pr / (2.0 * srp.gamma_r * srp.lambda_r );
-    vil_transform( work, rho_generalized_huber_functor(srp.alpha_r, srp.beta_r, srp.gamma_r) );
+//    vil_transform( work, rho_generalized_huber_functor(srp.alpha_r, srp.beta_r, srp.gamma_r) );
     break;
   }
 
@@ -55,12 +55,26 @@ void dual_step_pr(const vil_image_view<double> &u_bar,
       {
         const unsigned k2=2*k;
         const unsigned k1=k2+1;
-        double &x = pr(i,j,k2), &y = pr(i,j,k1);
+        double work1 = work(i,j,k1);
+        double work2 = work(i,j,k2);
 
-        x = ( x + srp.sigma_pr * work(i,j,k2) ) / denom;
-        y = ( y + srp.sigma_pr * work(i,j,k1) ) / denom;
+        switch( srp.cost_function )
+        {
+        case super_res_params::TRUNCATED_QUADRATIC:
+          work1 = rho_truncated_quadratic( work1, srp.alpha_r, srp.gamma_r );
+          work2 = rho_truncated_quadratic( work2, srp.alpha_r, srp.gamma_r );
+          break;
+        case super_res_params::GENERALIZED_HUBER:
+          work1 = rho_generalized_huber( work1, srp.alpha_r, srp.beta_r, srp.gamma_r );
+          work2 = rho_generalized_huber( work2, srp.alpha_r, srp.beta_r, srp.gamma_r );
+          break;
+        }
 
-        //truncate vectors
+        double &x = pr(i,j,k2);
+        double &y = pr(i,j,k1);
+        x = ( x + srp.sigma_pr * work2) / denom;
+        y = ( y + srp.sigma_pr * work1) / denom;
+
         const double mag = sqrt(x*x + y*y)/srp.lambda_r;
         if (mag > 1.0)
         {
@@ -88,15 +102,15 @@ void dual_step_pl(const vil_image_view<double> &u_bar,
     break;
   case super_res_params::TRUNCATED_QUADRATIC:
     denom = 1.0 + srp.sigma_pl / (2.0 * srp.gamma_l * srp.lambda_l );
-    vil_transform( work, rho_truncated_quadratic_functor(srp.alpha_l, srp.gamma_l) );
+//    vil_transform( work, rho_truncated_quadratic_functor(srp.alpha_l, srp.gamma_l) );
     break;
   case super_res_params::GENERALIZED_HUBER:
     denom = 1.0 + srp.sigma_pl / (2.0 * srp.gamma_l * srp.lambda_l );
-    vil_transform( work, rho_generalized_huber_functor(srp.alpha_l, srp.beta_l, srp.gamma_l) );
+//    vil_transform( work, rho_generalized_huber_functor(srp.alpha_l, srp.beta_l, srp.gamma_l) );
     break;
   }
 
-  vil_math_add_image_fraction(pl, 1.0/denom, work, srp.sigma_pl/denom);
+//  vil_math_add_image_fraction(pl, 1.0/denom, work, srp.sigma_pl/denom);
 
   for (unsigned int j = 0; j < srp.s_nj; j++)
   {
@@ -104,9 +118,28 @@ void dual_step_pl(const vil_image_view<double> &u_bar,
     {
       for (unsigned int k = 0; k < u_bar.nplanes(); k++)
       {
-        double &x = pl(i,j,2*k), &y = pl(i,j,2*k+1);
+        const unsigned k2=2*k;
+        const unsigned k1=k2+1;
+        double work1 = work(i,j,k1);
+        double work2 = work(i,j,k2);
 
-        //truncate vectors
+        switch( srp.cost_function )
+        {
+        case super_res_params::TRUNCATED_QUADRATIC:
+          work1 = rho_truncated_quadratic( work1, srp.alpha_l, srp.gamma_l );
+          work2 = rho_truncated_quadratic( work2, srp.alpha_l, srp.gamma_l );
+          break;
+        case super_res_params::GENERALIZED_HUBER:
+          work1 = rho_generalized_huber( work1, srp.alpha_l, srp.beta_l, srp.gamma_l );
+          work2 = rho_generalized_huber( work2, srp.alpha_l, srp.beta_l, srp.gamma_l );
+          break;
+        }
+
+        double &x = pl(i,j,k2);
+        double &y = pl(i,j,k1);
+        x = ( x + srp.sigma_pl * work2) / denom;
+        y = ( y + srp.sigma_pl * work1) / denom;
+
         const double mag = sqrt(x*x + y*y)/srp.lambda_l;
         if (mag > 1.0)
         {
@@ -162,21 +195,21 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
 
 //    vil_math_image_difference( l_u, frames[f], work );
 
-    vcl_vector<double> parameters;
-    switch( srp.cost_function )
-    {
-    case super_res_params::TRUNCATED_QUADRATIC:
-      parameters.push_back( srp.alpha_a );
-      parameters.push_back( srp.gamma_a );
+//    vcl_vector<double> parameters;
+//    switch( srp.cost_function )
+//    {
+//    case super_res_params::TRUNCATED_QUADRATIC:
+//      parameters.push_back( srp.alpha_a );
+//      parameters.push_back( srp.gamma_a );
 //      vil_transform( work, rho_truncated_quadratic_functor(srp.alpha_a, srp.gamma_a) );
-      break;
-    case super_res_params::GENERALIZED_HUBER:
-      parameters.push_back( srp.alpha_a );
-      parameters.push_back( srp.beta_a );
-      parameters.push_back( srp.gamma_a );
+//      break;
+//    case super_res_params::GENERALIZED_HUBER:
+//      parameters.push_back( srp.alpha_a );
+//      parameters.push_back( srp.beta_a );
+//      parameters.push_back( srp.gamma_a );
 //      vil_transform( work, rho_generalized_huber_functor(srp.alpha_a, srp.beta_a, srp.gamma_a) );
-      break;
-    }
+//      break;
+//    }
 
 //    vil_math_image_product( work, weights[f], dot_mask );
 //    vil_math_add_image_fraction(qa[f], 1.0/denom, dot_mask, srp.sigma_qa * sf_2 / denom);
@@ -194,10 +227,10 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
           switch( srp.cost_function )
           {
           case super_res_params::TRUNCATED_QUADRATIC:
-            diff = rho_truncated_quadratic(parameters, diff);
+            diff = rho_truncated_quadratic(diff, srp.alpha_a, srp.gamma_a);
             break;
           case super_res_params::GENERALIZED_HUBER:
-            diff = rho_generalized_huber(parameters, diff);
+            diff = rho_generalized_huber(diff, srp.alpha_a, srp.beta_a,  srp.gamma_a);
             break;
           }
 
@@ -247,19 +280,19 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
 
 //    vil_math_image_difference( gradient_lu, gradient_frames[f], work );
 
-    vcl_vector<double> parameters;
-    switch( srp.cost_function )
-    {
-    case super_res_params::TRUNCATED_QUADRATIC:
-      parameters.push_back( srp.alpha_g );
-      parameters.push_back( srp.gamma_g );
-      break;
-    case super_res_params::GENERALIZED_HUBER:
-      parameters.push_back( srp.alpha_g );
-      parameters.push_back( srp.beta_g );
-      parameters.push_back( srp.gamma_g );
-      break;
-    }
+//    vcl_vector<double> parameters;
+//    switch( srp.cost_function )
+//    {
+//    case super_res_params::TRUNCATED_QUADRATIC:
+//      parameters.push_back( srp.alpha_g );
+//      parameters.push_back( srp.gamma_g );
+//      break;
+//    case super_res_params::GENERALIZED_HUBER:
+//      parameters.push_back( srp.alpha_g );
+//      parameters.push_back( srp.beta_g );
+//      parameters.push_back( srp.gamma_g );
+//      break;
+//    }
 
 //    vil_math_image_product( work, weights[f], dot_mask );
 //    vil_math_add_image_fraction(qg[f], 1.0/denom, dot_mask, srp.sigma_qg * sf_2 / denom);
@@ -276,10 +309,10 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
           switch( srp.cost_function )
           {
           case super_res_params::TRUNCATED_QUADRATIC:
-            diff = rho_truncated_quadratic(parameters, diff);
+            diff = rho_truncated_quadratic(diff, srp.alpha_g, srp.gamma_g);
             break;
           case super_res_params::GENERALIZED_HUBER:
-            diff = rho_generalized_huber(parameters, diff);
+            diff = rho_generalized_huber(diff, srp.alpha_g, srp.beta_g, srp.gamma_g );
             break;
           }
 
@@ -566,65 +599,54 @@ void super_resolve_robust(
 
 //*****************************************************************************
 
-double rho_huber_norm( const vcl_vector<double>& v, double x )
+inline double rho_huber_norm( double x, double alpha )
 {
-  double y;
   double absx = vcl_fabs(x);
-  if( absx <= v[0] )
-    y = x*x / 2.0 / v[0];
+  if( absx <= alpha )
+    return x*x / 2.0 / alpha;
   else
-    y = absx - v[0]/2.0;
-  return y;
+    return absx - alpha/2.0;
 }
 
-double psi_huber_norm( const vcl_vector<double>& v, double x )
+inline double psi_huber_norm( double x, double alpha )
 {
-  if( vcl_fabs(x) <= v[0] )
+  if( vcl_fabs(x) <= alpha )
     return 1.0;
   else
     return -1.0;
 }
 
-double rho_truncated_quadratic( const vcl_vector<double>& v, double x )
+inline double rho_truncated_quadratic( double x, double alpha, double gamma )
 {
-  double y;
-  if( vcl_fabs(x) <= vcl_sqrt( v[0]/v[1] ) )
-    y = v[1] * x * x;
+  if( vcl_fabs(x) <= vcl_sqrt( alpha / gamma ) )
+    return gamma * x * x;
   else
-    y = 0.0;
-  return y;
+    return 0.0;
 }
 
-double psi_truncated_quadratic( const vcl_vector<double>& v, double x )
+inline double psi_truncated_quadratic( double x, double alpha, double gamma )
 {
-  double y;
-  if( vcl_fabs(x) <= vcl_sqrt( v[0]/v[1] ) )
-    y = 2.0 * v[1] * x;
+  if( vcl_fabs(x) <= vcl_sqrt( alpha / gamma ) )
+    return 2.0 * gamma * x;
   else
-    y = 0.0;
-  return y;
+    return 0.0;
 }
 
-double rho_generalized_huber( const vcl_vector<double>& v, double x )
+inline double rho_generalized_huber( double x, double alpha, double beta, double gamma )
 {
-  double y;
-  double t = vcl_sqrt( v[0]/v[1] );
-
+  double t = vcl_sqrt( alpha/gamma );
   if( vcl_fabs(x) <= t )
-    y = v[1] * x * x;
+    return gamma * x * x;
   else
-    y = v[2] * x + v[0] - t * v[2];
-  return y;
+    return beta * x + alpha - t * beta;
 }
 
-double psi_generalized_huber( const vcl_vector<double>& v, double x )
+inline double psi_generalized_huber( double x, double alpha, double beta, double gamma )
 {
-  double y;
-  if( vcl_fabs(x) <= vcl_sqrt( v[0]/v[1] ) )
-    y = 2.0 * v[1] * x;
+  if( vcl_fabs(x) <= vcl_sqrt( alpha/gamma ) )
+    return 2.0 * gamma * x;
   else
-    y = v[2];
-  return y;
+    return beta;
 }
 
 //*****************************************************************************

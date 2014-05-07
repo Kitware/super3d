@@ -10,14 +10,14 @@
 #include <vcl_vector.h>
 #include <vcl_cmath.h>
 
-double rho_truncated_quadratic( const vcl_vector<double>& v, double x );
-double psi_truncated_quadratic( const vcl_vector<double>& v, double x );
+inline double rho_huber_norm( double x, double alpha );
+inline double psi_huber_norm( double x );
 
-double rho_huber_norm( const vcl_vector<double>& v, double x );
-double psi_huber_norm( const vcl_vector<double>& v, double x );
+inline double rho_truncated_quadratic( double x, double alpha, double gamma );
+inline double psi_truncated_quadratic( double x, double alpha, double gamma );
 
-double rho_generalized_huber( const vcl_vector<double>& v, double x );
-double psi_generalized_huber( const vcl_vector<double>& v, double x );
+inline double rho_generalized_huber( double x, double alpha, double beta, double gamma );
+inline double psi_generalized_huber( double x, double alpha, double beta, double gamma );
 
 class rho_truncated_quadratic_functor
 {
