@@ -45,7 +45,7 @@ void dual_step_pr(const vil_image_view<double> &u_bar,
     break;
   }
 
-  vil_math_add_image_fraction(pr, 1.0/denom, work, srp.sigma_pr/denom);
+//  vil_math_add_image_fraction(pr, 1.0/denom, work, srp.sigma_pr/denom);
 
   for (unsigned int j = 0; j < srp.s_nj; j++)
   {
@@ -57,8 +57,8 @@ void dual_step_pr(const vil_image_view<double> &u_bar,
         const unsigned k1=k2+1;
         double &x = pr(i,j,k2), &y = pr(i,j,k1);
 
-//        x = ( x + srp.sigma_pr * work(i,j,k2) ) / denom;
-//        y = ( y + srp.sigma_pr * work(i,j,k1) ) / denom;
+        x = ( x + srp.sigma_pr * work(i,j,k2) ) / denom;
+        y = ( y + srp.sigma_pr * work(i,j,k1) ) / denom;
 
         //truncate vectors
         const double mag = sqrt(x*x + y*y)/srp.lambda_r;
@@ -271,7 +271,7 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
         for (unsigned int k = 0; k < qg[f].nplanes(); k++)
         {
           double &qfijk = qg[f](i, j, k);
-
+          const double &w = weights[f](i,j);
           double diff = gradient_lu(i, j, k) - gradient_frames[f](i, j, k);
           switch( srp.cost_function )
           {
@@ -302,6 +302,7 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
                    vil_image_view<double> &u_bar,
                    const super_res_params &srp)
 {
+//  double minv, maxv;
   vil_image_view<double> work, div;
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
 
@@ -309,14 +310,30 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
   sum_super_qa.fill(0.0);
 
   vil_image_view<double> super_qa(srp.s_ni, srp.s_nj, u.nplanes());
+
+  unsigned number_of_frames=0;
+  if( srp.image_data_N )
+  {
+    number_of_frames = qa.size();
+  }
+  else if( srp.image_data_1 )
+  {
+    number_of_frames = 1;
+  }
+
 //  if( srp.image_data_N )
 //  {
-    for (unsigned int i = 0; i < qa.size(); i++)
+//    for (unsigned int i = 0; i < qa.size(); i++)
+    for (unsigned int i = 0; i < number_of_frames; i++)
     {
       // apply transpose linear operator to upsample, blur, and warp
       warps[i].apply_At(qa[i], super_qa);
       vil_math_image_sum(sum_super_qa, super_qa, sum_super_qa);
     }
+
+//    vil_math_value_range(sum_super_qa, minv, maxv);
+//    vcl_cout << "sum_super_qa : minv = " << minv << " maxv = " << maxv << "\n";
+//
 //  }
 //  else if( srp.image_data_1 )
 //  {
@@ -327,22 +344,27 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
 //    vil_math_image_sum(sum_super_qa, super_qa, sum_super_qa);
 //  }
 
-    /*
   if( srp.gradient_data )
   {
     vil_image_view<double> sum_super_qg(srp.s_ni, srp.s_nj, u.nplanes());
     sum_super_qg.fill(0.0);
+    vil_image_view<double> super_qg( srp.s_ni, srp.s_nj, u.nplanes() );
     for (unsigned int i = 0; i < qg.size(); i++)
     {
       // apply transpose linear operator to upsample, blur, and warp
-      vil_image_view<double> super_qg( srp.s_ni, srp.s_nj, u.nplanes() );
       vidtk::backward_divergence(qg[i], div);
+//      vil_math_value_range(div, minv, maxv);
+//      vcl_cout << "  div : minv = " << minv << " maxv = " << maxv << "\n";
       warps[i].apply_At(div, super_qg);
+//      vil_math_value_range(super_qg, minv, maxv);
+//      vcl_cout << "  super_qg : minv = " << minv << " maxv = " << maxv << "\n";
       vil_math_image_sum(sum_super_qg, super_qg, sum_super_qg);
     }
+
+//    vil_math_value_range(sum_super_qg, minv, maxv);
+//    vcl_cout << "sum_super_qg : minv = " << minv << " maxv = " << maxv << "\n";
     vil_math_add_image_fraction(sum_super_qa, 1.0, sum_super_qg, -1.0);
   }
-    */
 
   vidtk::backward_divergence(pr, work);
   vil_math_add_image_fraction(work, srp.tau, sum_super_qa, -srp.tau * sf_2);
@@ -477,9 +499,9 @@ void super_resolve_robust(
   }
 
   vcl_vector< vil_image_view<double> > frames_gradient;
+  vil_image_view<double> work;
   if( srp.gradient_data )
   {
-    vil_image_view<double> work;
     for( unsigned int i=0; i<frames.size(); i++ )
     {
       vidtk::forward_gradient(frames[i], work);
@@ -489,7 +511,8 @@ void super_resolve_robust(
 
   do
   {
-    vcl_cout << "Iteration: " << i;
+    vcl_cout << "Iteration: " << i << vcl_endl;
+    double minv, maxv;
     switch( srp.tv_method )
     {
     case super_res_params::IMAGEDATA_IMAGEPRIOR:
@@ -500,9 +523,20 @@ void super_resolve_robust(
 
     case super_res_params::GRADIENTDATA_IMAGEPRIOR:
       dual_step_pr(u, pr, srp);
+      vil_math_value_range(pr, minv, maxv);
+      vcl_cout << "  pr minv = " << minv << " maxv = " << maxv << "\n";
+
       dual_step_qa(frames, warps, weights, u, qa, srp);
+      vil_math_value_range(qa[0], minv, maxv);
+      vcl_cout << "  qa[0] minv = " << minv << " maxv = " << maxv << "\n";
+
       dual_step_qg(frames_gradient, warps, weights, u, qg, srp);
+      vil_math_value_range(qg[0], minv, maxv);
+      vcl_cout << "  qg[0] minv = " << minv << " maxv = " << maxv << "\n";
+
       primal_step_Y(qa, qg, warps, pr, u, u_bar, srp);
+      vil_math_value_range(u, minv, maxv);
+      vcl_cout << "  u minv = " << minv << " maxv = " << maxv << "\n";
       break;
 
     case super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
@@ -512,7 +546,7 @@ void super_resolve_robust(
       return;
     }
 
-    double minv, maxv;
+//    double minv, maxv;
     vil_math_value_range(u, minv, maxv);
 #ifdef DEBUG
     if (!(i % 15))
