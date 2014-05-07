@@ -176,6 +176,7 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
   }
 
   unsigned number_of_frames=0;
+  unsigned start_frame=0;
   if( srp.image_data_N )
   {
     number_of_frames = frames.size();
@@ -183,9 +184,10 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
   else if( srp.image_data_1 )
   {
     number_of_frames = 1;
+    start_frame = srp.ref_frame;
   }
 
-  for (unsigned int f = 0; f < number_of_frames; f++)
+  for (unsigned int f = start_frame; f < start_frame + number_of_frames; f++)
   {
     const unsigned int ni = weights[f].ni();
     const unsigned int nj = weights[f].nj();
@@ -325,6 +327,7 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
   vil_image_view<double> super_qa(srp.s_ni, srp.s_nj, u.nplanes());
 
   unsigned number_of_frames=0;
+  unsigned start_frame=0;
   if( srp.image_data_N )
   {
     number_of_frames = qa.size();
@@ -332,9 +335,10 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
   else if( srp.image_data_1 )
   {
     number_of_frames = 1;
+    start_frame = srp.ref_frame;
   }
 
-  for (unsigned int i = 0; i < number_of_frames; i++)
+  for (unsigned int i = start_frame; i < start_frame+number_of_frames; i++)
   {
     // apply transpose linear operator to upsample, blur, and warp
     warps[i].apply_At(qa[i], super_qa);
