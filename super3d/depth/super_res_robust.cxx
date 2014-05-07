@@ -160,7 +160,7 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
                   vcl_vector<vil_image_view<double> > &qa,
                   const super_res_params &srp)
 {
-  vil_image_view<double> l_u, work, dot_mask;
+//  vil_image_view<double> l_u, work, dot_mask;
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
 
   double denom;
@@ -193,6 +193,7 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
     const unsigned int nj = weights[f].nj();
 
     // apply the linear operator to warp, blur, and downsample
+    vil_image_view<double> l_u;
     warps[f].apply_A(u_bar, l_u);
 
 //    vil_math_image_difference( l_u, frames[f], work );
@@ -252,7 +253,7 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
                   vcl_vector<vil_image_view<double> > &qg,
                   const super_res_params &srp)
 {
-  vil_image_view<double> l_u, work, dot_mask;
+//  vil_image_view<double> l_u, work, dot_mask;
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
 
   double denom;
@@ -273,6 +274,7 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
     const unsigned int nj = weights[f].nj();
 
     // apply the linear operator to warp, blur, and downsample
+    vil_image_view<double> l_u;
     warps[f].apply_A(u_bar, l_u);
     vil_image_view<double> gradient_lu;
     vidtk::forward_gradient(l_u, gradient_lu);
@@ -320,7 +322,6 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
                    vil_image_view<double> &u_bar,
                    const super_res_params &srp)
 {
-  vil_image_view<double> work, div;
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
 
   vil_image_view<double> sum_super_qa(srp.s_ni, srp.s_nj, u.nplanes());
@@ -355,6 +356,7 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
     for (unsigned int i = 0; i < qg.size(); i++)
     {
       // apply transpose linear operator to upsample, blur, and warp
+      vil_image_view<double> div;
       vidtk::backward_divergence(qg[i], div);
       warps[i].apply_At(div, super_qg);
       vil_math_image_sum(sum_super_qg, super_qg, sum_super_qg);
@@ -363,6 +365,7 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
     vil_math_add_image_fraction(sum_super_qa, 1.0, sum_super_qg, -1.0);
   }
 
+  vil_image_view<double> work;
   vidtk::backward_divergence(pr, work);
   vil_math_add_image_fraction(work, srp.tau, sum_super_qa, -srp.tau * sf_2);
   vil_math_image_sum(u, work, work);
@@ -476,11 +479,11 @@ void super_resolve_robust(
   }
 
   vcl_vector< vil_image_view<double> > frames_gradient;
-  vil_image_view<double> work;
   if( srp.gradient_data )
   {
     for( unsigned int i=0; i<frames.size(); i++ )
     {
+      vil_image_view<double> work;
       vidtk::forward_gradient(frames[i], work);
       frames_gradient.push_back( work );
     }
