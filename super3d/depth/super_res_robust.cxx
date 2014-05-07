@@ -216,6 +216,7 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
     {
       for (unsigned int i = 0; i < ni; i++)
       {
+        double val = srp.sigma_qa * sf_2 * weights[f](i,j);
         for (unsigned int k = 0; k < qa[f].nplanes(); k++)
         {
           double &qfijk = qa[f](i, j, k);
@@ -231,7 +232,8 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
             break;
           }
 
-          qfijk = (qfijk + srp.sigma_qa * sf_2 * diff * weights[f](i,j))/denom;
+//          qfijk = (qfijk + srp.sigma_qa * sf_2 * diff * weights[f](i,j))/denom;
+          qfijk = (qfijk +  diff * val)/denom;
           qfijk = vcl_max(qfijk, -sf_2);
           qfijk = vcl_min(qfijk, sf_2);
         }
@@ -284,10 +286,10 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
     {
       for (unsigned int i = 0; i < ni; i++)
       {
+        double val = srp.sigma_qg * sf_2 * weights[f](i,j);
         for (unsigned int k = 0; k < qg[f].nplanes(); k++)
         {
           double &qfijk = qg[f](i, j, k);
-          const double &w = weights[f](i,j);
           double diff = gradient_lu(i, j, k) - gradient_frames[f](i, j, k);
           switch( srp.cost_function )
           {
@@ -299,7 +301,7 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
             break;
           }
 
-          qfijk = (qfijk + srp.sigma_qg * sf_2 * diff * weights[f](i,j))/denom;
+          qfijk = (qfijk + diff * val)/denom;
           qfijk = vcl_max(qfijk, -sf_2);
           qfijk = vcl_min(qfijk, sf_2);
         }
