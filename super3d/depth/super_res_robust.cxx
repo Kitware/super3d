@@ -52,25 +52,11 @@ void dual_step_pr(const vil_image_view<double> &u_bar,
       {
         const unsigned k2=2*k;
         const unsigned k1=k2+1;
-        double work1 = work(i,j,k1);
-        double work2 = work(i,j,k2);
-
-        switch( srp.cost_function )
-        {
-        case super_res_params::TRUNCATED_QUADRATIC:
-          work1 = rho_truncated_quadratic( work1, srp.alpha_r, srp.gamma_r );
-          work2 = rho_truncated_quadratic( work2, srp.alpha_r, srp.gamma_r );
-          break;
-        case super_res_params::GENERALIZED_HUBER:
-          work1 = rho_generalized_huber( work1, srp.alpha_r, srp.beta_r, srp.gamma_r );
-          work2 = rho_generalized_huber( work2, srp.alpha_r, srp.beta_r, srp.gamma_r );
-          break;
-        }
 
         double &x = pr(i,j,k2);
         double &y = pr(i,j,k1);
-        x = ( x + srp.sigma_pr * work2) / denom;
-        y = ( y + srp.sigma_pr * work1) / denom;
+        x = ( x + srp.sigma_pr * work(i,j,k2) ) / denom;
+        y = ( y + srp.sigma_pr * work(i,j,k1) ) / denom;
 
         const double mag = sqrt(x*x + y*y)/srp.lambda_r;
         if (mag > 1.0)
@@ -113,25 +99,11 @@ void dual_step_pl(const vil_image_view<double> &u_bar,
       {
         const unsigned k2=2*k;
         const unsigned k1=k2+1;
-        double work1 = work(i,j,k1);
-        double work2 = work(i,j,k2);
-
-        switch( srp.cost_function )
-        {
-        case super_res_params::TRUNCATED_QUADRATIC:
-          work1 = rho_truncated_quadratic( work1, srp.alpha_l, srp.gamma_l );
-          work2 = rho_truncated_quadratic( work2, srp.alpha_l, srp.gamma_l );
-          break;
-        case super_res_params::GENERALIZED_HUBER:
-          work1 = rho_generalized_huber( work1, srp.alpha_l, srp.beta_l, srp.gamma_l );
-          work2 = rho_generalized_huber( work2, srp.alpha_l, srp.beta_l, srp.gamma_l );
-          break;
-        }
 
         double &x = pl(i,j,k2);
         double &y = pl(i,j,k1);
-        x = ( x + srp.sigma_pl * work2) / denom;
-        y = ( y + srp.sigma_pl * work1) / denom;
+        x = ( x + srp.sigma_pl * work(i,j,k2) ) / denom;
+        y = ( y + srp.sigma_pl * work(i,j,k1) ) / denom;
 
         const double mag = sqrt(x*x + y*y)/srp.lambda_l;
         if (mag > 1.0)
