@@ -33,6 +33,8 @@
 #include "flow_manip.h"
 #include "depth_map.h"
 
+#include "depth_cl/super_res.h"
+
 #include <video_transforms/adjoint_flow_warp.h>
 #include <video_transforms/adjoint_resample.h>
 #include <video_transforms/adjoint_dbw.h>
@@ -57,6 +59,7 @@
 #include <video_transforms/warp_image.h>
 #include <video_transforms/warp_and_average.h>
 #include <tracking/refine_homography.h>
+
 
 void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_image_view<double> > &flows);
 void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
@@ -143,14 +146,11 @@ int main(int argc, char* argv[])
 
     ref_image.deep_copy(frames[ref_frame]);
 
-    vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
-
     vcl_vector<vil_image_view<double> > flows;
 
     if (config::inst()->is_set("flow_file"))
     {
       load_flow( config::inst()->get_value<vcl_string>("flow_file").c_str(), dir, flows);
-      create_warps_from_flows(flows, frames, warps, scale_factor);
     }
     else if (config::inst()->is_set("homog_file"))
     {
@@ -189,21 +189,6 @@ int main(int argc, char* argv[])
 
       homogs_to_flows(homogs, ref_frame, frames, i0, j0, ni, nj, scale_factor, flows);
       crop_frames_and_flows(flows, frames, scale_factor, 0);
-
-      //for (unsigned int i = 0; i < flows.size(); i++)
-      //{
-      //  vcl_cout << flows[i].ni() << " " << flows[i].nj() << "\n";
-      //  vil_image_view<vil_rgb<vxl_byte> > colormap_flow;
-      //  flow_to_colormap(flows[i], flows[ref_frame], colormap_flow, 3);
-      //  char buf[40];
-      //  sprintf(buf, "color%d.png", i);
-      //  vil_save(colormap_flow, buf);
-      //  sprintf(buf, "img%d.png", i);
-      //  vil_image_view<vxl_byte> img_b;
-      //  vil_convert_cast(frames[i], img_b);
-      //  vil_save(img_b, buf);
-      //}
-      create_warps_from_flows(flows, frames, warps, scale_factor);
     }
     else
     {
@@ -222,12 +207,11 @@ int main(int argc, char* argv[])
 
     //Initilize super resolution parameters
     vil_image_view<double> super_u;
-    super_res_params srp;
-    srp.s_ni = warps[ref_frame].src_ni();
-    srp.s_nj = warps[ref_frame].src_nj();
-    srp.l_ni = warps[ref_frame].dst_ni();
-    srp.l_nj = warps[ref_frame].dst_nj();
-    srp.ref_frame = ref_frame;
+    super_res_cl::params srp;
+    srp.sdim.s[0] = scale_factor * frames[ref_frame].ni();
+    srp.sdim.s[1] = scale_factor * frames[ref_frame].nj();
+    srp.ldim.s[0] = frames[ref_frame].ni();
+    srp.ldim.s[1] = frames[ref_frame].nj();
 
     srp.scale_factor = scale_factor;
     srp.lambda = config::inst()->get_value<double>("lambda");
@@ -237,23 +221,27 @@ int main(int argc, char* argv[])
     srp.tau = config::inst()->get_value<double>("tau");
     const unsigned int iterations = config::inst()->get_value<unsigned int>("iterations");
 
-    super_resolve(frames, warps, super_u, srp, iterations);
+    super_res_cl srcl;
+    vil_image_view<float> super_u_flt;
+    vcl_vector<vil_image_view<float> > frames_flt, flows_flt;
+    frames_flt.resize(frames.size());
+    flows_flt.resize(frames.size());
+    for (unsigned int i = 0; i < frames.size(); i++)
+    {
+      vil_convert_cast(frames[i], frames_flt[i]);
+      vil_convert_cast(flows[i], flows_flt[i]);
+    }
+
+    vcl_cout << "Starting GPU Super Res.\n";
+    srcl.super_resolve(frames_flt, flows_flt, super_u_flt, srp, iterations);
+    vil_convert_cast(super_u_flt, super_u);
+    vcl_cout << "finished GPU!\n";
 
     vil_image_view<double> upsamp;
     upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::CUBIC);
     vil_image_view<unsigned short> output;
     vil_convert_stretch_range_limited(upsamp, output, 0.0, 255.0, 0, 65535);
     vil_save(output, "bicub.png");
-
-    if (config::inst()->get_value<bool>("create_low_res"))
-    {
-      vil_math_scale_values(original, 1.0/255.0);
-      vil_math_scale_values(upsamp, 1.0/255.0);
-      vil_math_scale_values(waa, 1.0/255.0);
-      vcl_cout << "ssd bicub: " << vil_math_ssd(upsamp, original, double()) << "\n";
-      vcl_cout << "ssd mfavg: " << vil_math_ssd(waa, original, double()) << "\n";
-      vcl_cout << "ssd super: " << vil_math_ssd(super_u, original, double()) << "\n";
-    }
 
     vil_convert_stretch_range_limited(super_u, output, 0.0, 1.0, 0, 65535);
     vil_save(output, config::inst()->get_value<vcl_string>("output_image").c_str());

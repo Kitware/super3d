@@ -6,7 +6,6 @@ set(CMAKE_MODULE_PATH "${super3d_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
 find_package(VTK)
 find_package(VXL)
 find_package(vidtk)
-find_package(OpenCL)
 find_package(viscl)
 
 if(viscl_FOUND)
@@ -14,6 +13,7 @@ if(viscl_FOUND)
  message(${viscl_LIBRARY_DIR})
  message(${viscl_INCLUDE_DIR})
  message(${viscl_Boost_INCLUDE_DIR})
+ link_directories(${VISCL_LIBRARY_DIRS})
 endif(viscl_FOUND)
 
 set(super3d_boost_version 1.48)
@@ -37,13 +37,12 @@ include_directories(SYSTEM ${VXL_GEL_INCLUDE_DIR}/mrc)
 include_directories(SYSTEM ${VXL_RPL_INCLUDE_DIR})
 include_directories(SYSTEM ${VIDTK_INCLUDE_DIRS})
 include_directories(SYSTEM ${VTK_INCLUDE_DIRS})
-include_directories(SYSTEM ${OPENCL_INCLUDE_DIR})
 
 if(VTK_FOUND)
   INCLUDE(${USE_VTK_FILE})
   link_directories(${VTK_LIBRARY_DIRS})
 endif()
-link_directories(${VISCL_LIBRARY_DIRS})
+
 
 include_directories(libraries)
 include_directories(bp-tools)
@@ -51,6 +50,10 @@ include_directories(bp-tools)
 add_subdirectory(libraries)
 add_subdirectory(tools)
 add_subdirectory(bp-tools)
+
+SET(super3d_INCLUDE_DIR_CONFIG ${super3d_SOURCE_DIR}/libraries)
+CONFIGURE_FILE(${super3d_SOURCE_DIR}/super3d-config.cmake.in
+               ${super3d_BINARY_DIR}/super3d-config.cmake @ONLY IMMEDIATE)
 
 
 include(CTest)

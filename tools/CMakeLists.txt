@@ -1,6 +1,13 @@
-#add_executable(exhaustive_depth exhaustive_depth.cxx)
-#target_link_libraries(exhaustive_depth depthl vil vidtk_video_transforms
-#                      vidtk_tracking imesh_algo vpgl vnl vul vil_algo bp depth_cl ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+add_executable(exhaustive_depth exhaustive_depth.cxx)
+target_link_libraries(exhaustive_depth depthl vil vidtk_video_transforms
+                      vidtk_tracking imesh_algo vpgl vnl vul vil_algo bp ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+
+if (viscl_FOUND)
+  target_link_libraries(exhaustive_depth depth_cl)
+  set_source_files_properties(exhaustive_depth.cxx
+      PROPERTIES
+      COMPILE_DEFINITIONS HAVE_VISCL)
+endif()
 
 add_executable(downsampler downsampler.cxx)
 target_link_libraries(downsampler depthl vil vidtk_video_transforms
@@ -10,9 +17,16 @@ add_executable(super_res_video super_res_video.cxx)
 target_link_libraries(super_res_video depthl vil vidtk_video_transforms
                       vidtk_tracking imesh_algo vpgl vnl vul vil_algo)
 
-#add_executable(super_res_opt_flow super_res_opt_flow.cxx)
-#target_link_libraries(super_res_opt_flow depthl vil vidtk_video_transforms depth_cl
-#                      vidtk_tracking imesh_algo vpgl vgl vnl vul vil_algo)
+add_executable(super_res_opt_flow super_res_opt_flow.cxx)
+target_link_libraries(super_res_opt_flow depthl vil vidtk_video_transforms
+                      vidtk_tracking imesh_algo vpgl vgl vnl vul vil_algo)
+
+if (viscl_FOUND)
+  target_link_libraries(super_res_opt_flow depth_cl)
+  set_source_files_properties(super_res_opt_flow.cxx
+      PROPERTIES
+      COMPILE_DEFINITIONS HAVE_VISCL)
+endif()
 
 add_executable(super_res_image super_res_image.cxx)
 target_link_libraries(super_res_image depthl vil vidtk_video_transforms
@@ -28,20 +42,17 @@ add_executable(refine_homog_batch refine_homog_batch.cxx)
 target_link_libraries(refine_homog_batch vnl vil vil_algo vul vgl vgl_algo vgui vidtk_video_transforms vidtk_tracking rrel)
 
 if(VTK_FOUND)
-  INCLUDE(${VTK_USE_FILE})
-
   add_executable(ply2vtp ply2vtp.cxx)
   target_link_libraries(ply2vtp ${VTK_LIBRARIES} vnl)
-#  target_link_libraries(ply2vtp vtkIO vtkGraphics vnl)
 
-#  add_executable(viewer viewer.cxx picker.h picker.cxx)
-#  target_link_libraries(viewer ${VTK_LIBRARIES})
-#  target_link_libraries(viewer vtkIO vtkGraphics vnl vil vul depthl vtkHybrid vtkRendering vtkCharts)
+  add_executable(viewer viewer.cxx picker.h picker.cxx)
+  target_link_libraries(viewer vnl vil vul depthl ${VTK_LIBRARIES})
 
-#  target_link_libraries(exhaustive_depth ${VTK_LIBRARIES})
-#  set_source_files_properties(exhaustive_depth.cxx
-#      PROPERTIES
-#      COMPILE_DEFINITIONS HAVE_VTK)
+  target_link_libraries(exhaustive_depth ${VTK_LIBRARIES})
+  set_source_files_properties(exhaustive_depth.cxx
+      PROPERTIES
+      COMPILE_DEFINITIONS HAVE_VTK)
+
   target_link_libraries(bundler2vpgl ${VTK_LIBRARIES})
   set_source_files_properties(bundler2vpgl.cxx
       PROPERTIES
@@ -59,13 +70,10 @@ add_executable(direct_depth direct_depth.cxx tv_refine.cxx tv_refine.h)
 target_link_libraries(direct_depth depthl vil vidtk_video_transforms
                       vidtk_tracking imesh imesh_algo vpgl vnl vul vil_algo)
 
-#add_executable(render_depthmap render_depthmap.cxx)
-#target_link_libraries(render_depthmap vpgl imesh_algo depthl)
+add_executable(render_depthmap render_depthmap.cxx)
+target_link_libraries(render_depthmap vpgl imesh_algo depthl)
 add_executable(extract_depth_range extract_depth_range.cxx)
 target_link_libraries(extract_depth_range vil vnl vul)
-
-add_executable(rofcl_test rofcl_test.cxx )
-target_link_libraries(rofcl_test depth_cl vil vil_algo vul)
 
 add_executable(mean_shift mean_shift.cxx)
 target_link_libraries(mean_shift vil vil_algo vul vnl)
@@ -73,3 +81,8 @@ target_link_libraries(mean_shift vil vil_algo vul vnl)
 add_executable(exhaustive_stereo exhaustive_stereo.cxx)
 target_link_libraries(exhaustive_stereo depthl vil vidtk_video_transforms
                       vidtk_tracking imesh_algo vpgl vnl vul vil_algo bp)
+                      
+if (viscl_FOUND)
+   add_executable(rofcl_test rofcl_test.cxx )
+   target_link_libraries(rofcl_test depth_cl vil vil_algo vul)
+endif()

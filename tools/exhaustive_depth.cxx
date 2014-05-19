@@ -51,7 +51,9 @@
 #include <imesh/imesh_mesh.h>
 #include <imesh/imesh_fileio.h>
 
+#ifdef HAVE_VISCL
 #include "depth_cl/refine_depth.h"
+#endif
 
 #include <boost/chrono.hpp>
 
@@ -75,6 +77,13 @@ int main(int argc, char* argv[])
   {
     config::inst()->read_config(argv[1]);
 
+#ifndef HAVE_VISCL
+    if (config::inst()->is_set("use_gpu") && config::inst()->get_value<bool>("use_gpu"))
+    {
+      vcl_cerr << "use_gpu is true but not built with viscl.\n";
+      return 1;
+    }
+#endif
 
   vcl_vector<vil_image_view<double> > frames;
   vcl_vector<vpgl_perspective_camera<double> >  cameras;
@@ -258,6 +267,7 @@ int main(int argc, char* argv[])
   if (!config::inst()->is_set("compute_init_depthmap") ||
        config::inst()->get_value<bool>("compute_init_depthmap") )
   {
+#ifdef HAVE_VISCL
     if (config::inst()->is_set("use_gpu") &&
         config::inst()->get_value<bool>("use_gpu") )
     {
@@ -280,6 +290,7 @@ int main(int argc, char* argv[])
       vil_convert_cast<float, double>(depth_f, depth);
     }
     else
+#endif
     {
       boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
       refine_depth(cost_volume, g, depth, beta, theta0, theta_end, lambda);
