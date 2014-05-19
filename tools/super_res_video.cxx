@@ -253,6 +253,11 @@ int main(int argc, char* argv[])
       char buf[50];
       vil_image_view<vxl_byte> output;
 
+      // cropped frames
+      sprintf(buf, "images/frames-%03d.png", i);
+      vil_convert_stretch_range_limited(frames[i], output, 0.0, 1.0);
+      vil_save(output, buf);
+
       // apply DBW to ground truth super res image to predict frame i
       vil_image_view<double> gts, pred;
       vil_convert_stretch_range_limited(gt, gts, 0.0, 255.0, 0.0, 1.0);
@@ -283,6 +288,13 @@ int main(int argc, char* argv[])
       // write out the viewing angle based weights
       vil_convert_stretch_range_limited(weights[i], output, 0.0, 2.0);
       sprintf(buf, "images/angle-weight-%03d.png", i);
+      vil_save(output, buf);
+
+      // apply DBW inverse to frames
+      vil_image_view<double> register_frames;
+      warps[i].apply_At(frames[i], register_frames);
+      vil_convert_stretch_range_limited(register_frames, output, 0.0, 1.0);
+      sprintf(buf, "images/register-frames-%03d.png", i);
       vil_save(output, buf);
     }
 #endif
