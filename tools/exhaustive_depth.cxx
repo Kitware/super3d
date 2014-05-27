@@ -152,7 +152,8 @@ int main(int argc, char* argv[])
   int i0, ni, j0, nj;
   double depth_min, depth_max;
 
-  if (cfg->is_set("landmarks_path"))
+//  if (cfg->is_set("landmarks_path"))
+  if (config::inst()->is_set("compute_depth_range") && config::inst()->get_value<bool>("compute_depth_range"))
   {
     vcl_cout << "Computing depth range from " << cfg->get_value<vcl_string>("landmarks_path") << "\n";
     super3d::compute_depth_range(cameras[ref_frame], cfg->get_value<vcl_string>("landmarks_path"), depth_min, depth_max);
