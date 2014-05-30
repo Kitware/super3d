@@ -271,10 +271,10 @@ void load_from_frame_file(const char *framefile,
     framestream >> frame;
     vcl_string imagename;
     framestream >> imagename;
-    framelist.push_back(frame);
-    filenames.push_back(imagename);
 
-    vcl_cout << frame << " ";
+    if( imagename.empty() )
+      break;
+
     vil_image_resource_sptr img_rsc = vil_load_image_resource((directory + imagename).c_str());
     if (img_rsc != NULL)
     {
@@ -301,9 +301,16 @@ void load_from_frame_file(const char *framefile,
           vil_convert_cast(img, flt);
       }
       frames.push_back(flt);
-    }
+
+      framelist.push_back(frame);
+      filenames.push_back(imagename);
+      vcl_cout << frame << " ";
+     }
     else
+    {
       vcl_cout << "\n" << (directory + imagename) << " NOT FOUND.\n";
+      break;
+    }
   }
 
   vcl_cout << "\n";
