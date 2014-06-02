@@ -47,6 +47,8 @@
 vcl_vector<vpgl_perspective_camera<double> >
 load_cams(const vcl_string& filename, vul_sequence_filename_map frame_seq);
 
+vpgl_perspective_camera<double>
+load_cam(const vcl_string& filename);
 
 /// Find all frames matching the format string and extract the frame number.
 /// \returns A vector of image views

@@ -1,6 +1,10 @@
 add_executable(exhaustive_depth exhaustive_depth.cxx)
 target_link_libraries(exhaustive_depth depthl vil vidtk_video_transforms
                       vidtk_tracking imesh_algo vpgl vnl vul vil_algo bp ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+                      
+add_executable(cam_and_homog_picker cam_and_homog_picker.cxx)
+target_link_libraries(cam_and_homog_picker depthl vil vidtk_video_transforms
+                      vidtk_tracking imesh_algo vpgl vnl vul vil_algo ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY})                      
 
 if (viscl_FOUND)
   target_link_libraries(exhaustive_depth depth_cl)

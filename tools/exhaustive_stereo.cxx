@@ -95,6 +95,7 @@ int main(int argc, char* argv[])
   double beta_end = 1e-7;
   double beta = .1;
   double lambda = 100;
+  double epsilon = 0.01;
 
   vil_image_view<double> g;
   vil_image_view<double> cost_volume;
@@ -130,7 +131,7 @@ int main(int argc, char* argv[])
   load_cost_volume(cost_volume, g, "cost_volume_stereo.dat");
 #endif
 
-  refine_depth(cost_volume, g, depth, beta, theta0, beta_end, lambda);
+  refine_depth(cost_volume, g, depth, beta, theta0, beta_end, lambda, epsilon);
 
   // convert inverse depths back to depths
   for (unsigned int j = 0; j < depth.nj(); j++) {

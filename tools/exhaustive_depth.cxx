@@ -38,6 +38,7 @@
 #include "world_rectilinear.h"
 #include "world_frustum.h"
 
+#include <boost/scoped_ptr.hpp>
 
 #include "exposure.h"
 
@@ -75,10 +76,11 @@ int main(int argc, char* argv[])
 {
   try
   {
-    config::inst()->read_config(argv[1]);
+    boost::scoped_ptr<config> cfg(new config);
+    cfg->read_config(argv[1]);
 
 #ifndef HAVE_VISCL
-    if (config::inst()->is_set("use_gpu") && config::inst()->get_value<bool>("use_gpu"))
+    if (cfg->is_set("use_gpu") && cfg->get_value<bool>("use_gpu"))
     {
       vcl_cerr << "use_gpu is true but not built with viscl.\n";
       return 1;
@@ -88,12 +90,12 @@ int main(int argc, char* argv[])
   vcl_vector<vil_image_view<double> > frames;
   vcl_vector<vpgl_perspective_camera<double> >  cameras;
   vcl_vector<vcl_string> filenames;
-  vcl_string camera_file = config::inst()->get_value<vcl_string>("camera_file");
+  vcl_string camera_file = cfg->get_value<vcl_string>("camera_file");
 
-  if (config::inst()->is_set("frame_format"))
+  if (cfg->is_set("frame_format"))
   {
     vcl_cout << "Using formated string to find images/cameras.\n";
-    vul_sequence_filename_map frame_seq(config::inst()->get_value<vcl_string>("frame_format"));
+    vul_sequence_filename_map frame_seq(cfg->get_value<vcl_string>("frame_format"));
 
     //Read Cameras
     cameras = load_cams(camera_file, frame_seq);
@@ -112,26 +114,26 @@ int main(int argc, char* argv[])
     }
 
     //Apply exposure correction
-    if (config::inst()->is_set("exposure_file"))
+    if (cfg->is_set("exposure_file"))
     {
       vcl_vector<vcl_pair<double, double> > exposures;
-      exposures = load_exposure(config::inst()->get_value<vcl_string>("exposure_file"), frame_seq);
+      exposures = load_exposure(cfg->get_value<vcl_string>("exposure_file"), frame_seq);
 
       for (unsigned int i = 0; i < frames.size(); i++)
         apply_exposure_correction(frames[i], exposures[i]);
     }
   }
-  else if (config::inst()->is_set("frame_list"))
+  else if (cfg->is_set("frame_list"))
   {
-    vcl_string frame_file = config::inst()->get_value<vcl_string>("frame_list");
-    vcl_string dir = config::inst()->get_value<vcl_string>("directory");
+    vcl_string frame_file = cfg->get_value<vcl_string>("frame_list");
+    vcl_string dir = cfg->get_value<vcl_string>("directory");
     vcl_cout << "Using frame file: " << frame_file << " to find images and " << camera_file  << " to find cameras.\n";
     vcl_vector<int> frameindex;
     load_from_frame_file(frame_file.c_str(), camera_file.c_str(), dir, filenames, frameindex, frames, cameras);
-    if (config::inst()->is_set("exposure_file"))
+    if (cfg->is_set("exposure_file"))
     {
       vcl_vector<vcl_pair<double, double> > exposures;
-      exposures = load_exposure(config::inst()->get_value<vcl_string>("exposure_file"), frameindex);
+      exposures = load_exposure(cfg->get_value<vcl_string>("exposure_file"), frameindex);
 
       for (unsigned int i = 0; i < frames.size(); i++)
         apply_exposure_correction(frames[i], exposures[i]);
@@ -143,24 +145,24 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-  if (!config::inst()->is_set("exposure_file"))
+  if (!cfg->is_set("exposure_file"))
   {
     for (unsigned int i = 0; i < frames.size(); i++)
       vil_math_scale_and_offset_values(frames[i], 1.0/255.0, 0.0);
   }
 
-  unsigned int ref_frame = config::inst()->get_value<unsigned int>("ref_frame");
+  unsigned int ref_frame = cfg->get_value<unsigned int>("ref_frame");
   vpgl_perspective_camera<double> ref_cam = cameras[ref_frame];
 
   world_space *ws = NULL;
   int i0, ni, j0, nj;
 
-  double depth_min = config::inst()->get_value<double>("depth_min");
-  double depth_max = config::inst()->get_value<double>("depth_max");
+  double depth_min = cfg->get_value<double>("depth_min");
+  double depth_max = cfg->get_value<double>("depth_max");
 
-  if (config::inst()->is_set("world_volume"))
+  if (cfg->is_set("world_volume"))
   {
-    vcl_istringstream wvstream(config::inst()->get_value<vcl_string>("world_volume"));
+    vcl_istringstream wvstream(cfg->get_value<vcl_string>("world_volume"));
     vnl_double_3 origin, dimensions;
     unsigned int ni, nj;
     for (unsigned int i = 0; i < 3; i++)  wvstream >> origin[i];
@@ -171,17 +173,17 @@ int main(int argc, char* argv[])
   else
   {
     double camera_scale = 1.0;
-    if (config::inst()->is_set("camera_scale"))
+    if (cfg->is_set("camera_scale"))
     {
-      camera_scale = config::inst()->get_value<double>("camera_scale");
+      camera_scale = cfg->get_value<double>("camera_scale");
       for (unsigned int i = 0; i < cameras.size(); i++)
         cameras[i] = scale_camera(cameras[i], camera_scale);
     }
     //Compute the window cropping, scale the cropping by the specified scale so that we do not
     //need to recompute cropping input for super resolution.
-    if (config::inst()->is_set("crop_window"))
+    if (cfg->is_set("crop_window"))
     {
-      vcl_istringstream cwstream(config::inst()->get_value<vcl_string>("crop_window"));
+      vcl_istringstream cwstream(cfg->get_value<vcl_string>("crop_window"));
       cwstream >> i0 >> ni >> j0 >> nj;
       i0 = (int)(i0*camera_scale);
       j0 = (int)(j0*camera_scale);
@@ -202,40 +204,41 @@ int main(int argc, char* argv[])
   }
 
   vcl_cout << "Refining depth"<<vcl_endl;
-  unsigned int S = config::inst()->get_value<unsigned int>("num_slices");
-  double theta0 = config::inst()->get_value<double>("theta_start");
-  double theta_end = config::inst()->get_value<double>("theta_end");
-  double beta = config::inst()->get_value<double>("beta");
-  double lambda = config::inst()->get_value<double>("lambda");
-  double gw_alpha = config::inst()->get_value<double>("gw_alpha");
+  unsigned int S = cfg->get_value<unsigned int>("num_slices");
+  double theta0 = cfg->get_value<double>("theta_start");
+  double theta_end = cfg->get_value<double>("theta_end");
+  double beta = cfg->get_value<double>("beta");
+  double lambda = cfg->get_value<double>("lambda");
+  double gw_alpha = cfg->get_value<double>("gw_alpha");
+  double epsilon = cfg->get_value<double>("epsilon");
 
   vil_image_view<double> g;
   vil_image_view<double> cost_volume;
 
-  if (!config::inst()->is_set("compute_cost_volume") ||
-      config::inst()->get_value<bool>("compute_cost_volume") )
+  if (!cfg->is_set("compute_cost_volume") ||
+      cfg->get_value<bool>("compute_cost_volume") )
   {
-    double iw = config::inst()->get_value<double>("intensity_cost_weight");
-    double gw = config::inst()->get_value<double>("gradient_cost_weight");
-    double cw = config::inst()->get_value<double>("census_cost_weight");
+    double iw = cfg->get_value<double>("intensity_cost_weight");
+    double gw = cfg->get_value<double>("gradient_cost_weight");
+    double cw = cfg->get_value<double>("census_cost_weight");
     compute_world_cost_volume(frames, cameras, ws, ref_frame, S, cost_volume, iw, gw, cw);
     ws->compute_g(frames[ref_frame], g, gw_alpha, 1.0);
 
-    if(config::inst()->is_set("cost_volume_file"))
+    if(cfg->is_set("cost_volume_file"))
     {
-      vcl_string cost_file = config::inst()->get_value<vcl_string>("cost_volume_file");
+      vcl_string cost_file = cfg->get_value<vcl_string>("cost_volume_file");
       save_cost_volume(cost_volume, g, cost_file.c_str());
     }
   }
-  else if (config::inst()->is_set("cost_volume_file"))
+  else if (cfg->is_set("cost_volume_file"))
   {
-    vcl_string cost_file = config::inst()->get_value<vcl_string>("cost_volume_file");
-    if (config::inst()->is_set("mix_cost_volumes") &&
-        config::inst()->get_value<bool>("mix_cost_volumes"))
+    vcl_string cost_file = cfg->get_value<vcl_string>("cost_volume_file");
+    if (cfg->is_set("mix_cost_volumes") &&
+        cfg->get_value<bool>("mix_cost_volumes"))
     {
-      double iw = config::inst()->get_value<double>("intensity_cost_weight");
-      double gw = config::inst()->get_value<double>("gradient_cost_weight");
-      double cw = config::inst()->get_value<double>("census_cost_weight");
+      double iw = cfg->get_value<double>("intensity_cost_weight");
+      double gw = cfg->get_value<double>("gradient_cost_weight");
+      double cw = cfg->get_value<double>("census_cost_weight");
       int pos = cost_file.find_last_of(".");
       vcl_string ext = cost_file.substr(pos);
       vcl_string basename = cost_file.substr(0, pos);
@@ -264,12 +267,12 @@ int main(int argc, char* argv[])
 
 #ifndef USE_BP
 
-  if (!config::inst()->is_set("compute_init_depthmap") ||
-       config::inst()->get_value<bool>("compute_init_depthmap") )
+  if (!cfg->is_set("compute_init_depthmap") ||
+       cfg->get_value<bool>("compute_init_depthmap") )
   {
 #ifdef HAVE_VISCL
-    if (config::inst()->is_set("use_gpu") &&
-        config::inst()->get_value<bool>("use_gpu") )
+    if (cfg->is_set("use_gpu") &&
+        cfg->get_value<bool>("use_gpu") )
     {
       refine_depth_cl_t rd = NEW_VISCL_TASK(refine_depth_cl);
       vil_image_view<float> depth_f(cost_volume.ni(), cost_volume.nj(), 1);
@@ -293,19 +296,19 @@ int main(int argc, char* argv[])
 #endif
     {
       boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
-      refine_depth(cost_volume, g, depth, beta, theta0, theta_end, lambda);
+      refine_depth(cost_volume, g, depth, 2000, theta0, theta_end, lambda, epsilon);
       boost::chrono::duration<double> sec = boost::chrono::system_clock::now() - start;
       vcl_cout << "super3d took " << sec.count() << " seconds.\n";
     }
-    if(config::inst()->is_set("init_depthmap_file"))
+    if(cfg->is_set("init_depthmap_file"))
     {
-      vcl_string depthmap_file = config::inst()->get_value<vcl_string>("init_depthmap_file");
+      vcl_string depthmap_file = cfg->get_value<vcl_string>("init_depthmap_file");
       save_depth(depth, depthmap_file.c_str());
     }
   }
-  else if (config::inst()->is_set("init_depthmap_file"))
+  else if (cfg->is_set("init_depthmap_file"))
   {
-    vcl_string depthmap_file = config::inst()->get_value<vcl_string>("init_depthmap_file");
+    vcl_string depthmap_file = cfg->get_value<vcl_string>("init_depthmap_file");
     load_depth(depth, depthmap_file.c_str());
   }
   else
@@ -323,13 +326,13 @@ int main(int argc, char* argv[])
   bp_refine(cost_volume, depth_min, depth_max, depth);    //TODO: need to check if this works after idepth->depth change
 #endif
 
-  if (config::inst()->is_set("output_depthmap"))
+  if (cfg->is_set("output_depthmap"))
   {
     vil_image_view<vxl_byte> dmap;
     vil_convert_stretch_range_limited(depth, dmap, 0.0, 1.0);
     // depth map are drawn inverted (white == closest) for viewing
     vil_math_scale_and_offset_values(dmap, -1.0, 255);
-    vcl_string depthmap_file = config::inst()->get_value<vcl_string>("output_depthmap");
+    vcl_string depthmap_file = cfg->get_value<vcl_string>("output_depthmap");
     vil_save(dmap, depthmap_file.c_str());
   }
 
@@ -337,14 +340,14 @@ int main(int argc, char* argv[])
 #ifdef HAVE_VTK
   //vtp depth writer uses 0..1 depth scaling
   vil_image_view<vxl_byte> b_texture;
-  if (config::inst()->is_set("directory"))
-    b_texture = vil_load((config::inst()->get_value<vcl_string>("directory") + filenames[ref_frame]).c_str());
+  if (cfg->is_set("directory"))
+    b_texture = vil_load((cfg->get_value<vcl_string>("directory") + filenames[ref_frame]).c_str());
   else
     b_texture = vil_load(filenames[ref_frame].c_str());
 
   vil_image_view<double> d_texture;
   vil_convert_cast<vxl_byte, double>(b_texture, d_texture);
-  vcl_string output_file_name = config::inst()->get_value<vcl_string>("output_file");
+  vcl_string output_file_name = cfg->get_value<vcl_string>("output_file");
   save_depth_to_vtp(output_file_name.c_str(), depth, d_texture, ref_cam, ws);
 #endif
 
@@ -352,24 +355,24 @@ int main(int argc, char* argv[])
   double depth_scale = depth_max - depth_min;
   vil_math_scale_and_offset_values(depth, depth_scale, depth_min);
 
-  if (config::inst()->is_set("obj_file"))
+  if (cfg->is_set("obj_file"))
   {
     double output_decimate = 1.0;
     imesh_mesh nm = depth_map_to_mesh(scale_camera(cameras[ref_frame], 1.0/output_decimate),
                                       vil_decimate(depth,output_decimate));
-    imesh_write_obj(config::inst()->get_value<vcl_string>("obj_file"), nm);
+    imesh_write_obj(cfg->get_value<vcl_string>("obj_file"), nm);
   }
 
-  if (config::inst()->is_set("output_float_depthmap"))
+  if (cfg->is_set("output_float_depthmap"))
   {
-    vcl_string depthmap_file = config::inst()->get_value<vcl_string>("output_float_depthmap");
+    vcl_string depthmap_file = cfg->get_value<vcl_string>("output_float_depthmap");
     vil_save(depth, depthmap_file.c_str());
   }
 
   vil_image_view<double> gt;
-  if (config::inst()->is_set("ground_truth"))
+  if (cfg->is_set("ground_truth"))
   {
-    vcl_string gtfile = config::inst()->get_value<vcl_string>("ground_truth");
+    vcl_string gtfile = cfg->get_value<vcl_string>("ground_truth");
     gt = vil_load(gtfile.c_str());
     gt = vil_crop(gt, i0, ni, j0, nj);
     vil_image_view<double> diff;

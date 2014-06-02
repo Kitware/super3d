@@ -53,7 +53,8 @@ refine_depth_planar(world_space *ws,
                     vil_image_view<double> &g,
                     const vil_image_view<double> &ref,
                     double lambda,
-                    double step)
+                    double step,
+                    double epsilon)
 {
   vil_image_view<double> q(d.ni(), d.nj(), 2);
   q.fill(0.0);
@@ -69,7 +70,6 @@ refine_depth_planar(world_space *ws,
   double radius = 10.0;
   double depth_bandwidth = 0.05;
   double intensity_bandwidth = 0.05;
-  double epsilon = config::inst()->get_value<double>("epsilon");
 
   //g.fill(1.0);
   vil_image_view<double> bp(d.ni(), d.nj(), 3);
@@ -110,7 +110,8 @@ void refine_depth_planar(const vil_image_view<double> &cost_volume,
                          double beta,
                          double theta0,
                          double theta_end,
-                         double lambda)
+                         double lambda,
+                         double epsilon)
 {
   vil_image_view<double> sqrt_cost_range(cost_volume.ni(), cost_volume.nj(), 1);
   double a_step = 1.0 / cost_volume.nplanes();
@@ -156,7 +157,6 @@ void refine_depth_planar(const vil_image_view<double> &cost_volume,
   double image_bandwidth = 0.05;
 
   double new_lambda = lambda/100.0;
-  double epsilon = config::inst()->get_value<double>("epsilon");
   lambda = new_lambda;
   vil_image_view<double> bp(d.ni(), d.nj(), 3);
 

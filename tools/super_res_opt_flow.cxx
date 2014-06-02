@@ -39,6 +39,7 @@
 
 #include <vcl_iostream.h>
 #include <boost/bind.hpp>
+#include <boost/scoped_ptr.hpp>
 
 #include <vil/vil_crop.h>
 #include <vil/vil_bicub_interp.h>
@@ -62,9 +63,11 @@ void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_imag
 void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
                              const vcl_vector<vil_image_view<double> > &frames,
                              vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
-                             int scale_factor);
+                             int scale_factor,
+                             config *cfg);
 void load_homogs(const char *homog_list, vcl_vector<vgl_h_matrix_2d<double> > &homogs,
-                 const vcl_vector<int> &frameindex);
+                 const vcl_vector<int> &frameindex,
+                 config *cfg);
 void refine_homogs(vcl_vector<vgl_h_matrix_2d<double> > &homogs,
                    const vcl_vector<vil_image_view<double> > &frames,
                    unsigned int ref_frame,
@@ -90,36 +93,38 @@ void flow_to_colormap(const vil_image_view<double> &flow,
                       double max_flow = 0.0);
 
 void create_low_res(vcl_vector<vil_image_view<double> > &frames,
-                    int scale);
+                    int scale,
+                    config *cfg);
 
 //*****************************************************************************
 
 int main(int argc, char* argv[])
 {
   try  {
-    config::inst()->read_config(argv[1]);
-    config::inst()->read_argument_updates(argc, argv);
+    boost::scoped_ptr<config> cfg(new config);
+    cfg->read_config(argv[1]);
+    cfg->read_argument_updates(argc, argv);
 
     vcl_vector<vil_image_view<double> > frames;
     vcl_vector<vpgl_perspective_camera<double> >  cameras;
     vcl_vector<vcl_string> filenames;
     vcl_vector<int> frameindex;
-    vcl_string frame_file = config::inst()->get_value<vcl_string>("frame_list");
-    vcl_string dir = config::inst()->get_value<vcl_string>("directory");
+    vcl_string frame_file = cfg->get_value<vcl_string>("frame_list");
+    vcl_string dir = cfg->get_value<vcl_string>("directory");
     vcl_cout << "Using frame file: " << frame_file << " to find images and flows.\n";
 
-    const unsigned int ref_frame = config::inst()->get_value<unsigned int>("ref_frame");
-    const double scale_factor = config::inst()->get_value<double>("scale_factor");
+    const unsigned int ref_frame = cfg->get_value<unsigned int>("ref_frame");
+    const double scale_factor = cfg->get_value<double>("scale_factor");
 
     load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames,
-                         config::inst()->get_value<bool>("use_color"), config::inst()->get_value<bool>("use_rgb12"));
+                         cfg->get_value<bool>("use_color"), cfg->get_value<bool>("use_rgb12"));
 
     int i0, ni, j0, nj;
     vil_image_view<double> ref_image;
 
-    if (config::inst()->is_set("crop_window"))
+    if (cfg->is_set("crop_window"))
     {
-      vcl_istringstream cwstream(config::inst()->get_value<vcl_string>("crop_window"));
+      vcl_istringstream cwstream(cfg->get_value<vcl_string>("crop_window"));
       cwstream >> i0 >> ni >> j0 >> nj;
     }
     else
@@ -131,14 +136,14 @@ int main(int argc, char* argv[])
 
     vil_image_view<double> original, waa;
     original.deep_copy(frames[ref_frame]);
-    if (config::inst()->is_set("create_low_res") && config::inst()->get_value<bool>("create_low_res"))
+    if (cfg->is_set("create_low_res") && cfg->get_value<bool>("create_low_res"))
     {
       vcl_cout << "Creating low resolution data\n";
       original = vil_crop(original, i0, ni, j0, nj);
       vil_image_view<unsigned short> out;
       vil_convert_stretch_range_limited(original, out, 0.0, 255.0, 0, 65535);
       vil_save(out, "original.png");
-      create_low_res(frames, scale_factor);
+      create_low_res(frames, scale_factor, cfg.get());
     }
 
     ref_image.deep_copy(frames[ref_frame]);
@@ -147,31 +152,31 @@ int main(int argc, char* argv[])
 
     vcl_vector<vil_image_view<double> > flows;
 
-    if (config::inst()->is_set("flow_file"))
+    if (cfg->is_set("flow_file"))
     {
-      load_flow( config::inst()->get_value<vcl_string>("flow_file").c_str(), dir, flows);
-      create_warps_from_flows(flows, frames, warps, scale_factor);
+      load_flow( cfg->get_value<vcl_string>("flow_file").c_str(), dir, flows);
+      create_warps_from_flows(flows, frames, warps, scale_factor, cfg.get());
     }
-    else if (config::inst()->is_set("homog_file"))
+    else if (cfg->is_set("homog_file"))
     {
       vcl_vector<vgl_h_matrix_2d<double> > homogs;
-      if (config::inst()->is_set("crop_window"))
+      if (cfg->is_set("crop_window"))
       {
         vcl_cout << frames[ref_frame].ni() << " " << frames[ref_frame].nj() << "\n";
-        if (config::inst()->get_value<bool>("create_low_res"))
+        if (cfg->get_value<bool>("create_low_res"))
         {
           i0 /= scale_factor;
           ni /= scale_factor;
           j0 /= scale_factor;
           nj /= scale_factor;
         }
-        load_homogs(config::inst()->get_value<vcl_string>("homog_file").c_str(), homogs, frameindex);
+        load_homogs(cfg->get_value<vcl_string>("homog_file").c_str(), homogs, frameindex, cfg.get());
         refine_homogs(homogs, frames, ref_frame, i0, ni, j0, nj, 50);
         ref_image.deep_copy(vil_crop(frames[ref_frame], i0, ni, j0, nj));
       }
       else
       {
-        load_homogs(config::inst()->get_value<vcl_string>("homog_file").c_str(), homogs, frameindex);
+        load_homogs(cfg->get_value<vcl_string>("homog_file").c_str(), homogs, frameindex, cfg.get());
         //refine_homogs(homogs, frames, ref_frame, i0, ni, j0, nj, 100);
       }
 
@@ -203,7 +208,7 @@ int main(int argc, char* argv[])
       //  vil_convert_cast(frames[i], img_b);
       //  vil_save(img_b, buf);
       //}
-      create_warps_from_flows(flows, frames, warps, scale_factor);
+      create_warps_from_flows(flows, frames, warps, scale_factor, cfg.get());
     }
     else
     {
@@ -211,7 +216,7 @@ int main(int argc, char* argv[])
       return 1;
     }
 
-    if (!config::inst()->get_value<bool>("use_rgb12"))
+    if (!cfg->get_value<bool>("use_rgb12"))
     {
       double normalizer = 1.0/255.0;
       for (unsigned int i = 0; i < frames.size(); i++)
@@ -230,14 +235,15 @@ int main(int argc, char* argv[])
     srp.ref_frame = ref_frame;
 
     srp.scale_factor = scale_factor;
-    srp.lambda = config::inst()->get_value<double>("lambda");
-    srp.epsilon_data = config::inst()->get_value<double>("epsilon_data");
-    srp.epsilon_reg = config::inst()->get_value<double>("epsilon_reg");
-    srp.sigma = config::inst()->get_value<double>("sigma");
-    srp.tau = config::inst()->get_value<double>("tau");
-    const unsigned int iterations = config::inst()->get_value<unsigned int>("iterations");
+    srp.lambda = cfg->get_value<double>("lambda");
+    srp.epsilon_data = cfg->get_value<double>("epsilon_data");
+    srp.epsilon_reg = cfg->get_value<double>("epsilon_reg");
+    srp.sigma = cfg->get_value<double>("sigma");
+    srp.tau = cfg->get_value<double>("tau");
+    const unsigned int iterations = cfg->get_value<unsigned int>("iterations");
+    vcl_string output_image = cfg->get_value<vcl_string>("output_image");
 
-    super_resolve(frames, warps, super_u, srp, iterations);
+    super_resolve(frames, warps, super_u, srp, iterations, output_image);
 
     vil_image_view<double> upsamp;
     upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::CUBIC);
@@ -245,7 +251,7 @@ int main(int argc, char* argv[])
     vil_convert_stretch_range_limited(upsamp, output, 0.0, 255.0, 0, 65535);
     vil_save(output, "bicub.png");
 
-    if (config::inst()->get_value<bool>("create_low_res"))
+    if (cfg->get_value<bool>("create_low_res"))
     {
       vil_math_scale_values(original, 1.0/255.0);
       vil_math_scale_values(upsamp, 1.0/255.0);
@@ -256,7 +262,7 @@ int main(int argc, char* argv[])
     }
 
     vil_convert_stretch_range_limited(super_u, output, 0.0, 1.0, 0, 65535);
-    vil_save(output, config::inst()->get_value<vcl_string>("output_image").c_str());
+    vil_save(output, output_image.c_str());
   }
   catch (const config::cfg_exception &e)  {
     vcl_cout << "Error in config: " << e.what() << "\n";
@@ -300,12 +306,13 @@ void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
 void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
                              const vcl_vector<vil_image_view<double> > &frames,
                              vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
-                             int scale_factor)
+                             int scale_factor,
+                             config *cfg)
 {
   assert(flows.size() == frames.size());
-  bool down_sample_averaging = config::inst()->get_value<bool>("down_sample_averaging");
-  bool bicubic_warping = config::inst()->get_value<bool>("bicubic_warping");
-  double smoothing_sigma = config::inst()->get_value<double>("sensor_sigma");
+  bool down_sample_averaging = cfg->get_value<bool>("down_sample_averaging");
+  bool bicubic_warping = cfg->get_value<bool>("bicubic_warping");
+  double smoothing_sigma = cfg->get_value<double>("sensor_sigma");
 
   warps.clear();
   warps.reserve(flows.size());
@@ -341,7 +348,8 @@ void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_imag
 //*****************************************************************************
 
 void load_homogs(const char *homog_list, vcl_vector<vgl_h_matrix_2d<double> > &homogs,
-                 const vcl_vector<int> &frameindex)
+                 const vcl_vector<int> &frameindex,
+                 config *cfg)
 {
   vcl_ifstream infile(homog_list);
   vgl_h_matrix_2d<double> H;
@@ -350,9 +358,9 @@ void load_homogs(const char *homog_list, vcl_vector<vgl_h_matrix_2d<double> > &h
   {
     if (frameindex[index] == framenum)
     {
-      if (config::inst()->get_value<bool>("create_low_res"))
+      if (cfg->get_value<bool>("create_low_res"))
       {
-        double scale_factor = config::inst()->get_value<double>("scale_factor");
+        double scale_factor = cfg->get_value<double>("scale_factor");
         vnl_double_3x3 S, Sinv;
         S.set_identity();
         S(0,0) = scale_factor;
@@ -601,14 +609,15 @@ void flow_to_colormap(const vil_image_view<double> &flow,
 }
 
 void create_low_res(vcl_vector<vil_image_view<double> > &frames,
-                    int scale)
+                    int scale,
+                    config *cfg)
 {
-  bool down_sample_averaging = config::inst()->get_value<bool>("down_sample_averaging");
+  bool down_sample_averaging = cfg->get_value<bool>("down_sample_averaging");
 
   for (unsigned int i = 0; i < frames.size(); i++)
   {
     vil_image_view<double> temp;
-    double sensor_sigma = config::inst()->get_value<double>("sensor_sigma");
+    double sensor_sigma = cfg->get_value<double>("sensor_sigma");
     vil_gauss_filter_2d(frames[i], temp, sensor_sigma, 3.0*sensor_sigma);
     if( down_sample_averaging )
     {

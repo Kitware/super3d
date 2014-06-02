@@ -51,10 +51,12 @@ void
 refine_depth(vil_image_view<double> &cost_volume,
              const vil_image_view<double> &g,
              vil_image_view<double> &d,
-             double beta,
+             unsigned int iterations,
              double theta0,
              double theta_end,
-             double lambda)
+             double lambda,
+             double epsilon,
+             depth_refinement_monitor *drm)
 {
   vil_image_view<double> sqrt_cost_range(cost_volume.ni(), cost_volume.nj(), 1);
   double a_step = 1.0 / cost_volume.nplanes();
@@ -89,17 +91,31 @@ refine_depth(vil_image_view<double> &cost_volume,
 
   double theta = theta0;
   double denom = log(10.0);
-  double epsilon = config::inst()->get_value<double>("epsilon");
-  while (theta > theta_end)
+  double orders = log(theta0)/denom - log(theta_end)/denom;
+  double beta = orders / static_cast<double>(iterations);
+
+  for (unsigned int iter = 1; iter <= iterations; iter++)
   {
     vcl_cout << "theta: " << theta << "\n";
     min_search_bound(a, d, cost_volume, sqrt_cost_range, theta, lambda);
-    //min_search(a, d, cost_volume, theta, lambda);
     huber(q, d, a, g, theta, 0.25/theta, epsilon);
-    //huber_central(q, d, a, g, theta, 0.25/theta, epsilon);
-    //hessian_frob(q, d, a, g, theta, 0.25/theta, epsilon);
-
     theta = pow(10.0, log(theta)/denom - beta);
+
+    if (drm)
+    {
+      if (*drm->interrupted_)
+      {
+        return;
+      }
+
+      if (drm->callback_ && !(iter % drm->interval_))
+      {
+        depth_refinement_monitor::update_data data;
+        data.current_result.deep_copy(d);
+        data.num_iterations = iter;
+        drm->callback_(data);
+      }
+    }
   }
 }
 

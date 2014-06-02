@@ -31,8 +31,6 @@
 #include <vcl_fstream.h>
 #include <vcl_algorithm.h>
 
-config *config::inst_ = 0;
-
 template<class T>
 void config::cfg_type<T>::from_string(vcl_istringstream &stream)
 {
@@ -87,9 +85,17 @@ config::config()
   typemap["bool"] = new cfg_type<bool>;
 }
 
-config *config::inst()
+config::~config()
 {
-  return inst_ ? inst_ : inst_ = new config;
+  for (maptype::iterator itr = varmap.begin(); itr != varmap.end(); itr++)
+  {
+    delete itr->second;
+  }
+
+  for (maptype::iterator itr = typemap.begin(); itr != typemap.end(); itr++)
+  {
+    delete itr->second;
+  }
 }
 
 template<class T>

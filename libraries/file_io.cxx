@@ -298,6 +298,26 @@ void load_from_frame_file(const char *framefile,
   framestream.close();
 }
 
+//Load camera from a file per camera
+vpgl_perspective_camera<double>
+load_cam(const vcl_string& filename)
+{
+  vcl_fstream ifs((filename).c_str());
+
+  vpgl_perspective_camera<double> cam;
+
+  ifs >> cam;
+  ifs.close();
+
+  vpgl_calibration_matrix<double> cal = cam.get_calibration();
+  cal.set_focal_length(cal.focal_length() * cal.x_scale());
+  cal.set_y_scale(cal.y_scale() / cal.x_scale());
+  cal.set_x_scale(1.0);
+  cam.set_calibration(cal);
+
+  return cam;
+}
+
 /// read a flow file into 2-band image
 bool read_flow_file(vil_image_view<double> &flowimg, const char* filename)
 {
