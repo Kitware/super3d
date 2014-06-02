@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(super3d)
 
+option(ENABLE_REFINE_HOMOG "Build refine_homog (requires vgui)" OFF)
+
 set(CMAKE_MODULE_PATH "${super3d_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
 
 find_package(VTK)

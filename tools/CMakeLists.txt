@@ -39,11 +39,13 @@ target_link_libraries(super_res_image depthl vil vidtk_video_transforms
 add_executable(bundler2vpgl bundler2vpgl.cxx)
 target_link_libraries(bundler2vpgl vpgl vpgl_algo vgl vgl_algo vnl vil)
 
-add_executable(refine_homog refine_homog_gui.cxx refine_homog.h refine_homog.cxx)
-target_link_libraries(refine_homog vnl vil vil_algo vul vgl vgl_algo vgui vidtk_video_transforms rrel)
+if (ENABLE_REFINE_HOMOG)
+  add_executable(refine_homog refine_homog_gui.cxx refine_homog.h refine_homog.cxx)
+  target_link_libraries(refine_homog vnl vil vil_algo vul vgl vgl_algo vgui vidtk_video_transforms rrel)
+endif()
 
 add_executable(refine_homog_batch refine_homog_batch.cxx)
-target_link_libraries(refine_homog_batch vnl vil vil_algo vul vgl vgl_algo vgui vidtk_video_transforms vidtk_tracking rrel)
+target_link_libraries(refine_homog_batch vnl vil vil_algo vul vgl vgl_algo vidtk_video_transforms vidtk_tracking rrel)
 
 if(VTK_FOUND)
   add_executable(ply2vtp ply2vtp.cxx)
