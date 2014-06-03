@@ -43,7 +43,7 @@ function(super3d_configure_file action_name source destination)
     set(gen_command_args ${gen_command_args} "-D${arg}=${${arg}}")
   endforeach()
 
-  set(tmp_file "${CMAKE_CURRENT_BINARY_DIR}/configure.${name}.output")
+  set(tmp_file "${CMAKE_CURRENT_BINARY_DIR}/configure.${action_name}.output")
   add_custom_command(
     OUTPUT  "${destination}"
     COMMAND "${CMAKE_COMMAND}"
@@ -67,11 +67,11 @@ function(super3d_configure_file action_name source destination)
   # Enters switch if not defined or false evaluating value
   if(NOT no_configure_target)
     # TODO: is the ${all} needed?
-    add_custom_target(configure-${name} ${all}
+    add_custom_target(configure-${action_name} ${all}
       DEPENDS "${destination}"
       SOURCES "${source}"  # Adding source for IDE integration
       )
-    add_dependencies(configure configure-${name})
+    add_dependencies(configure configure-${action_name})
 
     # for VisualStudio / XCode IDEs
     source_group("Configuration Files"
