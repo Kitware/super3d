@@ -1,7 +1,9 @@
-# Build appropriate include directory
-# Assuming we are in INSTALL_ROOT/share/Super3D/cmake/ directory
+# Build appropriate install path
+# Assuming we are in the ${INSTALL_ROOT}/share/Super3D/cmake/ directory...
 get_filename_component(INSTALL_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
-set(Super3D_INCLUDE_DIRS "${INSTALL_ROOT}/include")
+set(Super3D_INCLUDE_DIR "${INSTALL_ROOT}/include")
+set(Super3D_LIBRARY_DIR "${INSTALL_ROOT}/lib")
+set(Super3D_CMAKE_DIR   "${INSTALL_ROOT}/share/Super3D/cmake")
 
 # Include library targets
 include("${CMAKE_CURRENT_LIST_DIR}/super3d-config-targets.cmake")
