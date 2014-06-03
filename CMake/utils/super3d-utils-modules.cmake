@@ -48,7 +48,7 @@ function(super3d_add_module name directory)
 
     # Check that this name is unique among registered modules
     list(FIND current_modules "${name}" duplicate_index)
-    if(not duplicate_index EQUAL -1)
+    if(NOT duplicate_index EQUAL -1)
       message(FATAL_ERROR "Attempted to register duplicate module '${name}'")
     endif()
 

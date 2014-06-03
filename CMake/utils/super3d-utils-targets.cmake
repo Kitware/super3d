@@ -63,7 +63,7 @@ endfunction(_super3d_export)
 # Where "name" is the target to add the PIC properties to.
 #-
 function(_super3d_compile_pic name)
-  message(STATUS "Adding PIC flag to target: ${name}")
+  message(STATUS "[_super3d_compile_pic-${name}] Adding PIC flag to target.")
 
   if(CMAKE_VERSION VERSION_GREATER "2.8.9")
     set_target_properties("${name}"
@@ -95,7 +95,7 @@ function(super3d_install)
     return()
   endif()
 
-  instal(${ARGN})
+  install(${ARGN})
 
 endfunction(super3d_install)
 
@@ -103,18 +103,29 @@ endfunction(super3d_install)
 #+
 # Install Super3D public header files to include/super3d.
 #
-#   super3d_install_headers(header1, [header2 ...] [SUBDIR dir])
+#   super3d_install_headers(header1, [header2 ...]
+#                           [SUBDIR dir]
+#                           [STRIP path]
+#                           )
 #
-# a SUBDIR may be provided in order to place the header files in a
-# subdirectory under that. This path must be relative.
+# A SUBDIR may be provided in order to place the header files in a
+# subdirectory under the install location. This path must be relative.
+#
+# A path prefix may be given (STRIP) with which to trim an absolute path when
+# determining where to install the file in the install tree. This would be
+# used when giving absolute paths to header files, or pointing to files that
+# are not in the current working directory (i.e. generated header files in the
+# binary tree).
 #-
 function(super3d_install_headers)
-  set(oneValueArgs SUBDIR)
+  set(oneValueArgs SUBDIR STRIP)
   cmake_parse_arguments(sih "" "${oneValueArgs}" "" ${ARGN})
 
   foreach(header IN LISTS sih_UNPARSED_ARGUMENTS)
     # Using PATH for legacy support, instead of DIRECTORY
     get_filename_component(h_subdir "${header}" PATH)
+    string(REPLACE "${sih_STRIP}" "" h_subdir "${h_subdir}")
+    #message(STATUS "[super3d_install_headers] Installing to destination: include/super3d/${sih_SUBDIR}/${h_subdir}")
     super3d_install(
       FILES "${header}"
       DESTINATION "include/super3d/${sih_SUBDIR}/${h_subdir}"
@@ -196,7 +207,9 @@ endfunction(super3d_add_executable)
 #-
 function(super3d_add_library name)
   string(TOUPPER "${name}" upper_name)
-  message(STATUS "Making library \"${name}\" with defined symbol \"MAKE_${upper_name}_LIB\"")
+  set(defined_make_symbol MAKE_${upper_name}_LIB)
+
+  message(STATUS "[super3d_add_library-${name}] Making library \"${name}\" with defined symbol \"${defined_make_symbol}\"")
 
   add_library(${name} ${ARGN})
   set_target_properties("${name}"
@@ -206,7 +219,7 @@ function(super3d_add_library name)
       RUNTIME_OUTPUT_DIRECTORY  "${Super3D_BINARY_DIR}/bin"
       VERSION                   "${Super3D_VERSION}"
       SOVERSION                 0
-      DEFINE_SYMBOL             MAKE_${upper_name}_LIB
+      DEFINE_SYMBOL             ${defined_make_symbol}
     )
 
   # For multi-config generators, define target location properties for each
@@ -267,6 +280,7 @@ function(super3d_generate_cmake_build_configs)
   # Includes relative import of config-targets file.
   super3d_configure_file(super3d-cmake-config
     "${config_file_tmpl}" "${config_file}"
+    Super3D_SOURCE_DIR Super3D_BINARY_DIR
     )
 
   # generate build-focused target exports config file
@@ -292,7 +306,7 @@ function(super3d_generate_cmake_install_configs)
   set(install_config "${Super3D_BINARY_DIR}/Super3D-config-install.cmake")
   set(install_config_targets "Super3D-config-targets.cmake")
 
-  set(install_dir "share/Super3D/cmake")
+  set(install_cmake_dir "share/Super3D/cmake")
 
   # Generating and installing base CMake config
   # Includes relative import of config-targets file
@@ -301,14 +315,14 @@ function(super3d_generate_cmake_install_configs)
     )
   super3d_install(
     FILES       "${install_config}"
-    DESTINATION ${install_dir}
+    DESTINATION ${install_cmake_dir}
     RENAME      Super3D-config.cmake
     )
 
   # Install for CMake install targets
   super3d_install(
     EXPORT      ${Super3D_exports_label}
-    DESTINATION ${install_dir}
+    DESTINATION ${install_cmake_dir}
     FILE        ${install_config_targets}
     )
 
