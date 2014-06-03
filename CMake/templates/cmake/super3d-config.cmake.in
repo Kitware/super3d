@@ -1,0 +1,6 @@
+
+# Super3D include directory
+set(Super3D_INCLUDE_DIRS "@Super3D_SOURCE_DIR@/super3d")
+
+# Export definitions for maptk to be used from find_package
+include("${CMAKE_CURRENT_LIST_DIR}/maptk-config-targets.cmake")
