@@ -60,18 +60,7 @@
 
 #include <vpgl/vpgl_perspective_camera.h>
 
-//C:/Data/gisr/cameras.txt c:/Data/meshes/crop.obj -fl C:/Data/gisr/frames_gisr.txt -dir C:/Data/gisr/ -f 0 -wv "0.026 0.030895 0.002363 0.123 0.09583 0.02121 1000 779"
 
-//C:/Data/epfl_dataset/fountain-P11/cams.txt c:/Data/meshes/crop.obj -fl C:/Data/epfl_dataset/fountain-P11/frames.txt -dir C:/Data/epfl_dataset/fountain-P11/urd/ -f 3 -cw "563 1843 416 987"
-//C:/Data/synthetic_data/simple2/cams.txt c:/Data/meshes/crop.obj -fl C:/Data/synthetic_data/simple2/frames.txt -dir C:/Data/synthetic_data/simple2/images/ -f 1
-
-//C:/Data/ground_medians/cameras.txt c:/Data/meshes/crop.obj -fl frames.txt -dir C:/Data/ground_medians/full_window15_reset50/ -f 0 -e C:/Data/exposure/exposure.txt -wv "-0.0060024489 0.0049344006 0.00042798251 0.028599165 0.021470546 0.0051992279 1320 954"
-
-//C:/Data/ground_medians/cameras.txt c:/Data/meshes/crop.obj -ff C:/Data/ground_medians/full_window15_reset50/frame###.png,000:100:950 -f 0 -e C:/Data/exposure/exposure.txt -cw "767 1320 757 954"
-//C:/Data/ground_medians/cameras.txt c:/Data/meshes/crop.obj -ff C:/Data/ground_medians/full_window15_reset50/frame###.png,000:100:950 -f 0 -e C:/Data/exposure/exposure.txt -wv "-0.0060024489 0.0049344006 0.00042798251 0.028599165 0.021470546 0.0051992279 1320 954"
-
-//C:/Data/ground_medians/cameras.txt c:/Data/meshes/crop.obj -ff C:/Data/ground_medians/full_window15_reset50/frame###.png,000:100:950 -f 0 -e C:/Data/exposure/exposure.txt -cw "962 334 1504 205"
-//C:/Data/ground_medians/cameras.txt c:/Data/meshes/crop.obj -ff C:/Data/ground_medians/full_window15_reset50/frame###.png,000:100:950 -f 0 -e C:/Data/exposure/exposure.txt -wv "0.00068379926 0.012289556 0.00042798251 0.0071305364 0.0047269018 0.0051992279 334 205"
 int main(int argc, char* argv[])
 {
   try
@@ -156,9 +145,21 @@ int main(int argc, char* argv[])
 
   world_space *ws = NULL;
   int i0, ni, j0, nj;
+  double depth_min, depth_max;
 
-  double depth_min = cfg->get_value<double>("depth_min");
-  double depth_max = cfg->get_value<double>("depth_max");
+  if (cfg->is_set("landmarks_path"))
+  {
+    vcl_cout << "Computing depth range from " << cfg->get_value<vcl_string>("landmarks_path") << "\n";
+    compute_depth_range(cameras[ref_frame], cfg->get_value<vcl_string>("landmarks_path"), depth_min, depth_max);
+    vcl_cout << "Max estimated depth: " << depth_max << "\n";
+    vcl_cout << "Min estimated depth: " << depth_min << "\n";
+  }
+  else
+  {
+    depth_min = cfg->get_value<double>("depth_min");
+    depth_max = cfg->get_value<double>("depth_max");
+
+  }
 
   if (cfg->is_set("world_volume"))
   {
@@ -222,6 +223,7 @@ int main(int argc, char* argv[])
     double gw = cfg->get_value<double>("gradient_cost_weight");
     double cw = cfg->get_value<double>("census_cost_weight");
     compute_world_cost_volume(frames, cameras, ws, ref_frame, S, cost_volume, iw, gw, cw);
+    //compute_cost_volume_warp(frames, cameras, ref_frame, S, depth_min, depth_max, cost_volume);
     ws->compute_g(frames[ref_frame], g, gw_alpha, 1.0);
 
     if(cfg->is_set("cost_volume_file"))

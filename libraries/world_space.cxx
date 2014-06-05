@@ -79,7 +79,7 @@ void world_space::warp_image_to_depth(const vil_image_view<double> &in,
   out.set_size(ni_, nj_, 1);
   vidtk::warp_image(in, out, vgl_h_matrix_2d<double>(H), wip);
 
-#if 0
+#if 1
   vil_image_view<double> outwrite;
   outwrite.deep_copy(out);
   vil_math_scale_and_offset_values(outwrite, 255.0, 0.0);
