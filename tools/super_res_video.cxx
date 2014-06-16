@@ -122,7 +122,8 @@ int main(int argc, char* argv[])
     {
       vcl_string camera_file = cfg->get_value<vcl_string>("camera_file");
       vcl_cout << "Using frame file: " << frame_file << " to find images and " << camera_file  << " to find cameras.\n";
-      load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames);
+      load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames,
+                         config::inst()->get_value<bool>("use_color"), config::inst()->get_value<bool>("use_rgb12"));
       load_cams(camera_file.c_str(), frameindex, cameras);
     }
     else if (cfg->is_set("camera_dir"))
@@ -130,8 +131,16 @@ int main(int argc, char* argv[])
       vcl_string camera_dir = cfg->get_value<vcl_string>("camera_dir");
       vcl_cout << "Using frame file: " << frame_file << " to find images and " << camera_dir  << " to find cameras.\n";
 
-      load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames);
-      load_krtd_cams(camera_dir.c_str(), frameindex, cameras);
+      load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames,
+                           config::inst()->get_value<bool>("use_color"), config::inst()->get_value<bool>("use_rgb12"));
+      for (unsigned int i = 0; i < filenames.size(); i++)
+      {
+        vcl_string camname = filenames[i];
+        unsigned int found = camname.find_last_of("/\\");
+        camname = camname.substr(found+1, camname.size() - 4 - found - 1);
+        camname = config::inst()->get_value<vcl_string>("camera_dir") + "/" + camname + ".krtd";
+        cameras.push_back(load_cam(camname));
+      }
     }
     else
     {

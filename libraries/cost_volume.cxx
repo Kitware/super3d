@@ -39,6 +39,7 @@
 #include <vnl/vnl_double_2.h>
 #include <vbl/vbl_array_2d.h>
 #include <vil/algo/vil_gauss_filter.h>
+#include <vgl/vgl_box_2d.h>
 
 #include <vil/vil_math.h>
 #include <vil/vil_save.h>
@@ -566,7 +567,8 @@ read_cost_volume_at(FILE *file,
 
 //*****************************************************************************
 
-void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
+void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam, unsigned int i0,
+                         unsigned int ni, unsigned int j0, unsigned int nj,
                          const vcl_string &landmark_file, double &min_depth, double &max_depth)
 {
   vcl_ifstream infile(landmark_file.c_str());
@@ -592,6 +594,7 @@ void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
                  ref_cam.get_camera_center().y(),
                  ref_cam.get_camera_center().z());
 
+  vgl_box_2d<double> box(i0, i0+ni, j0, j0+nj);
   for (unsigned int i = 0; i < numverts; i++)
   {
     double x, y, z;
@@ -599,11 +602,17 @@ void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
     infile >> x >> y >> z >> id;
     vnl_vector_fixed<double, 4> pt(x, y, z, 1.0);
     vnl_double_3 res = ref_cam.get_matrix() * pt;
-    double dist = res(2);
-    if (min_depth > dist)
-      min_depth = dist;
-    if (max_depth < dist)
-      max_depth = dist;
+
+    double u, v;
+    ref_cam.project(x, y, z, u, v);
+    if (box.contains(u, v))
+    {
+      double dist = res(2);
+      if (min_depth > dist)
+        min_depth = dist;
+      if (max_depth < dist)
+       max_depth = dist;
+    }
   }
 
   double diff = max_depth - min_depth;

@@ -159,6 +159,26 @@ load_exposure(const std::string& filename, const vcl_vector<int> &framelist)
   return exposure;
 }
 
+//Load camera from a file per camera
+vpgl_perspective_camera<double>
+load_cam(const vcl_string& filename)
+{
+  vcl_fstream ifs((filename).c_str());
+
+  vpgl_perspective_camera<double> cam;
+
+  ifs >> cam;
+  ifs.close();
+
+  vpgl_calibration_matrix<double> cal = cam.get_calibration();
+  cal.set_focal_length(cal.focal_length() * cal.x_scale());
+  cal.set_y_scale(cal.y_scale() / cal.x_scale());
+  cal.set_x_scale(1.0);
+  cam.set_calibration(cal);
+
+  return cam;
+}
+
 //Load cameras from a file per camera
 //Assume cameras are in directory named %04d.krtd
 void
@@ -171,7 +191,7 @@ load_krtd_cams(const vcl_string& directory,
   for (unsigned int i = 0; i < framelist.size(); i++)
   {
     sprintf(buf, "%04d.krtd", framelist[i]);
-    vcl_cout << buf << " ";
+    vcl_cout << (directory+buf) << "\n";
     vcl_fstream ifs((directory + buf).c_str());
 
     vpgl_perspective_camera<double> cam;
@@ -293,26 +313,6 @@ void load_from_frame_file(const char *framefile,
 
   vcl_cout << "\n";
   framestream.close();
-}
-
-//Load camera from a file per camera
-vpgl_perspective_camera<double>
-load_cam(const vcl_string& filename)
-{
-  vcl_fstream ifs((filename).c_str());
-
-  vpgl_perspective_camera<double> cam;
-
-  ifs >> cam;
-  ifs.close();
-
-  vpgl_calibration_matrix<double> cal = cam.get_calibration();
-  cal.set_focal_length(cal.focal_length() * cal.x_scale());
-  cal.set_y_scale(cal.y_scale() / cal.x_scale());
-  cal.set_x_scale(1.0);
-  cam.set_calibration(cal);
-
-  return cam;
 }
 
 /// read a flow file into 2-band image

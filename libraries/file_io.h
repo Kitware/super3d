@@ -72,6 +72,10 @@ void load_cams(const char *camerafile,
                vcl_vector<int> &framelist,
                vcl_vector<vpgl_perspective_camera<double> > &cameras);
 
+//Load camera from a file per camera
+vpgl_perspective_camera<double>
+load_cam(const vcl_string& filename);
+
 //Load cameras from a file per camera
 //Assume cameras are in directory named %04d.krtd
 void

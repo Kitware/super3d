@@ -89,12 +89,16 @@ int main(int argc, char* argv[])
     //Read Cameras
     cameras = load_cams(camera_file, frame_seq);
 
-    //Read Images
-    frames = load_frames(frame_seq, filenames);
-    if (frames.empty())
+    load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames);
+    for (unsigned int i = 0; i < filenames.size(); i++)
     {
-      vcl_cerr << "No frames found"<<vcl_endl;
-      return -1;
+      vcl_string camname = filenames[i];
+      unsigned int found = camname.find_last_of("/\\");
+      camname = camname.substr(found+1, camname.size() - 4 - found - 1);
+      camname = config::inst()->get_value<vcl_string>("camera_dir") + "/" + camname + ".krtd";
+      cameras.push_back(load_cam(camname));
+    }
+
     }
     else if (frames.size() < 2)
     {
@@ -146,9 +150,6 @@ int main(int argc, char* argv[])
   world_space *ws = NULL;
   int i0, ni, j0, nj;
 
-  double depth_min = config::inst()->get_value<double>("depth_min");
-  double depth_max = config::inst()->get_value<double>("depth_max");
-
   if (config::inst()->is_set("world_volume"))
   {
     vcl_istringstream wvstream(config::inst()->get_value<vcl_string>("world_volume"));
@@ -187,6 +188,17 @@ int main(int argc, char* argv[])
       i0 = j0 = 0;
       ni = frames[ref_frame].ni();
       nj = frames[ref_frame].nj();
+    }
+
+    if (config::inst()->get_value<bool>("compute_depth_range") && config::inst()->is_set("landmarks_path"))
+    {
+      compute_depth_range(cameras[ref_frame], i0, ni, j0, nj, config::inst()->get_value<vcl_string>("landmarks_path"), depth_min, depth_max);
+      vcl_cout << "depth range: " << depth_min << " - " << depth_max << "\n";
+    }
+    else
+    {
+      depth_min = config::inst()->get_value<double>("depth_min");
+      depth_max = config::inst()->get_value<double>("depth_max");
     }
 
     ws = new world_frustum(cameras[ref_frame], depth_min, depth_max, ni, nj);

@@ -198,10 +198,10 @@ void primal_step_a(const vcl_vector<vil_image_view<double> > &q,
     vil_math_image_sum(a0[i], work, a0[i]);
 
     //elementwise product
-    vil_math_image_product(super_q, u, super_q);
-    vidtk::backward_divergence(b1[i], work);
-    vil_math_add_image_fraction(work, srp.tau, super_q, -srp.tau * sf_2);
-    vil_math_image_sum(a1[i], work, a1[i]);
+    //vil_math_image_product(super_q, u, super_q);
+    //vidtk::backward_divergence(b1[i], work);
+    //vil_math_add_image_fraction(work, srp.tau, super_q, -srp.tau * sf_2);
+    //vil_math_image_sum(a1[i], work, a1[i]);
   }
 }
 
