@@ -570,7 +570,7 @@ void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
   vcl_string x;
   unsigned int numverts;
   do
-  { 
+  {
     infile >> x;
     if (x == "element")
     {

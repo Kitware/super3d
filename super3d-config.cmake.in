@@ -9,4 +9,3 @@ SET(super3d_LIBRARY_DIR "@super3d_BINARY_DIR@/libraries")
 
 # The super3d CMake support directory.
 SET(super3d_CMAKE_DIR "@super3d_SOURCE_DIR@")
-

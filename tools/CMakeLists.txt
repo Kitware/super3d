@@ -1,10 +1,10 @@
 add_executable(exhaustive_depth exhaustive_depth.cxx)
 target_link_libraries(exhaustive_depth depthl vil vidtk_video_transforms
                       vidtk_tracking imesh_algo vpgl vnl vul vil_algo bp ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY})
-                      
+
 add_executable(cam_and_homog_picker cam_and_homog_picker.cxx)
 target_link_libraries(cam_and_homog_picker depthl vil vidtk_video_transforms
-                      vidtk_tracking imesh_algo vpgl vnl vul vil_algo ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY})                      
+                      vidtk_tracking imesh_algo vpgl vnl vul vil_algo ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 
 if (viscl_FOUND)
   target_link_libraries(exhaustive_depth depth_cl)
@@ -87,7 +87,7 @@ target_link_libraries(mean_shift vil vil_algo vul vnl)
 add_executable(exhaustive_stereo exhaustive_stereo.cxx)
 target_link_libraries(exhaustive_stereo depthl vil vidtk_video_transforms
                       vidtk_tracking imesh_algo vpgl vnl vul vil_algo bp)
-                      
+
 if (viscl_FOUND)
    add_executable(rofcl_test rofcl_test.cxx )
    target_link_libraries(rofcl_test depth_cl vil vil_algo vul)
