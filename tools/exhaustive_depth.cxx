@@ -26,21 +26,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "super_config.h"
+#include <super3d/depth/super_config.h>
 
-#include "tv_refine_search.h"
-#include "cost_volume.h"
+#include <super3d/depth/tv_refine_search.h>
+#include <super3d/depth/cost_volume.h>
 
-#include "file_io.h"
-#include "depth_map.h"
-#include "multiscale.h"
-#include "tv_refine_plane.h"
-#include "world_rectilinear.h"
-#include "world_frustum.h"
+#include <super3d/depth/file_io.h>
+#include <super3d/depth/depth_map.h>
+#include <super3d/depth/multiscale.h>
+#include <super3d/depth/tv_refine_plane.h>
+#include <super3d/depth/world_rectilinear.h>
+#include <super3d/depth/world_frustum.h>
+#include <super3d/depth/exposure.h>
 
 #include <boost/scoped_ptr.hpp>
 
-#include "exposure.h"
 
 // VXL includes
 #include <vil/vil_convert.h>
@@ -53,7 +53,7 @@
 #include <imesh/imesh_fileio.h>
 
 #ifdef HAVE_VISCL
-#include "depth_cl/refine_depth.h"
+#include <super3d/depth_cl/refine_depth.h>
 #endif
 
 #include <boost/chrono.hpp>

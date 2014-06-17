@@ -39,7 +39,7 @@
 
 #include <vul/vul_arg.h>
 
-#include "depth_cl/dual_rof.h"
+#include <super3d/depth_cl/dual_rof.h>
 
 const char *print_cl_errstring(cl_int err);
 

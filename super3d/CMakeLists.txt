@@ -14,17 +14,16 @@ super3d_install_headers("${CMAKE_CURRENT_BINARY_DIR}/config.h"
   STRIP "${CMAKE_CURRENT_BINARY_DIR}"
   )
 
-include_directories("${CMAKE_SOURCE_DIR}")
-include_directories("${CMAKE_BINARY_DIR}")
+include_directories("${Super3D_SOURCE_DIR}")
+include_directories("${Super3D_BINARY_DIR}")
 
 
 super3d_add_module(bp "${CMAKE_CURRENT_LIST_DIR}/bp-tools")
 super3d_add_module(imesh "${CMAKE_CURRENT_LIST_DIR}/vxl_brl_imesh")
 
-super3d_add_module(depth "${CMAKE_CURRENT_LIST_DIR}/depth"
-                   DEPENDS bp imesh)
+super3d_add_module(super3d_depth "${CMAKE_CURRENT_LIST_DIR}/depth"
+                   DEPENDS imesh)
 
 if(viscl_FOUND)
-  super3d_add_module(depth_cl "${CMAKE_CURRENT_LIST_DIR}/depth_cl"
-                     DEPENDS depth)
+  super3d_add_module(super3d_depth_cl "${CMAKE_CURRENT_LIST_DIR}/depth_cl")
 endif()

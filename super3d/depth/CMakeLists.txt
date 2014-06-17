@@ -42,14 +42,15 @@ set(cxx_files
   super_depth.cxx
   )
 
-super3d_add_library(depth ${header_files} ${cxx_files})
-target_link_libraries(depth
+super3d_install_headers(${header_files} SUBDIR depth)
+super3d_add_library(super3d_depth ${header_files} ${cxx_files})
+target_link_libraries(super3d_depth
   vil vidtk_video_transforms vidtk_tracking imesh imesh_algo vpgl vnl vul
   vil_algo vgl_algo vbl
   )
 
 if(VTK_FOUND)
-  target_link_libraries(depth ${VTK_LIBRARIES})
+  target_link_libraries(super3d_depth ${VTK_LIBRARIES})
   set_source_files_properties(depth_map.cxx
     PROPERTIES
       COMPILE_DEFINITIONS HAVE_VTK

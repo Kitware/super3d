@@ -26,8 +26,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SUPER3D_CONFIG_H_
-#define SUPER3D_CONFIG_H_
+#ifndef SUPER3D_DEPTH_SUPER_CONFIG_H_
+#define SUPER3D_DEPTH_SUPER_CONFIG_H_
 
 #include <vcl_vector.h>
 #include <vcl_map.h>
@@ -100,4 +100,4 @@ private:
   vcl_vector<vcl_vector<vcl_string> > exclusives;
 };
 
-#endif
+#endif // SUPER3D_DEPTH_SUPER_CONFIG_H_

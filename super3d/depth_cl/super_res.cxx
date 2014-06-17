@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "depth_cl/super_res.h"
+#include "super_res.h"
 
 #include <boost/make_shared.hpp>
 #include <viscl/core/manager.h>

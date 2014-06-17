@@ -63,7 +63,7 @@ endfunction(_super3d_export)
 # Where "name" is the target to add the PIC properties to.
 #-
 function(_super3d_compile_pic name)
-  message(STATUS "[_super3d_compile_pic-${name}] Adding PIC flag to target.")
+  #message(STATUS "[_super3d_compile_pic-${name}] Adding PIC flag to target.")
 
   if(CMAKE_VERSION VERSION_GREATER "2.8.9")
     set_target_properties("${name}"
@@ -171,7 +171,7 @@ function(super3d_add_executable name)
   # Assuming executable uses Super3D project-scope config.h header
   add_dependencies(${name} configure-config.h)
 
-  if(not component)
+  if(NOT component)
     set(component runtime)
   endif()
 

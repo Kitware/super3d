@@ -38,7 +38,7 @@
 #include <video_transforms/adjoint_dbw.h>
 #include <video_transforms/adjoint_resample.h>
 
-#include "file_io.h"
+#include <super3d/depth/file_io.h>
 
 int main(int argc, char *argv[])
 {

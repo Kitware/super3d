@@ -28,9 +28,9 @@
 
 #include "tv_refine.h"
 
-#include "file_io.h"
-#include "depth_map.h"
-#include "multiscale.h"
+#include <super3d/depth/file_io.h>
+#include <super3d/depth/depth_map.h>
+#include <super3d/depth/multiscale.h>
 
 #include <video_transforms/gaussian_pyramid_builder.h>
 

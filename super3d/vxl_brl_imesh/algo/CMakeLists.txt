@@ -35,7 +35,7 @@ if(VXL_NETLIB_FOUND)
   set(imesh_algo_sources ${imesh_algo_sources} imesh_generate_mesh.cxx)
 endif(VXL_NETLIB_FOUND)
 
-super3d_install_headers(${imesh_algo_headers})
+super3d_install_headers(${imesh_algo_headers} SUBDIR imesh/algo)
 super3d_add_library(imesh_algo ${imesh_algo_headers} ${imesh_algo_sources})
 
 if(VXL_NETLIB_FOUND)

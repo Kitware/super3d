@@ -52,9 +52,9 @@
 #include <tracking/dense_optical_flow.h>
 #include <vpgl/vpgl_proj_camera.h>
 
-#include "file_io.h"
-#include "depth_map.h"
-#include "multiscale.h"
+#include <super3d/depth/file_io.h>
+#include <super3d/depth/depth_map.h>
+#include <super3d/depth/multiscale.h>
 
 
 void save_flows(const vcl_vector<vil_image_view<double> > &flows, const char *filename);

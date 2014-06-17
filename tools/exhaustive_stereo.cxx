@@ -26,8 +26,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "tv_refine_search.h"
-#include "cost_volume.h"
+#include <super3d/depth/tv_refine_search.h>
+#include <super3d/depth/cost_volume.h>
 
 // VXL includes
 #include <vil/vil_image_view.h>

@@ -26,12 +26,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "super_config.h"
-#include "file_io.h"
-#include "multiscale.h"
-#include "super_res.h"
-#include "flow_manip.h"
-#include "depth_map.h"
+#include <super3d/depth/super_config.h>
+#include <super3d/depth/file_io.h>
+#include <super3d/depth/multiscale.h>
+#include <super3d/depth/super_res.h>
+#include <super3d/depth/flow_manip.h>
+#include <super3d/depth/depth_map.h>
 
 #include <video_transforms/adjoint_flow_warp.h>
 #include <video_transforms/adjoint_resample.h>

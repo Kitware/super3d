@@ -24,7 +24,7 @@ list(INSERT CMAKE_MODULE_PATH 0 "${Super3D_CMAKE_DIR}")
 include(CMakeDependentOption)
 
 option(BUILD_SHARED_LIBS "Build shared libraries." OFF)
-option(ENABLE_REFINE_HOMOG "Build refine_homog (requires VXL vgui)" OFF)
+option(Super3D_ENABLE_REFINE_HOMOG "Build refine_homog (requires VXL vgui)" OFF)
 
 # TODO: Determine which package dependencies are optional and add
 #       enable/disable options here.
@@ -41,7 +41,7 @@ include(super3d-flags)
 # Dependencies and Modules
 #
 
-# REQUIRED Packages
+### REQUIRED Packages
 
 if(WIN32)
   set(Boost_USE_STATIC_LIBS TRUE)
@@ -63,13 +63,7 @@ include_directories(SYSTEM ${VXL_BRL_INCLUDE_DIR})
 include_directories(SYSTEM ${VXL_GEL_INCLUDE_DIR}/mrc)
 include_directories(SYSTEM ${VXL_RPL_INCLUDE_DIR})
 
-# OPTIONAL Packages
-
-find_package(OpenCL)
-if(OpenCL_FOUND)
-  message(STATUS "[main] Found OpenCL optional package")
-  include_directories(SYSTEM ${OPENCL_INCLUDE_DIR})
-endif()
+### OPTIONAL Packages
 
 find_package(viscl)
 if(viscl_FOUND)
@@ -95,7 +89,7 @@ endif()
 add_subdirectory(super3d)
 
 # Tools directory
-#add_subdirectory(tools)
+add_subdirectory(tools)
 
 
 ###
@@ -112,8 +106,15 @@ endif ()
 
 
 ###
-# Top-level isntallation
+# Top-level Installation
 #
+# Targets (executables and libraries) added in sub-modules through the super3d
+# utility functions have install rules created automatically added for them,
+# but not needed in this location.
+#
+
+# Generate build-directory and install-directory CMake configuration files for
+# use by other projects importing this one.
 super3d_generate_cmake_build_configs()
 super3d_generate_cmake_install_configs()
 

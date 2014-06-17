@@ -38,8 +38,8 @@
 #include <imesh/algo/imesh_project.h>
 #include <vpgl/vpgl_perspective_camera.h>
 
-#include "multiscale.h"
-#include "depth_map.h"
+#include <super3d/depth/multiscale.h>
+#include <super3d/depth/depth_map.h>
 
 
 // stl includes

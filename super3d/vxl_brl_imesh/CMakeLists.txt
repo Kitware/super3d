@@ -23,7 +23,7 @@ set(imesh_sources
 
 aux_source_directory(Templates imesh_sources)
 
-super3d_install_headers(${imesh_headers})
+super3d_install_headers(${imesh_headers} SUBDIR imesh)
 super3d_add_library(imesh ${imesh_headers} ${imesh_sources})
 target_link_libraries(imesh vgl vul vbl_io vbl)
 

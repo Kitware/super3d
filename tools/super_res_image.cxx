@@ -26,8 +26,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "super_config.h"
-#include "super_res.h"
+#include <super3d/depth/super_config.h>
+#include <super3d/depth/super_res.h>
+#include <super3d/depth/resample.h>
 
 #include <video_transforms/adjoint_dbw.h>
 #include <video_transforms/adjoint_flow_warp.h>
@@ -41,7 +42,6 @@
 #include <vil/vil_math.h>
 #include <vil/vil_convert.h>
 
-#include "resample.h"
 
 #define DEBUG
 

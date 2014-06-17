@@ -1,94 +1,191 @@
-add_executable(exhaustive_depth exhaustive_depth.cxx)
-target_link_libraries(exhaustive_depth depthl vil vidtk_video_transforms
-                      vidtk_tracking imesh_algo vpgl vnl vul vil_algo bp ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+include_directories("${Super3D_SOURCE_DIR}")
+include_directories("${Super3D_BINARY_DIR}")
 
-add_executable(cam_and_homog_picker cam_and_homog_picker.cxx)
-target_link_libraries(cam_and_homog_picker depthl vil vidtk_video_transforms
-                      vidtk_tracking imesh_algo vpgl vnl vul vil_algo ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY})
-
+#
+# Exhaustive Depth
+#
+super3d_add_executable(exhaustive_depth exhaustive_depth.cxx)
+target_link_libraries(exhaustive_depth
+  super3d_depth imesh_algo bp
+  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY}
+  )
 if (viscl_FOUND)
-  target_link_libraries(exhaustive_depth depth_cl)
+  target_link_libraries(exhaustive_depth super3d_depth_cl)
   set_source_files_properties(exhaustive_depth.cxx
-      PROPERTIES
-      COMPILE_DEFINITIONS HAVE_VISCL)
+    PROPERTIES
+      COMPILE_DEFINITIONS HAVE_VISCL
+    )
 endif()
 
-add_executable(downsampler downsampler.cxx)
-target_link_libraries(downsampler depthl vil vidtk_video_transforms
-                      vidtk_tracking imesh_algo vpgl vnl vul vil_algo)
+#
+# Camera and Homography Picker
+#
+super3d_add_executable(cam_and_homog_picker cam_and_homog_picker.cxx)
+target_link_libraries(cam_and_homog_picker
+  super3d_depth imesh_algo
+  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY}
+  )
 
-add_executable(super_res_video super_res_video.cxx)
-target_link_libraries(super_res_video depthl vil vidtk_video_transforms
-                      vidtk_tracking imesh_algo vpgl vnl vul vil_algo)
+#
+# Downsampler
+#
+super3d_add_executable(downsampler downsampler.cxx)
+target_link_libraries(downsampler
+  super3d_depth imesh_algo
+  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  )
 
-add_executable(super_res_opt_flow super_res_opt_flow.cxx)
-target_link_libraries(super_res_opt_flow depthl vil vidtk_video_transforms
-                      vidtk_tracking imesh_algo vpgl vgl vnl vul vil_algo)
+#
+# Super Res Video
+#
+super3d_add_executable(super_res_video super_res_video.cxx)
+target_link_libraries(super_res_video
+  super3d_depth imesh_algo
+  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  )
+
+#
+# SuperRes Optimize Flow
+#
+super3d_add_executable(super_res_opt_flow super_res_opt_flow.cxx)
+target_link_libraries(super_res_opt_flow
+  super3d_depth imesh_algo
+  vil vidtk_video_transforms vidtk_tracking vpgl vgl vnl vul vil_algo
+  )
 
 if (viscl_FOUND)
-  target_link_libraries(super_res_opt_flow depth_cl)
+  target_link_libraries(super_res_opt_flow super3d_depth_cl)
   set_source_files_properties(super_res_opt_flow.cxx
-      PROPERTIES
-      COMPILE_DEFINITIONS HAVE_VISCL)
+    PROPERTIES
+      COMPILE_DEFINITIONS HAVE_VISCL
+      )
 endif()
 
-add_executable(super_res_image super_res_image.cxx)
-target_link_libraries(super_res_image depthl vil vidtk_video_transforms
-                      vidtk_tracking imesh_algo vpgl vnl vul vil_algo)
+#
+# SuperRes Image
+#
+super3d_add_executable(super_res_image super_res_image.cxx)
+target_link_libraries(super_res_image
+  super3d_depth imesh_algo
+  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  )
 
-add_executable(bundler2vpgl bundler2vpgl.cxx)
-target_link_libraries(bundler2vpgl vpgl vpgl_algo vgl vgl_algo vnl vil)
+#
+# Bundler-to-VGPL
+#
+super3d_add_executable(bundler2vpgl bundler2vpgl.cxx)
+target_link_libraries(bundler2vpgl
+  vpgl vpgl_algo vgl vgl_algo vnl vil
+  )
 
-if (ENABLE_REFINE_HOMOG)
-  add_executable(refine_homog refine_homog_gui.cxx refine_homog.h refine_homog.cxx)
-  target_link_libraries(refine_homog vnl vil vil_algo vul vgl vgl_algo vgui vidtk_video_transforms rrel)
+#
+# Batch Refine Homography
+#
+super3d_add_executable(refine_homog_batch refine_homog_batch.cxx)
+target_link_libraries(refine_homog_batch
+  vnl vil vil_algo vul vgl vgl_algo vidtk_video_transforms vidtk_tracking rrel
+  )
+
+#
+# Refine Homography GUI
+#
+if (Super3D_ENABLE_REFINE_HOMOG)
+  super3d_add_executable(refine_homog refine_homog_gui.cxx refine_homog.h refine_homog.cxx)
+  target_link_libraries(refine_homog
+    vnl vil vil_algo vul vgl vgl_algo vgui vidtk_video_transforms rrel
+    )
 endif()
 
-add_executable(refine_homog_batch refine_homog_batch.cxx)
-target_link_libraries(refine_homog_batch vnl vil vil_algo vul vgl vgl_algo vidtk_video_transforms vidtk_tracking rrel)
-
+#
+# VTK Dependent tools
+#
 if(VTK_FOUND)
-  add_executable(ply2vtp ply2vtp.cxx)
+  # PLY to VTP format
+  super3d_add_executable(ply2vtp ply2vtp.cxx)
   target_link_libraries(ply2vtp ${VTK_LIBRARIES} vnl)
 
-  add_executable(viewer viewer.cxx picker.h picker.cxx)
-  target_link_libraries(viewer vnl vil vul depthl ${VTK_LIBRARIES})
+  # Viewer app
+  super3d_add_executable(viewer viewer.cxx picker.h picker.cxx)
+  target_link_libraries(viewer vnl vil vul super3d_depth ${VTK_LIBRARIES})
 
+  # Adding VTK to Exhastive depth util
   target_link_libraries(exhaustive_depth ${VTK_LIBRARIES})
   set_source_files_properties(exhaustive_depth.cxx
-      PROPERTIES
-      COMPILE_DEFINITIONS HAVE_VTK)
+    PROPERTIES
+      COMPILE_DEFINITIONS HAVE_VTK
+    )
 
+  # Adding VTK to Bunder->VPGL converter
   target_link_libraries(bundler2vpgl ${VTK_LIBRARIES})
   set_source_files_properties(bundler2vpgl.cxx
-      PROPERTIES
-      COMPILE_DEFINITIONS HAVE_VTK)
+    PROPERTIES
+      COMPILE_DEFINITIONS HAVE_VTK
+    )
 endif()
 
-add_executable(ply2pts ply2pts.cxx)
-target_link_libraries(ply2pts)
+#
+# PLY to PTS converter
+#
+super3d_add_executable(ply2pts ply2pts.cxx)
 
-add_executable(depth_from_flow depth_from_flow.cxx)
-target_link_libraries(depth_from_flow depthl vil vidtk_video_transforms
-                      vidtk_tracking imesh_algo vpgl vnl vul vil_algo)
+#
+# Depth from Flow
+#
+super3d_add_executable(depth_from_flow depth_from_flow.cxx)
+target_link_libraries(depth_from_flow
+  super3d_depth imesh_algo
+  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  )
 
-add_executable(direct_depth direct_depth.cxx tv_refine.cxx tv_refine.h)
-target_link_libraries(direct_depth depthl vil vidtk_video_transforms
-                      vidtk_tracking imesh imesh_algo vpgl vnl vul vil_algo)
+#
+# Direct Depth
+#
+super3d_add_executable(direct_depth direct_depth.cxx tv_refine.cxx tv_refine.h)
+target_link_libraries(direct_depth
+  super3d_depth imesh imesh_algo
+  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  )
 
-add_executable(render_depthmap render_depthmap.cxx)
-target_link_libraries(render_depthmap vpgl imesh_algo depthl)
-add_executable(extract_depth_range extract_depth_range.cxx)
+#
+# Render Depthmap
+#
+super3d_add_executable(render_depthmap render_depthmap.cxx)
+target_link_libraries(render_depthmap super3d_depth imesh_algo vpgl)
+
+#
+# Extract depth range
+#
+super3d_add_executable(extract_depth_range extract_depth_range.cxx)
 target_link_libraries(extract_depth_range vil vnl vul)
 
-add_executable(mean_shift mean_shift.cxx)
+#
+# Mean Shift
+#
+super3d_add_executable(mean_shift mean_shift.cxx)
 target_link_libraries(mean_shift vil vil_algo vul vnl)
 
+<<<<<<< HEAD
 add_executable(exhaustive_stereo exhaustive_stereo.cxx)
 target_link_libraries(exhaustive_stereo depthl vil vidtk_video_transforms
                       vidtk_tracking imesh_algo vpgl vnl vul vil_algo bp)
 
+=======
+#
+# Exhaustive Stero
+#
+super3d_add_executable(exhaustive_stereo exhaustive_stereo.cxx)
+target_link_libraries(exhaustive_stereo
+  super3d_depth imesh_algo bp
+  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  )
+
+#
+# ROFCL test
+#
+>>>>>>> Rejiggered namings and fixed tools sub-directory
 if (viscl_FOUND)
-   add_executable(rofcl_test rofcl_test.cxx )
-   target_link_libraries(rofcl_test depth_cl vil vil_algo vul)
+   super3d_add_executable(rofcl_test rofcl_test.cxx )
+   target_link_libraries(rofcl_test super3d_depth_cl vil vil_algo vul)
 endif()

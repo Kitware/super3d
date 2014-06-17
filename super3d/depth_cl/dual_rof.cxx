@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "depth_cl/dual_rof.h"
+#include "dual_rof.h"
 
 #include <boost/make_shared.hpp>
 #include <viscl/core/manager.h>
