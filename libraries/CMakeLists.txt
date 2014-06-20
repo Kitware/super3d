@@ -34,5 +34,5 @@ if(VTK_FOUND)
 endif()
 
 if(viscl_FOUND)
-	add_subdirectory(depth_cl)
+  add_subdirectory(depth_cl)
 endif()

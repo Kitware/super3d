@@ -158,7 +158,6 @@ int main(int argc, char* argv[])
   {
     depth_min = cfg->get_value<double>("depth_min");
     depth_max = cfg->get_value<double>("depth_max");
-
   }
 
   if (cfg->is_set("world_volume"))
@@ -298,7 +297,8 @@ int main(int argc, char* argv[])
 #endif
     {
       boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
-      refine_depth(cost_volume, g, depth, 2000, theta0, theta_end, lambda, epsilon);
+      unsigned int iterations = cfg->get_value<double>("iterations");
+      refine_depth(cost_volume, g, depth, iterations, theta0, theta_end, lambda, epsilon);
       boost::chrono::duration<double> sec = boost::chrono::system_clock::now() - start;
       vcl_cout << "super3d took " << sec.count() << " seconds.\n";
     }

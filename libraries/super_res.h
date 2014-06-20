@@ -47,7 +47,7 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
                    vil_image_view<double> &u,
                    const super_res_params &srp,
                    unsigned int iterations,
-                   const vcl_string &output_image);
+                   const vcl_string &output_image = "");
 
 void compare_to_original(const vil_image_view<double> &ref_img,
                          const vil_image_view<double> &super,

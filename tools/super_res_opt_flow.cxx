@@ -39,7 +39,6 @@
 
 #include <vcl_iostream.h>
 #include <boost/bind.hpp>
-#include <boost/scoped_ptr.hpp>
 
 #include <vil/vil_crop.h>
 #include <vil/vil_bicub_interp.h>
@@ -59,20 +58,29 @@
 #include <video_transforms/warp_and_average.h>
 #include <tracking/refine_homography.h>
 
+#include <boost/scoped_ptr.hpp>
+
+#ifdef HAVE_VISCL
+#include "depth_cl/super_res.h"
+#endif
+
 void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_image_view<double> > &flows);
 void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
                              const vcl_vector<vil_image_view<double> > &frames,
                              vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
                              int scale_factor,
-                             config *cfg);
+                             bool down_sample_averaging,
+                             bool bicubic_warping,
+                             double sensor_sigma);
 void load_homogs(const char *homog_list, vcl_vector<vgl_h_matrix_2d<double> > &homogs,
                  const vcl_vector<int> &frameindex,
-                 config *cfg);
+                 bool create_low_res,
+                 double scale_factor);
 void refine_homogs(vcl_vector<vgl_h_matrix_2d<double> > &homogs,
                    const vcl_vector<vil_image_view<double> > &frames,
                    unsigned int ref_frame,
                    int i0, int ni, int j0, int nj,
-                   unsigned int margin);
+                   int margin);
 void homogs_to_flows(const vcl_vector<vgl_h_matrix_2d<double> > &homogs,
                      int ref_frame, const vcl_vector<vil_image_view<double> > &frames,
                      int i0, int j0, int ni, int nj,
@@ -84,17 +92,17 @@ void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
               double scale_factor, vidtk::warp_image_parameters::interp_type interp);
 void write_warped_frames(const vcl_vector<vil_image_view<double> > &frames,
                          const vcl_vector<vgl_h_matrix_2d<double> > &homogs,
-                         unsigned int i0, unsigned int j0, unsigned int ni, unsigned int nj,
+                         int i0, int j0, int ni, int nj,
                          unsigned int ref_frame);
 ///Converts optical flow 2 plane image to an RGB image
 void flow_to_colormap(const vil_image_view<double> &flow,
                       const vil_image_view<double> &ref_flow,
                       vil_image_view<vil_rgb<vxl_byte> > &colormap_flow,
                       double max_flow = 0.0);
-
 void create_low_res(vcl_vector<vil_image_view<double> > &frames,
                     int scale,
-                    config *cfg);
+                    bool down_sample_averaging,
+                    double sensor_sigma);
 
 //*****************************************************************************
 
@@ -104,6 +112,11 @@ int main(int argc, char* argv[])
     boost::scoped_ptr<config> cfg(new config);
     cfg->read_config(argv[1]);
     cfg->read_argument_updates(argc, argv);
+
+    bool use_gpu = cfg->is_set("use_gpu") && cfg->get_value<bool>("use_gpu");
+#ifndef HAVE_VISCL
+    use_gpu = false;
+#endif
 
     vcl_vector<vil_image_view<double> > frames;
     vcl_vector<vpgl_perspective_camera<double> >  cameras;
@@ -143,23 +156,43 @@ int main(int argc, char* argv[])
       vil_image_view<unsigned short> out;
       vil_convert_stretch_range_limited(original, out, 0.0, 255.0, 0, 65535);
       vil_save(out, "original.png");
-      create_low_res(frames, scale_factor, cfg.get());
+      create_low_res(frames, scale_factor,
+                     cfg->get_value<bool>("down_sample_averaging"),
+                     cfg->get_value<double>("sensor_sigma"));
+    }
+
+    if (!cfg->get_value<bool>("use_rgb12"))
+    {
+      double normalizer = 1.0/255.0;
+      for (unsigned int i = 0; i < frames.size(); i++)
+      {
+        vil_math_scale_values(frames[i], normalizer);
+      }
     }
 
     ref_image.deep_copy(frames[ref_frame]);
 
     vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
-
     vcl_vector<vil_image_view<double> > flows;
 
     if (cfg->is_set("flow_file"))
     {
       load_flow( cfg->get_value<vcl_string>("flow_file").c_str(), dir, flows);
-      create_warps_from_flows(flows, frames, warps, scale_factor, cfg.get());
+      if (!use_gpu)
+      {
+        create_warps_from_flows(flows, frames, warps, scale_factor,
+                                cfg->get_value<bool>("down_sample_averaging"),
+                                cfg->get_value<bool>("bicubic_warping"),
+                                cfg->get_value<double>("sensor_sigma"));
+      }
     }
     else if (cfg->is_set("homog_file"))
     {
       vcl_vector<vgl_h_matrix_2d<double> > homogs;
+      load_homogs(cfg->get_value<vcl_string>("homog_file").c_str(), homogs, frameindex,
+            cfg->get_value<bool>("create_low_res"),
+            cfg->get_value<double>("sensor_sigma"));
+
       if (cfg->is_set("crop_window"))
       {
         vcl_cout << frames[ref_frame].ni() << " " << frames[ref_frame].nj() << "\n";
@@ -170,13 +203,12 @@ int main(int argc, char* argv[])
           j0 /= scale_factor;
           nj /= scale_factor;
         }
-        load_homogs(cfg->get_value<vcl_string>("homog_file").c_str(), homogs, frameindex, cfg.get());
-        refine_homogs(homogs, frames, ref_frame, i0, ni, j0, nj, 50);
+
+        refine_homogs(homogs, frames, ref_frame, i0, ni, j0, nj, 200);
         ref_image.deep_copy(vil_crop(frames[ref_frame], i0, ni, j0, nj));
       }
       else
       {
-        load_homogs(cfg->get_value<vcl_string>("homog_file").c_str(), homogs, frameindex, cfg.get());
         //refine_homogs(homogs, frames, ref_frame, i0, ni, j0, nj, 100);
       }
 
@@ -186,7 +218,7 @@ int main(int argc, char* argv[])
       wip.set_interpolator(vidtk::warp_image_parameters::CUBIC);
       vidtk::warp_and_average<double>(frames, waa, homogs, ref_frame, i0, j0, ni, nj, wip, scale_factor);
       vil_image_view<unsigned short> out;
-      vil_convert_stretch_range_limited(waa, out, 0.0, 255.0, 0, 65535);
+      vil_convert_stretch_range_limited(waa, out, 0.0, 1.0, 0, 65535);
       vil_save(out, "mfavg.png");
 
       //Should be called on the full images to avoid black borders
@@ -208,7 +240,14 @@ int main(int argc, char* argv[])
       //  vil_convert_cast(frames[i], img_b);
       //  vil_save(img_b, buf);
       //}
-      create_warps_from_flows(flows, frames, warps, scale_factor, cfg.get());
+
+      if (!use_gpu)
+      {
+        create_warps_from_flows(flows, frames, warps, scale_factor,
+                                cfg->get_value<bool>("down_sample_averaging"),
+                                cfg->get_value<bool>("bicubic_warping"),
+                                cfg->get_value<double>("sensor_sigma"));
+      }
     }
     else
     {
@@ -216,39 +255,65 @@ int main(int argc, char* argv[])
       return 1;
     }
 
-    if (!cfg->get_value<bool>("use_rgb12"))
-    {
-      double normalizer = 1.0/255.0;
-      for (unsigned int i = 0; i < frames.size(); i++)
-      {
-        vil_math_scale_values(frames[i], normalizer);
-      }
-    }
-
     //Initilize super resolution parameters
     vil_image_view<double> super_u;
-    super_res_params srp;
-    srp.s_ni = warps[ref_frame].src_ni();
-    srp.s_nj = warps[ref_frame].src_nj();
-    srp.l_ni = warps[ref_frame].dst_ni();
-    srp.l_nj = warps[ref_frame].dst_nj();
-    srp.ref_frame = ref_frame;
-
-    srp.scale_factor = scale_factor;
-    srp.lambda = cfg->get_value<double>("lambda");
-    srp.epsilon_data = cfg->get_value<double>("epsilon_data");
-    srp.epsilon_reg = cfg->get_value<double>("epsilon_reg");
-    srp.sigma = cfg->get_value<double>("sigma");
-    srp.tau = cfg->get_value<double>("tau");
     const unsigned int iterations = cfg->get_value<unsigned int>("iterations");
-    vcl_string output_image = cfg->get_value<vcl_string>("output_image");
 
-    super_resolve(frames, warps, super_u, srp, iterations, output_image);
+    if (cfg->get_value<bool>("use_gpu"))
+    {
+#ifdef HAVE_VISCL
+      super_res_cl::params srp;
+      srp.sdim.s[0] = scale_factor * frames[ref_frame].ni();
+      srp.sdim.s[1] = scale_factor * frames[ref_frame].nj();
+      srp.ldim.s[0] = frames[ref_frame].ni();
+      srp.ldim.s[1] = frames[ref_frame].nj();
+      srp.scale_factor = scale_factor;
+      srp.lambda = cfg->get_value<double>("lambda");
+      srp.epsilon_data = cfg->get_value<double>("epsilon_data");
+      srp.epsilon_reg = cfg->get_value<double>("epsilon_reg");
+      srp.sigma = cfg->get_value<double>("sigma");
+      srp.tau = cfg->get_value<double>("tau");
+
+      super_res_cl srcl;
+      vil_image_view<float> super_u_flt;
+      vcl_vector<vil_image_view<float> > frames_flt, flows_flt;
+      frames_flt.resize(frames.size());
+      flows_flt.resize(frames.size());
+      for (unsigned int i = 0; i < frames.size(); i++)
+      {
+        vil_convert_cast(frames[i], frames_flt[i]);
+        vil_convert_cast(flows[i], flows_flt[i]);
+      }
+
+      vcl_cout << "Starting GPU Super Res.\n";
+      srcl.super_resolve(frames_flt, flows_flt, super_u_flt, srp, iterations);
+      vil_convert_cast(super_u_flt, super_u);
+      vcl_cout << "finished GPU!\n";
+      return 0;
+#endif
+    }
+    else
+    {
+      super_res_params srp;
+      srp.s_ni = warps[ref_frame].src_ni();
+      srp.s_nj = warps[ref_frame].src_nj();
+      srp.l_ni = warps[ref_frame].dst_ni();
+      srp.l_nj = warps[ref_frame].dst_nj();
+      srp.ref_frame = ref_frame;
+      srp.scale_factor = scale_factor;
+      srp.lambda = cfg->get_value<double>("lambda");
+      srp.epsilon_data = cfg->get_value<double>("epsilon_data");
+      srp.epsilon_reg = cfg->get_value<double>("epsilon_reg");
+      srp.sigma = cfg->get_value<double>("sigma");
+      srp.tau = cfg->get_value<double>("tau");
+      super_resolve(frames, warps, super_u, srp, iterations, cfg->get_value<vcl_string>("output_image"));
+    }
+
 
     vil_image_view<double> upsamp;
     upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::CUBIC);
     vil_image_view<unsigned short> output;
-    vil_convert_stretch_range_limited(upsamp, output, 0.0, 255.0, 0, 65535);
+    vil_convert_stretch_range_limited(upsamp, output, 0.0, 1.0, 0, 65535);
     vil_save(output, "bicub.png");
 
     if (cfg->get_value<bool>("create_low_res"))
@@ -262,7 +327,7 @@ int main(int argc, char* argv[])
     }
 
     vil_convert_stretch_range_limited(super_u, output, 0.0, 1.0, 0, 65535);
-    vil_save(output, output_image.c_str());
+    vil_save(output, cfg->get_value<vcl_string>("output_image").c_str());
   }
   catch (const config::cfg_exception &e)  {
     vcl_cout << "Error in config: " << e.what() << "\n";
@@ -307,12 +372,11 @@ void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
                              const vcl_vector<vil_image_view<double> > &frames,
                              vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
                              int scale_factor,
-                             config *cfg)
+                             bool down_sample_averaging,
+                             bool bicubic_warping,
+                             double sensor_sigma)
 {
   assert(flows.size() == frames.size());
-  bool down_sample_averaging = cfg->get_value<bool>("down_sample_averaging");
-  bool bicubic_warping = cfg->get_value<bool>("bicubic_warping");
-  double smoothing_sigma = cfg->get_value<double>("sensor_sigma");
 
   warps.clear();
   warps.reserve(flows.size());
@@ -323,7 +387,7 @@ void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
                                          frames[i].nj(),
                                          frames[i].nplanes(),
                                          scale_factor,
-                                         smoothing_sigma,
+                                         sensor_sigma,
                                          down_sample_averaging,
                                          bicubic_warping));
   }
@@ -349,7 +413,8 @@ void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_imag
 
 void load_homogs(const char *homog_list, vcl_vector<vgl_h_matrix_2d<double> > &homogs,
                  const vcl_vector<int> &frameindex,
-                 config *cfg)
+                 bool create_low_res,
+                 double scale_factor)
 {
   vcl_ifstream infile(homog_list);
   vgl_h_matrix_2d<double> H;
@@ -358,9 +423,8 @@ void load_homogs(const char *homog_list, vcl_vector<vgl_h_matrix_2d<double> > &h
   {
     if (frameindex[index] == framenum)
     {
-      if (cfg->get_value<bool>("create_low_res"))
+      if (create_low_res)
       {
-        double scale_factor = cfg->get_value<double>("scale_factor");
         vnl_double_3x3 S, Sinv;
         S.set_identity();
         S(0,0) = scale_factor;
@@ -387,7 +451,7 @@ void refine_homogs(vcl_vector<vgl_h_matrix_2d<double> > &homogs,
                    const vcl_vector<vil_image_view<double> > &frames,
                    unsigned int ref_frame,
                    int i0, int ni, int j0, int nj,
-                   unsigned int margin)
+                   int margin)
 {
   vcl_cout << "Refining homog ";
   vil_image_view<double> refimg;
@@ -395,12 +459,11 @@ void refine_homogs(vcl_vector<vgl_h_matrix_2d<double> > &homogs,
   if (frames[ref_frame].nplanes() > 1)
     vil_convert_planes_to_grey(frames[ref_frame], refimg);
   else
-    refimg = frames[ref_frame];
+    refimg.deep_copy(frames[ref_frame]);
+
+  vil_math_scale_values(refimg, 255.0);
 
   refimg = vil_crop(refimg, i0 - margin, ni + 2*margin, j0 - margin, nj + 2*margin);
-  vil_image_view<vxl_byte> output;
-  vil_convert_cast(refimg, output);
-  vil_save(output, "refhomg/test.png");
 
   vnl_double_3x3 ref_H = homogs[ref_frame].get_matrix();
   vnl_double_3x3 ref_H_inv = homogs[ref_frame].get_inverse().get_matrix();
@@ -412,25 +475,23 @@ void refine_homogs(vcl_vector<vgl_h_matrix_2d<double> > &homogs,
     if (frames[i].nplanes() > 1)
       vil_convert_planes_to_grey(frames[i], img);
     else
-      img = frames[i];
+      img.deep_copy(frames[i]);
+
+    vil_math_scale_values(img, 255.0);
+
+    vnl_double_3x3 T, Tinv;
+    T.set_identity();
+    T(0,2) = -i0 + margin;
+    T(1,2) = -j0 + margin;
+    Tinv = vnl_inverse<double>(T);
 
     vnl_double_3x3 H = ref_H_inv * homogs[i].get_matrix();
-    vidtk::crop_homography_source(H, i0 - margin, j0 - margin);
-    vidtk::refine_homography(refimg, img, H, 4, 100, 15);
-    vidtk::crop_homography_source(H, -i0 + margin, -j0 + margin);
-
-    vil_image_view<double> warped(ni+2*margin, nj+2*margin);
-    vnl_double_3x3 Hinv = vnl_inverse<double>(H);
-    vidtk::warp_image(img, warped, Hinv);
-    vil_convert_cast(warped, output);
-    char buf[50];
-    sprintf(buf, "refhomgwand/ref%d.png", i);
-    vil_save(output, buf);
-
-    //vidtk::crop_homography(H, margin, margin);
+    H = T * H;
+    vidtk::refine_homography(refimg, img, H, 4, 50, 5);
+    H = ref_H * Tinv * H;
     homogs[i].set(H);
   }
-  //exit(1);
+
   vcl_cout << "\n";
 }
 
@@ -502,16 +563,14 @@ void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
 
 void write_warped_frames(const vcl_vector<vil_image_view<double> > &frames,
                          const vcl_vector<vgl_h_matrix_2d<double> > &homogs,
-                         unsigned int i0, unsigned int j0, unsigned int ni, unsigned int nj,
+                         int i0, int j0, int ni, int nj,
                          unsigned int ref_frame)
 {
-  vnl_double_3x3 T;
+  vnl_double_3x3 T, Tinv;
   T.set_identity();
-  T(0,2) = i0;
-  T(1,2) = j0;
-
-  //pre computed post multiply matrix
-  const vnl_double_3x3 M = homogs[ref_frame].get_matrix() * T;
+  T(0,2) = -i0;
+  T(1,2) = -j0;
+  Tinv = vnl_inverse<double>(T);
 
   vidtk::warp_image_parameters wip;
   wip.set_fill_unmapped(true);
@@ -521,12 +580,15 @@ void write_warped_frames(const vcl_vector<vil_image_view<double> > &frames,
   char buf[64];
   for (unsigned int i = 0; i < frames.size(); i++)
   {
-    vgl_h_matrix_2d<double> H = homogs[i].get_inverse().get_matrix() * M;
+    vgl_h_matrix_2d<double> H = T * homogs[ref_frame].get_inverse().get_matrix() * homogs[i].get_matrix();
     vil_image_view<double> warped(ni, nj, frames[i].nplanes());
+    vidtk::warp_image(frames[i], warped, H.get_inverse(), wip);
 
-    vidtk::warp_image(frames[i], warped, H, wip);
+    double min, max;
+    vil_math_value_range(warped, min, max);
+    vcl_cout << min << " " << max << "\n";
     vil_image_view<vxl_byte> output;
-    vil_convert_stretch_range_limited(warped, output, 0.0, 1.0);
+    vil_convert_stretch_range_limited(warped, output, 0.0, 1.0, 0, 255);
     sprintf(buf, "images/warped_frame%02d.png", i);
     vil_save(output, buf);
   }
@@ -610,14 +672,12 @@ void flow_to_colormap(const vil_image_view<double> &flow,
 
 void create_low_res(vcl_vector<vil_image_view<double> > &frames,
                     int scale,
-                    config *cfg)
+                    bool down_sample_averaging,
+                    double sensor_sigma)
 {
-  bool down_sample_averaging = cfg->get_value<bool>("down_sample_averaging");
-
   for (unsigned int i = 0; i < frames.size(); i++)
   {
     vil_image_view<double> temp;
-    double sensor_sigma = cfg->get_value<double>("sensor_sigma");
     vil_gauss_filter_2d(frames[i], temp, sensor_sigma, 3.0*sensor_sigma);
     if( down_sample_averaging )
     {

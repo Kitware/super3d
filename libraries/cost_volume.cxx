@@ -43,6 +43,8 @@
 #include <vil/vil_save.h>
 #include <vil/vil_convert.h>
 
+#include <vcl_limits.h>
+
 
 const double two_pi = 2.0*vnl_math::pi;
 
@@ -582,8 +584,8 @@ void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
     }
   } while (x != vcl_string("end_header"));
 
-  min_depth = 1e20;
-  max_depth = -1e20;
+  min_depth = vcl_numeric_limits<double>::infinity();
+  max_depth = -vcl_numeric_limits<double>::infinity();
 
   vnl_double_3 c(ref_cam.get_camera_center().x(),
                  ref_cam.get_camera_center().y(),

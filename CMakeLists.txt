@@ -12,6 +12,7 @@ find_package(viscl)
 
 if(viscl_FOUND)
  include_directories(${viscl_INCLUDE_DIR})
+ include_directories(SYSTEM ${viscl_OPENCL_INCLUDE_DIRS})
  message(${viscl_LIBRARY_DIR})
  message(${viscl_INCLUDE_DIR})
  message(${viscl_Boost_INCLUDE_DIR})
