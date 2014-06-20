@@ -35,15 +35,58 @@
 #include <vnl/vnl_vector_fixed.h>
 #include <vpgl/vpgl_perspective_camera.h>
 
+#include <boost/function.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/locks.hpp>
+
+class depth_refinement_monitor;
 
 void
 refine_depth(vil_image_view<double> &cost_volume,
              const vil_image_view<double> &g,
              vil_image_view<double> &d,
-             double beta,
+             unsigned int iterations,
              double theta0,
              double beta_end,
-             double lambda);
+             double lambda,
+             double epsilon,
+             depth_refinement_monitor *drm = NULL);
+
+
+class depth_refinement_monitor
+{
+public:
+
+  struct update_data
+  {
+    vil_image_view<double> current_result;
+    unsigned int num_iterations;
+  };
+
+  depth_refinement_monitor(boost::function<void (update_data)> callback,
+                           unsigned int interval,
+                           boost::shared_ptr<bool> interrupted) : callback_(callback),
+                                                                  interval_(interval),
+                                                                  interrupted_(interrupted) {}
+
+private:
+
+  friend void refine_depth(vil_image_view<double> &cost_volume,
+                           const vil_image_view<double> &g,
+                           vil_image_view<double> &d,
+                           unsigned int iterations,
+                           double theta0,
+                           double beta_end,
+                           double lambda,
+                           double epsilon,
+                           depth_refinement_monitor *drm);
+
+  boost::function<void (update_data)> callback_;
+  unsigned int interval_;
+  boost::shared_ptr<bool const> interrupted_;
+};
+
 
 //semi-implicit gradient ascent on q and descent on d
 void huber(vil_image_view<double> &q,

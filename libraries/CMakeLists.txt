@@ -33,4 +33,6 @@ if(VTK_FOUND)
       COMPILE_DEFINITIONS HAVE_VTK)
 endif()
 
-add_subdirectory(depth_cl)
+if(viscl_FOUND)
+  add_subdirectory(depth_cl)
+endif()

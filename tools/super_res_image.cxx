@@ -34,6 +34,7 @@
 #include <cstdio>
 
 #include <boost/bind.hpp>
+#include <boost/scoped_ptr.hpp>
 
 #include <vil/vil_load.h>
 #include <vil/vil_save.h>
@@ -45,10 +46,10 @@
 #define DEBUG
 
 vcl_vector<vidtk::adjoint_image_ops_func<double> >
-create_warps_simple(int sni, int snj, int scale_factor);
+create_warps_simple(int sni, int snj, int scale_factor, config *cfg);
 
 vcl_vector<vidtk::adjoint_image_ops_func<double> >
-create_warps(int sni, int snj, int scale_factor);
+create_warps(int sni, int snj, int scale_factor, config *cfg);
 
 void create_downsampled_frames(const vil_image_view<double> &high_res,
                                const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
@@ -59,9 +60,10 @@ void create_downsampled_frames(const vil_image_view<double> &high_res,
 int main(int argc, char* argv[])
 {
   try  {
-    config::inst()->read_config(argv[1]);
-    double scale_factor = config::inst()->get_value<double>("scale_factor");
-    vcl_string img_name = config::inst()->get_value<vcl_string>("single_frame");
+    boost::scoped_ptr<config> cfg(new config);
+    cfg->read_config(argv[1]);
+    double scale_factor = cfg->get_value<double>("scale_factor");
+    vcl_string img_name = cfg->get_value<vcl_string>("single_frame");
         vcl_cout << "Reading image " << img_name << "\n";
     vil_image_view<double> img;
     vil_image_resource_sptr img_rsc = vil_load_image_resource(img_name.c_str());
@@ -90,7 +92,7 @@ int main(int argc, char* argv[])
     vcl_vector<vil_image_view<double> > frames;
 
     vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
-    warps = create_warps_simple(img.ni(), img.nj(), scale_factor);
+    warps = create_warps_simple(img.ni(), img.nj(), scale_factor, cfg.get());
     create_downsampled_frames(img, warps, frames);
 
 #ifdef DEBUG
@@ -113,19 +115,20 @@ int main(int argc, char* argv[])
     srp.s_nj = img.nj();
     srp.l_ni = static_cast<unsigned int>(srp.s_ni/scale_factor);
     srp.l_nj = static_cast<unsigned int>(srp.s_nj/scale_factor);
-    srp.lambda = config::inst()->get_value<double>("lambda");
-    srp.epsilon_data = config::inst()->get_value<double>("epsilon_data");
-    srp.epsilon_reg = config::inst()->get_value<double>("epsilon_reg");
-    srp.sigma = config::inst()->get_value<double>("sigma");
-    srp.tau = config::inst()->get_value<double>("tau");
-    const unsigned int iterations = config::inst()->get_value<unsigned int>("iterations");
-    super_resolve(frames, warps, super_u, srp, iterations);
+    srp.lambda = cfg->get_value<double>("lambda");
+    srp.epsilon_data = cfg->get_value<double>("epsilon_data");
+    srp.epsilon_reg = cfg->get_value<double>("epsilon_reg");
+    srp.sigma = cfg->get_value<double>("sigma");
+    srp.tau = cfg->get_value<double>("tau");
+    const unsigned int iterations = cfg->get_value<unsigned int>("iterations");
+    vcl_string output_image = cfg->get_value<vcl_string>("output_image");
+    super_resolve(frames, warps, super_u, srp, iterations, output_image);
 
     compare_to_original(frames[ref_frame], super_u, img, scale_factor);
 
     vil_image_view<vxl_byte> output;
     vil_convert_stretch_range_limited(super_u, output, 0.0, 1.0);
-    vil_save(output, config::inst()->get_value<vcl_string>("output_image").c_str());
+    vil_save(output, output_image.c_str());
   }
   catch (const config::cfg_exception &e)  {
     vcl_cout << "Error in config: " << e.what() << "\n";
@@ -137,14 +140,14 @@ int main(int argc, char* argv[])
 //*****************************************************************************
 
 vcl_vector<vidtk::adjoint_image_ops_func<double> >
-create_warps_simple(int sni, int snj, int scale_factor)
+create_warps_simple(int sni, int snj, int scale_factor, config *cfg)
 {
   int num_imgs = scale_factor * scale_factor;
   int dni = sni / scale_factor;
   int dnj = snj / scale_factor;
-  bool down_sample_averaging = config::inst()->get_value<bool>("down_sample_averaging");
-  bool bicubic_warping = config::inst()->get_value<bool>("bicubic_warping");
-  double sensor_sigma = config::inst()->get_value<double>("sensor_sigma");
+  bool down_sample_averaging = cfg->get_value<bool>("down_sample_averaging");
+  bool bicubic_warping = cfg->get_value<bool>("bicubic_warping");
+  double sensor_sigma = cfg->get_value<double>("sensor_sigma");
 
   typedef vidtk::adjoint_image_ops_func<double>::func_t func_t;
   vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
@@ -168,13 +171,13 @@ create_warps_simple(int sni, int snj, int scale_factor)
 //*****************************************************************************
 
 vcl_vector<vidtk::adjoint_image_ops_func<double> >
-create_warps(int sni, int snj, int scale_factor)
+create_warps(int sni, int snj, int scale_factor, config *cfg)
 {
   int dni = sni / scale_factor;
   int dnj = snj / scale_factor;
-  bool down_sample_averaging = config::inst()->get_value<bool>("down_sample_averaging");
-  bool bicubic_warping = config::inst()->get_value<bool>("bicubic_warping");
-  double sensor_sigma = config::inst()->get_value<double>("sensor_sigma");
+  bool down_sample_averaging = cfg->get_value<bool>("down_sample_averaging");
+  bool bicubic_warping = cfg->get_value<bool>("bicubic_warping");
+  double sensor_sigma = cfg->get_value<double>("sensor_sigma");
 
   typedef vidtk::adjoint_image_ops_func<double>::func_t func_t;
   vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;

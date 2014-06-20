@@ -46,7 +46,8 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
                    const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
                    vil_image_view<double> &u,
                    const super_res_params &srp,
-                   unsigned int iterations);
+                   unsigned int iterations,
+                   const vcl_string &output_image = "");
 
 void compare_to_original(const vil_image_view<double> &ref_img,
                          const vil_image_view<double> &super,

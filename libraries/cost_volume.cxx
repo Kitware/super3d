@@ -30,6 +30,7 @@
 #include "cost_volume.h"
 
 #include <vcl_cstdio.h>
+#include <vcl_fstream.h>
 
 #include <video_transforms/warp_image.h>
 #include <vil/vil_bilin_interp.h>
@@ -38,6 +39,12 @@
 #include <vnl/vnl_double_2.h>
 #include <vbl/vbl_array_2d.h>
 #include <vil/algo/vil_gauss_filter.h>
+
+#include <vil/vil_math.h>
+#include <vil/vil_save.h>
+#include <vil/vil_convert.h>
+
+#include <vcl_limits.h>
 
 
 const double two_pi = 2.0*vnl_math::pi;
@@ -225,6 +232,17 @@ compute_cost_volume_warp(const vcl_vector<vil_image_view<double> > &frames,
       H.set_column(2, H.get_column(2) + idepth * vnl_double_3(t_relative.x(), t_relative.y(), t_relative.z()));
       H = cameras[f].get_calibration().get_matrix() * H * Kref_v;
       vidtk::warp_image(frames[f], warped, vgl_h_matrix_2d<double>(H), wip );
+
+      #if 0
+      vil_image_view<double> outwrite;
+      outwrite.deep_copy(warped);
+      vil_math_scale_and_offset_values(outwrite, 255.0, 0.0);
+      vil_image_view<vxl_byte> to_save;
+      vil_convert_cast<double, vxl_byte>(outwrite, to_save);
+      char buf[60];
+      sprintf(buf, "images/slice%2f_frame%d_%d.png", s, f, wip.interpolator_);
+      vil_save(to_save, buf);
+      #endif
 
       vil_sobel_3x3(warped, grad);
 
@@ -544,4 +562,54 @@ read_cost_volume_at(FILE *file,
   {
     fread(&values(s), sizeof(double), 1, file);
   }
+}
+
+//*****************************************************************************
+
+void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
+                         const vcl_string &landmark_file, double &min_depth, double &max_depth)
+{
+  vcl_ifstream infile(landmark_file.c_str());
+  vcl_string x;
+  unsigned int numverts;
+  do
+  {
+    infile >> x;
+    if (x == "element")
+    {
+      infile >> x;
+      if (x == "vertex")
+      {
+        infile >> numverts;
+      }
+    }
+  } while (x != vcl_string("end_header"));
+
+  min_depth = vcl_numeric_limits<double>::infinity();
+  max_depth = -vcl_numeric_limits<double>::infinity();
+
+  vnl_double_3 c(ref_cam.get_camera_center().x(),
+                 ref_cam.get_camera_center().y(),
+                 ref_cam.get_camera_center().z());
+
+  for (unsigned int i = 0; i < numverts; i++)
+  {
+    double x, y, z;
+    unsigned int id;
+    infile >> x >> y >> z >> id;
+    vnl_vector_fixed<double, 4> pt(x, y, z, 1.0);
+    vnl_double_3 res = ref_cam.get_matrix() * pt;
+    double dist = res(2);
+    if (min_depth > dist)
+      min_depth = dist;
+    if (max_depth < dist)
+      max_depth = dist;
+  }
+
+  double diff = max_depth - min_depth;
+  double offset = diff * 0.5;
+  max_depth += offset;
+  min_depth -= offset;
+
+  infile.close();
 }

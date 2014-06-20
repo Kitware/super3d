@@ -1,0 +1,11 @@
+# The build settings file.
+SET(super3d_BUILD_SETTINGS_FILE "@super3d_BUILD_SETTINGS_FILE@")
+
+# The super3d include directories.
+SET(super3d_INCLUDE_DIR "@super3d_INCLUDE_DIR_CONFIG@")
+
+# The super3d library directory.
+SET(super3d_LIBRARY_DIR "@super3d_BINARY_DIR@/libraries")
+
+# The super3d CMake support directory.
+SET(super3d_CMAKE_DIR "@super3d_SOURCE_DIR@")

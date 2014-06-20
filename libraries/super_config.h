@@ -39,6 +39,9 @@ class config
 {
 public:
 
+  config();
+  ~config();
+
   class cfg_type_base
   {
   public:
@@ -89,9 +92,6 @@ public:
 private:
 
   void parse_config(const vcl_string &dir, const vcl_string &file);
-
-  config();
-  static config *inst_;
 
   typedef vcl_map<vcl_string, cfg_type_base *> maptype;
   maptype typemap;

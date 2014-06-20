@@ -149,7 +149,8 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
                    const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
                    vil_image_view<double> &u,
                    const super_res_params &srp,
-                   unsigned int iterations)
+                   unsigned int iterations,
+                   const vcl_string &output_image)
 {
   if (frames.empty())
     return;
@@ -202,15 +203,14 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
 
     double minv, maxv;
     vil_math_value_range(u, minv, maxv);
-#ifdef DEBUG
-    if (!(i % 15))
+
+    if (!output_image.empty() && !(i % 15))
     {
       vil_image_view<double> outd;
       vil_convert_stretch_range_limited(u, outd, vcl_max(0.0,minv), vcl_min(1.0,maxv), 0.0, 255.0);
       vil_convert_cast(outd, output);
-      vil_save(output, config::inst()->get_value<vcl_string>("output_image").c_str());
+      vil_save(output, output_image.c_str());
     }
-#endif
 
     ssd = vil_math_ssd(last, u, double());
     vcl_cout << " SSD: " << ssd << " " << minv << " " << maxv << "\n";

@@ -41,6 +41,7 @@
 
 #include <vcl_iostream.h>
 #include <boost/bind.hpp>
+#include <boost/scoped_ptr.hpp>
 
 #include <vil/vil_crop.h>
 #include <vil/vil_bicub_interp.h>
@@ -69,16 +70,19 @@ void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
                              const vcl_vector<vil_image_view<double> > &weights,
                              const vcl_vector<vil_image_view<double> > &frames,
                              vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
-                             int scale_factor);
+                             int scale_factor,
+                             config *cfg);
 
 void difference_from_flow(const vil_image_view<double> &I0,
                           const vil_image_view<double> &I1,
                           const vil_image_view<double> &flow,
                           vil_image_view<double> &diff,
-                          double scale_factor);
+                          double scale_factor,
+                          config *cfg);
 
 void create_low_res(vcl_vector<vil_image_view<double> > &frames,
-                    int scale);
+                    int scale,
+                    config *cfg);
 
 void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
               double scale_factor, vidtk::warp_image_parameters::interp_type interp)
@@ -102,41 +106,42 @@ void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
 int main(int argc, char* argv[])
 {
   try  {
-    config::inst()->read_config(argv[1]);
+    boost::scoped_ptr<config> cfg(new config);
+    cfg->read_config(argv[1]);
     vcl_vector<vil_image_view<double> > frames;
     vcl_vector<vpgl_perspective_camera<double> >  cameras;
     vcl_vector<vcl_string> filenames;
 
 
-    vcl_string camera_file = config::inst()->get_value<vcl_string>("camera_file");
-    vcl_string frame_file = config::inst()->get_value<vcl_string>("frame_list");
-    vcl_string dir = config::inst()->get_value<vcl_string>("directory");
+    vcl_string camera_file = cfg->get_value<vcl_string>("camera_file");
+    vcl_string frame_file = cfg->get_value<vcl_string>("frame_list");
+    vcl_string dir = cfg->get_value<vcl_string>("directory");
     vcl_cout << "Using frame file: " << frame_file << " to find images and "
              << camera_file  << " to find cameras.\n";
     vcl_vector<int> frameindex;
     load_from_frame_file(frame_file.c_str(), camera_file.c_str(), dir,
-                         filenames, frameindex, frames, cameras, config::inst()->get_value<bool>("use_color"));
+                         filenames, frameindex, frames, cameras, cfg->get_value<bool>("use_color"));
 
-    const unsigned int ref_frame = config::inst()->get_value<unsigned int>("ref_frame");
-    const double scale_factor = config::inst()->get_value<double>("scale_factor");
+    const unsigned int ref_frame = cfg->get_value<unsigned int>("ref_frame");
+    const double scale_factor = cfg->get_value<double>("scale_factor");
     double camera_scale;
 
     vil_image_view<double> gt;
 
     //This executable can create its own low-res images to compare against the high res
     //images defined in the config or read from specific images
-    if (config::inst()->get_value<bool>("create_low_res"))
+    if (cfg->get_value<bool>("create_low_res"))
     {
       gt.deep_copy(frames[ref_frame]);
-      create_low_res(frames, scale_factor);
+      create_low_res(frames, scale_factor, cfg.get());
       camera_scale = scale_factor;
     }
     else
     {
-      camera_scale = config::inst()->get_value<double>("camera_scale");
-      if (config::inst()->is_set("ground_truth"))
+      camera_scale = cfg->get_value<double>("camera_scale");
+      if (cfg->is_set("ground_truth"))
       {
-        vcl_string ground_truth = config::inst()->get_value<vcl_string>("ground_truth");
+        vcl_string ground_truth = cfg->get_value<vcl_string>("ground_truth");
         vil_image_view<vxl_byte> gt_byte;
         gt_byte = vil_load(ground_truth.c_str());
         vil_convert_planes_to_grey(gt_byte, gt);
@@ -153,10 +158,10 @@ int main(int argc, char* argv[])
 
     //Should check that this depth map is the correct dimensions
     vil_image_view<double> depth;
-    vcl_string depthfile = config::inst()->get_value<vcl_string>("high_res_depth");
+    vcl_string depthfile = cfg->get_value<vcl_string>("high_res_depth");
     depth = vil_load(depthfile.c_str());
     int dni = depth.ni(), dnj = depth.nj();
-    if (config::inst()->get_value<bool>("upsample_depth"))
+    if (cfg->get_value<bool>("upsample_depth"))
     {
       dni *= scale_factor;
       dnj *= scale_factor;
@@ -175,9 +180,9 @@ int main(int argc, char* argv[])
 
     //Crop regions are defined in the coordinates of the LOW RES reference frame
     vpgl_perspective_camera<double> ref_cam = scaled_cams[ref_frame];
-    if (config::inst()->is_set("crop_window"))
+    if (cfg->is_set("crop_window"))
     {
-      vcl_istringstream cwstream(config::inst()->get_value<vcl_string>("crop_window"));
+      vcl_istringstream cwstream(cfg->get_value<vcl_string>("crop_window"));
       cwstream >> i0 >> ni >> j0 >> nj;
       vcl_cout << frames[ref_frame].ni() << " " << frames[ref_frame].nj() << "\n";
       ref_image.deep_copy(vil_crop(frames[ref_frame], i0, ni, j0, nj));
@@ -186,10 +191,10 @@ int main(int argc, char* argv[])
       ni = (int)(ni*scale_factor/camera_scale);
       nj = (int)(nj*scale_factor/camera_scale);
       vcl_cout << "Crop window: " << i0 << " " << ni << " " << j0 << " " << nj << "\n";
-      if (config::inst()->is_set("ground_truth"))
+      if (cfg->is_set("ground_truth"))
         gt = vil_crop(gt, i0, ni, j0, nj);
 
-      if (config::inst()->is_set("crop_depth") && config::inst()->get_value<bool>("crop_depth"))
+      if (cfg->is_set("crop_depth") && cfg->get_value<bool>("crop_depth"))
         depth = vil_crop(depth, i0, ni, j0, nj);
       ref_cam = crop_camera(ref_cam, i0, j0);
     }
@@ -203,7 +208,7 @@ int main(int argc, char* argv[])
 
     vcl_vector<vil_image_view<double> > weights(cameras.size());
 
-    if (config::inst()->get_value<bool>("use_normal_weighting"))
+    if (cfg->get_value<bool>("use_normal_weighting"))
     {
       vil_image_view<double> location_map, normal_map, ref_angle_map;
       depth_map_to_normal_map_inv_len(ref_cam, depth, normal_map);
@@ -239,7 +244,7 @@ int main(int argc, char* argv[])
     compute_occluded_flows_from_depth(scaled_cams, ref_cam, depth, flows);
     crop_frames_and_flows(flows, frames, scale_factor, 3);
     vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
-    create_warps_from_flows(flows, frames, weights, warps, scale_factor);
+    create_warps_from_flows(flows, frames, weights, warps, scale_factor, cfg.get());
 
  #ifdef DEBUG
     for (unsigned int i = 0; i < warps.size(); i++)
@@ -295,15 +300,16 @@ int main(int argc, char* argv[])
     srp.s_nj = warps[ref_frame].src_nj();
     srp.l_ni = warps[ref_frame].dst_ni();
     srp.l_nj = warps[ref_frame].dst_nj();
-    srp.lambda = config::inst()->get_value<double>("lambda");
-    srp.epsilon_data = config::inst()->get_value<double>("epsilon_data");
-    srp.epsilon_reg = config::inst()->get_value<double>("epsilon_reg");
-    srp.sigma = config::inst()->get_value<double>("sigma");
-    srp.tau = config::inst()->get_value<double>("tau");
-    const unsigned int iterations = config::inst()->get_value<unsigned int>("iterations");
-    super_resolve(frames, warps, super_u, srp, iterations);
+    srp.lambda = cfg->get_value<double>("lambda");
+    srp.epsilon_data = cfg->get_value<double>("epsilon_data");
+    srp.epsilon_reg = cfg->get_value<double>("epsilon_reg");
+    srp.sigma = cfg->get_value<double>("sigma");
+    srp.tau = cfg->get_value<double>("tau");
+    const unsigned int iterations = cfg->get_value<unsigned int>("iterations");
+    vcl_string output_image = cfg->get_value<vcl_string>("output_image");
+    super_resolve(frames, warps, super_u, srp, iterations, output_image);
 
-    if (config::inst()->is_set("ground_truth"))
+    if (cfg->is_set("ground_truth"))
     {
       vil_math_scale_values(gt, normalizer);
       compare_to_original(ref_image, super_u, gt, scale_factor);
@@ -320,7 +326,7 @@ int main(int argc, char* argv[])
 
     vil_image_view<vxl_byte> output;
     vil_convert_stretch_range_limited(super_u, output, 0.0, 1.0);
-    vil_save(output, config::inst()->get_value<vcl_string>("output_image").c_str());
+    vil_save(output, output_image.c_str());
   }
   catch (const config::cfg_exception &e)  {
     vcl_cout << "Error in config: " << e.what() << "\n";
@@ -364,12 +370,13 @@ void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
                              const vcl_vector<vil_image_view<double> > &frames,
                              const vcl_vector<vil_image_view<double> > &weights,
                              vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
-                             int scale_factor)
+                             int scale_factor,
+                             config *cfg)
 {
   assert(flows.size() == frames.size());
-  bool down_sample_averaging = config::inst()->get_value<bool>("down_sample_averaging");
-  bool bicubic_warping = config::inst()->get_value<bool>("bicubic_warping");
-  double sensor_sigma = config::inst()->get_value<double>("sensor_sigma");
+  bool down_sample_averaging = cfg->get_value<bool>("down_sample_averaging");
+  bool bicubic_warping = cfg->get_value<bool>("bicubic_warping");
+  double sensor_sigma = cfg->get_value<double>("sensor_sigma");
 
   warps.clear();
   warps.reserve(flows.size());
@@ -391,9 +398,10 @@ void difference_from_flow(const vil_image_view<double> &I0,
                           const vil_image_view<double> &I1,
                           const vil_image_view<double> &flow,
                           vil_image_view<double> &diff,
-                          double scale_factor)
+                          double scale_factor,
+                          config *cfg)
 {
-  bool bicubic_warping = config::inst()->get_value<bool>("bicubic_warping");
+  bool bicubic_warping = cfg->get_value<bool>("bicubic_warping");
   vil_image_view<double> I0_x, I1_x;
   vil_resample_bicub(I0, I0_x, scale_factor * I0.ni(), scale_factor * I0.nj());
   vil_resample_bicub(I1, I1_x, scale_factor * I1.ni(), scale_factor * I1.nj());
@@ -414,9 +422,10 @@ void difference_from_flow(const vil_image_view<double> &I0,
 //*****************************************************************************
 
 void create_low_res(vcl_vector<vil_image_view<double> > &frames,
-                    int scale)
+                    int scale,
+                    config *cfg)
 {
-  bool down_sample_averaging = config::inst()->get_value<bool>("down_sample_averaging");
+  bool down_sample_averaging = cfg->get_value<bool>("down_sample_averaging");
   for (unsigned int i = 0; i < frames.size(); i++)
   {
     vil_image_view<double> temp;
