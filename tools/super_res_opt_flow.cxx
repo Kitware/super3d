@@ -568,21 +568,22 @@ void write_warped_frames(const vcl_vector<vil_image_view<double> > &frames,
 {
   vnl_double_3x3 T, Tinv;
   T.set_identity();
-  T(0,2) = -i0;
-  T(1,2) = -j0;
-  Tinv = vnl_inverse<double>(T);
+  T(0,2) = i0;
+  T(1,2) = j0;
 
   vidtk::warp_image_parameters wip;
   wip.set_fill_unmapped(true);
   wip.set_unmapped_value(-1.0);
   wip.set_interpolator(vidtk::warp_image_parameters::LINEAR);
 
+  const vnl_double_3x3 M = homogs[ref_frame].get_matrix() * T;
+
   char buf[64];
   for (unsigned int i = 0; i < frames.size(); i++)
   {
-    vgl_h_matrix_2d<double> H = T * homogs[ref_frame].get_inverse().get_matrix() * homogs[i].get_matrix();
+    vgl_h_matrix_2d<double> H = homogs[i].get_inverse().get_matrix() * M;
     vil_image_view<double> warped(ni, nj, frames[i].nplanes());
-    vidtk::warp_image(frames[i], warped, H.get_inverse(), wip);
+    vidtk::warp_image(frames[i], warped, H, wip);
 
     double min, max;
     vil_math_value_range(warped, min, max);
