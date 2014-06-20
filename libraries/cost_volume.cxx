@@ -30,6 +30,7 @@
 #include "cost_volume.h"
 
 #include <vcl_cstdio.h>
+#include <vcl_fstream.h>
 
 #include <video_transforms/warp_image.h>
 #include <vil/vil_bilin_interp.h>
