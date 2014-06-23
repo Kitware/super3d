@@ -28,50 +28,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Macros for symbol management in Super3D
+/** \file
+ *  \brief imesh algo module configuration header
  */
 
-#ifndef SUPER3D_CONFIG_H
-#define SUPER3D_CONFIG_H
+#ifndef SUPER3D_IMESH_ALGO_CONFIG_H
+#define SUPER3D_IMESH_ALGO_CONFIG_H
 
-/**
- * \def SUPER3D_EXPORT
- * \brief Export a symbol for outside library use.
- */
+#include <super3d/config.h>
 
-/**
- * \def SUPER3D_IMPORT
- * \brief Use a symbol from another library.
- */
-
-/**
- * \def SUPER3D_NO_EXPORT
- * \brief Hide the symbol from outside the library.
- */
-
-// Visibility macros
-#cmakedefine SUPER3D_HAVE_GCC_VISIBILITY
-#if defined(_WIN32) || defined(_WIN64)
-# define SUPER3D_EXPORT __declspec(dllexport)
-# define SUPER3D_IMPORT __declspec(dllimport)
-# define SUPER3D_NO_EXPORT
-#elif defined(SUPER3D_HAVE_GCC_VISIBILITY)
-# define SUPER3D_EXPORT __attribute__((__visibility__("default")))
-# define SUPER3D_IMPORT __attribute__((__visibility__("default")))
-# define SUPER3D_NO_EXPORT __attribute__((__visibility__("hidden")))
-#else
-# define SUPER3D_EXPORT
-# define SUPER3D_IMPORT
-# define SUPER3D_NO_EXPORT
+/// Define symbol visibility in super3d::depth_cl
+#ifndef SUPER3D_IMESH_ALGO_EXPORT
+# ifdef MAKE_SUPER3D_IMESH_ALGO_LIB
+#   define SUPER3D_IMESH_ALGO_EXPORT SUPER3D_EXPORT
+# else
+#   define SUPER3D_IMESH_ALGO_EXPORT SUPER3D_IMPORT
+# endif
+/// Mark labeled symbols as not to be exported
+# define SUPER3D_IMESH_ALGO_NO_EXPORT SUPER3D_NO_EXPORT
 #endif
 
-// no-throw macro
-#if __cplusplus < 201103L
-# define SUPER3D_NOTHROW throw ()
-#else
-# define SUPER3D_NOTHROW noexcept
-#endif
-
-#endif // SUPER3D_CONFIG_H
+#endif // SUPER3D_IMESH_ALGO_CONFIG_H
