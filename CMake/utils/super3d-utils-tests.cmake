@@ -75,7 +75,6 @@ endfunction(super3d_declare_test)
 # they should be listed after LINK_LIBS.
 #
 function(super3d_build_test name)
-
   # Argument parsing
   set(multiValueArgs SOURCES LINK_LIBS)
   cmake_parse_arguments(bt "" "" "${multiValueArgs}" ${ARGN})
@@ -89,9 +88,9 @@ function(super3d_build_test name)
     message(FATAL_ERROR "No sources provided to test '${name}'")
   endif()
 
-  message(STATUS "[super3d-build-test] Adding executable: test-${name}")
+  message(STATUS "[super3d-build-test] Adding test executable: test-${name}")
   message(STATUS "[super3d-build-test] -> sources  : ${bt_SOURCES}")
-  message(STATUS "[super3d-build-test] -> link libs: ${${bt_LINK_LIBS}}")
+  message(STATUS "[super3d-build-test] -> link libs: ${bt_LINK_LIBS}")
   add_executable(test-${name} ${bt_SOURCES})
   set_target_properties(test-${name}
     PROPERTIES
@@ -99,7 +98,7 @@ function(super3d_build_test name)
     )
   target_link_libraries(test-${name}
     LINK_PRIVATE
-      ${${bt_LINK_LIBS}}
+      ${bt_LINK_LIBS}
     )
 
   # If we're supposed to add targets...
@@ -204,7 +203,9 @@ endfunction(super3d_add_test)
 #
 # Discover tests declared within the specified file.
 #
-#   super3d_discover_tests(group file [LINK_LIBS lib1 [lib2 ...]])
+#   super3d_discover_tests(group file
+#                          [LINK_LIBS lib1 [lib2 ...]]
+#                          [EXTRA_ARGS arg1 [arg2 ...]])
 #
 # Where group is a group label to cover tests discovered within the file. Test
 # names must be alphanumeric and may contain underscores. Defines an
@@ -213,15 +214,18 @@ endfunction(super3d_add_test)
 # eventually passed to "super3d_add_test(...)" under the hood.
 #
 function(super3d_discover_tests group file)
-  message(STATUS "[super3d_discover_tests-${group}] Discovering group \"${group}\" tests in file \"${file}\"")
-
   # Argument Parsing
-  set(multiValueArgs LINK_LIBS)
+  set(multiValueArgs LINK_LIBS EXTRA_ARGS)
   cmake_parse_arguments("dt" "" "" "${multiValueArgs}" ${ARGN})
+
+  message(STATUS "[super3d_discover_tests-${group}] Discovering \"${group}\" tests in file \"${file}\"")
+  message(STATUS "[super3d_discover_tests-${group}] group link libraries: ${dt_LINK_LIBS}")
 
   file(STRINGS "${file}" test_lines)
   set(properties)
   set(Super3D_TEST_ENVIRONMENT)
+
+  super3d_build_test("${group}" SOURCES "${file}" LINK_LIBS ${dt_LINK_LIBS})
 
   foreach(test_line IN LISTS test_lines)
 
@@ -233,7 +237,7 @@ function(super3d_discover_tests group file)
     if(match)
       set(test_name "${CMAKE_MATCH_1}")
       message(STATUS "[super3d_discover_tests-${group}] Found test: ${test_name}")
-      maptk_add_test("${group}" "${test_name}" ${dt_UNPARSED_ARGUMENTS})
+      super3d_add_test("${group}" "${test_name}" ${dt_EXTRA_ARGS})
       if(properties)
         set_tests_properties(test-${group}-${test_name}
           PROPERTIES

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Kitware, Inc.
+ * Copyright 2012-2014 Kitware, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -33,58 +33,32 @@
 #include <string>
 #include <limits>
 
-
-#include "normal_map.h"
-#include "depth_map.h"
 #include <vil/vil_convert.h>
 #include <vil/vil_crop.h>
 #include <vil/vil_save.h>
 
+#include <super3d/depth/normal_map.h>
+#include <super3d/depth/depth_map.h>
+
+// test setup elements (test_common.h)
+#define TEST_ARGS ()
+DECLARE_TEST_MAP();
 
 
-static void run_test(std::string const& test_name);
-
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
-  if (argc != 2)
-  {
-    TEST_ERROR("Expected one argument");
+  // Only expecting the test name
+  CHECK_ARGS(1);
 
-    return EXIT_FAILURE;
-  }
+  testname_t const testname = argv[1];
 
-  std::string const test_name = argv[1];
-
-  try
-  {
-    run_test(test_name);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
-
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
+  RUN_TEST(testname);
 }
 
-static void test_compare_direct_indirect();
 
-void
-run_test(std::string const& test_name)
-{
-  if (test_name == "compare_direct_indirect")
-  {
-    test_compare_direct_indirect();
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
-}
-
+//
+// Some local helper methods
+//
 
 void render_sphere_depth(double radius,
                          const vgl_point_3d<double>& center,
@@ -158,8 +132,11 @@ make_test_depth_and_normals(const unsigned int ni, const unsigned int nj,
 }
 
 
-void
-test_compare_direct_indirect()
+//
+// Tests proper
+//
+
+IMPLEMENT_TEST(test_compare_direct_indirect)
 {
   const unsigned ni=200, nj=200;
   vil_image_view<double> depth, normal;

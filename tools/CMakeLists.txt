@@ -1,3 +1,5 @@
+project( Super3D_Tools )
+
 include_directories("${Super3D_SOURCE_DIR}")
 include_directories("${Super3D_BINARY_DIR}")
 
