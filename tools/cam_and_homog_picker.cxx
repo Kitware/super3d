@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
 {
   vul_arg<vcl_string> homog_file("-h", "homog file", "");
   vul_arg<vcl_string> camera_file("-c", "camera file", "");
+  vul_arg<vcl_string> nvm_file("-n", "n view match file", "");
   vul_arg<vcl_string> frame_file("-i", "image list", "");
   vul_arg<vcl_string> frames_str("-f", "frames to extract", "");
 
@@ -86,6 +87,75 @@ int main(int argc, char *argv[])
       outfile << std::setprecision(10) << cams[frames[i]] << "\n0\n";
       outfile.close();
     }
+  }
+
+  std::cout << nvm_file() << "\n";
+  if (nvm_file.set())
+  {
+    std::vector<vpgl_perspective_camera<double> > cams;
+    std::ifstream infile(nvm_file().c_str());
+    std::string temp;
+    infile >> temp >> temp;
+    double fx, cx, fy, cy, r;
+    infile >> fx >> cx >> fy >> cy >> r;
+
+    unsigned int numcams;
+    infile >> numcams;
+
+    std::cout << "num cameras: " << numcams << "\n";
+
+    std::string directory = nvm_file();
+    unsigned int found = directory.find_last_of("/\\");
+    directory = directory.substr(0, found);
+
+    for (unsigned int i = 0; i < numcams; i++)
+    {
+      std::string filename;
+      infile >> filename;
+      double f, w, x, y, z, camx, camy, camz, r, zero;
+      infile >> f >> w >> x >> y >> z >> camx >> camy >> camz >> r >> zero;
+
+      vpgl_perspective_camera<double> cam;
+      vpgl_calibration_matrix<double> K;
+      K.set_focal_length(f);
+      K.set_x_scale(1.0);
+      K.set_y_scale(fy/fx);
+      K.set_principal_point(vgl_point_2d<double>(cx, cy));
+
+      cam.set_rotation(vgl_rotation_3d<double>(vnl_quaternion<double>(x, y, z, w)));
+      cam.set_camera_center(vgl_point_3d<double>(camx, camy, camz));
+      cam.set_calibration(K);
+
+      unsigned int found = filename.find_last_of("/\\");
+      if (found != std::string::npos)
+        filename = filename.substr(found+1, filename.size() - 4 - found - 1);
+
+      std::cout << "writing cam: " << directory + "/" + filename + ".krtd\n";
+      std::ofstream outfile((directory + "/" + filename + ".krtd").c_str());
+      outfile << std::setprecision(10) << cam << "\n0\n";
+      outfile.close();
+    }
+
+    unsigned int numpts;
+    infile >> numpts;
+
+    std::ofstream plyfile((directory + "/model.ply").c_str());
+    plyfile << "ply\nformat ascii 1.0\nelement vertex " << numpts << "\n";
+    plyfile << "property float x\nproperty float y\nproperty float z\n";
+    plyfile << "end_header\n";
+
+    for (unsigned int i = 0; i < numpts; i++)
+    {
+      std::string line;
+      std::getline(infile, line);
+
+      std::istringstream sstr(line);
+      float x, y, z;
+      sstr >> x >> y >> z;
+      plyfile << x << y << z << "\n";
+    }
+
+    plyfile.close();
   }
 
   return 0;
