@@ -15,7 +15,7 @@
 #include <imesh/imesh_mesh.h>
 #include <vpgl/vpgl_proj_camera.h>
 #include <vpgl/vpgl_perspective_camera.h>
-#include <bpgl/bpgl_lens_distortion.h>
+//#include <bpgl/bpgl_lens_distortion.h>
 #include <vil/vil_image_view.h>
 #include <vgl/vgl_box_2d.h>
 
@@ -41,6 +41,7 @@ void imesh_project_verts(const imesh_vertex_array<3>& verts3d,
                          vcl_vector<vgl_point_2d<double> >& verts2d,
                          vcl_vector<double>& depths);
 
+/*
 //: distort the 2D vertices using the lens
 void imesh_distort_verts(const vcl_vector<vgl_point_2d<double> >& in_verts,
                          const bpgl_lens_distortion<double>& lens,
@@ -63,6 +64,7 @@ void imesh_project(const imesh_mesh& mesh,
                    const bpgl_lens_distortion<double>& lens,
                    vil_image_view<bool>& image,
                    vgl_box_2d<unsigned int>* bbox = 0);
+*/
 
 //: project the mesh onto the image plane using the camera
 //  Set each pixel of the image to true if the mesh projects onto it

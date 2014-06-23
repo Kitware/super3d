@@ -59,7 +59,6 @@ include_directories(SYSTEM ${VIDTK_INCLUDE_DIRS})
 find_package(VXL REQUIRED)
 set(VXL_PROVIDE_STANDARD_OPTIONS 1)
 include(${VXL_CMAKE_DIR}/UseVXL.cmake)
-include_directories(SYSTEM ${VXL_BRL_INCLUDE_DIR})
 include_directories(SYSTEM ${VXL_GEL_INCLUDE_DIR}/mrc)
 include_directories(SYSTEM ${VXL_RPL_INCLUDE_DIR})
 
