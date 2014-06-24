@@ -29,6 +29,8 @@
 #ifndef CL_SUPER_RES_H_
 #define CL_SUPER_RES_H_
 
+#include "depth_cl_config.h"
+
 #include <viscl/core/task.h>
 #include <viscl/core/image.h>
 #include <viscl/core/buffer.h>
@@ -36,7 +38,14 @@
 
 #include <vil/vil_image_view.h>
 
-class super_res_cl : public viscl::task
+
+namespace super3d
+{
+
+namespace cl
+{
+
+class SUPER3D_DEPTH_CL_EXPORT super_res_cl : public viscl::task
 {
 public:
 
@@ -66,5 +75,9 @@ private:
                      zero_k, zero2_k;
 
 };
+
+} // end namespace cl
+
+} // end namespace super3d
 
 #endif

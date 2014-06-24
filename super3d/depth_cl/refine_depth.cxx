@@ -27,6 +27,7 @@
  */
 
 #include "refine_depth.h"
+#include "dual_rof.h"
 
 #include <boost/make_shared.hpp>
 #include <viscl/core/manager.h>
@@ -35,11 +36,16 @@
 
 #include <viscl/vxl/transfer.h>
 #include <viscl/core/program_registry.h>
-#include "dual_rof.h"
+
 
 extern const char *refine_depth_source;
 
-//*****************************************************************************
+
+namespace super3d
+{
+
+namespace cl
+{
 
 refine_depth_cl::refine_depth_cl()
 {
@@ -50,7 +56,6 @@ refine_depth_cl::refine_depth_cl()
   queue = viscl::manager::inst()->create_queue();
 }
 
-//*****************************************************************************
 
 void refine_depth_cl::refine(const vil_image_view<float> &cost_volume,
                              vil_image_view<float> &d,
@@ -66,7 +71,7 @@ void refine_depth_cl::refine(const vil_image_view<float> &cost_volume,
   queue->enqueueWriteBuffer(*cv_cl().get(), CL_TRUE, 0, cv_cl.mem_size(), cost_volume.top_left_ptr());
   viscl::image g_cl = viscl::upload_image(g);
 
-  cl::ImageFormat img_fmt(CL_INTENSITY, CL_FLOAT);
+  ::cl::ImageFormat img_fmt(CL_INTENSITY, CL_FLOAT);
   viscl::buffer d_cl = viscl::manager::inst()->create_buffer<float>(CL_MEM_READ_WRITE, ni * nj);
   viscl::buffer a_cl = viscl::manager::inst()->create_buffer<float>(CL_MEM_READ_WRITE, ni * nj);
   viscl::buffer sqrt_cost_vol_cl = viscl::manager::inst()->create_buffer<float>(CL_MEM_READ_WRITE, ni * nj);
@@ -85,8 +90,8 @@ void refine_depth_cl::refine(const vil_image_view<float> &cost_volume,
   init_depth_k->setArg(2, *sqrt_cost_vol_cl().get());
   init_depth_k->setArg(3, dims);
 
-  cl::NDRange global(ni, nj);
-  queue->enqueueNDRangeKernel(*init_depth_k, cl::NullRange, global, cl::NullRange);
+  ::cl::NDRange global(ni, nj);
+  queue->enqueueNDRangeKernel(*init_depth_k, ::cl::NullRange, global, ::cl::NullRange);
   queue->finish();
 
   dual_rof_t rof = NEW_VISCL_TASK(dual_rof);
@@ -108,18 +113,18 @@ void refine_depth_cl::refine(const vil_image_view<float> &cost_volume,
   {
     //vcl_cout << theta << "\n";
     search_k->setArg(4, theta);
-    queue->enqueueNDRangeKernel(*search_k.get(), cl::NullRange, global, cl::NullRange);
+    queue->enqueueNDRangeKernel(*search_k.get(), ::cl::NullRange, global, ::cl::NullRange);
     queue->finish();
     rof->denoise(d_cl, dual, a_cl, g_cl, ni, nj, 1, 1.0f/theta, 0.25f/theta, 0.01f);
     theta = pow(10.0f, log(theta)/denom - beta);
   }
 
-  cl::size_t<3> origin;
+  ::cl::size_t<3> origin;
   origin.push_back(0);
   origin.push_back(0);
   origin.push_back(0);
 
-  cl::size_t<3> region;
+  ::cl::size_t<3> region;
   region.push_back(ni);
   region.push_back(nj);
   region.push_back(1);
@@ -128,4 +133,6 @@ void refine_depth_cl::refine(const vil_image_view<float> &cost_volume,
   queue->enqueueReadBuffer(*d_cl().get(),  CL_TRUE, 0, d_cl.mem_size(), (float *)d.memory_chunk()->data());
 }
 
-//*****************************************************************************
+} // end namespace cl
+
+} // end namespace super3d

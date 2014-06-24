@@ -29,6 +29,8 @@
 #ifndef CL_DUAL_ROF_H_
 #define CL_DUAL_ROF_H_
 
+#include "depth_cl_config.h"
+
 #include <vcl_vector.h>
 #include <vcl_string.h>
 
@@ -38,7 +40,14 @@
 
 #include <vil/vil_image_view.h>
 
-class dual_rof : public viscl::task
+
+namespace super3d
+{
+
+namespace cl
+{
+
+class SUPER3D_DEPTH_CL_EXPORT dual_rof : public viscl::task
 {
 public:
 
@@ -70,5 +79,9 @@ private:
 };
 
 typedef boost::shared_ptr<dual_rof> dual_rof_t;
+
+} // end namespace cl
+
+} // end namespace super3d
 
 #endif

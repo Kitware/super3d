@@ -33,9 +33,15 @@
 #include <viscl/core/program_registry.h>
 #include <viscl/vxl/transfer.h>
 
+
 extern const char* dual_rof_source;
 
-//*****************************************************************************
+
+namespace super3d
+{
+
+namespace cl
+{
 
 dual_rof::dual_rof()
 {
@@ -47,7 +53,6 @@ dual_rof::dual_rof()
   queue = viscl::manager::inst()->create_queue();
 }
 
-//*****************************************************************************
 
 viscl::buffer dual_rof::create_dual(size_t ni, size_t nj)
 {
@@ -56,13 +61,12 @@ viscl::buffer dual_rof::create_dual(size_t ni, size_t nj)
   init_dual_k->setArg(0, *dual().get());
   init_dual_k->setArg(1, (int)ni);
 
-  queue->enqueueNDRangeKernel(*init_dual_k.get(), cl::NullRange, cl::NDRange(ni, nj), cl::NullRange);
+  queue->enqueueNDRangeKernel(*init_dual_k.get(), ::cl::NullRange, ::cl::NDRange(ni, nj), ::cl::NullRange);
   queue->finish();
 
   return dual;
 }
 
-//*****************************************************************************
 
 void dual_rof::denoise(const vil_image_view<float> &src,
                        vil_image_view<float> &dest,
@@ -87,7 +91,6 @@ void dual_rof::denoise(const vil_image_view<float> &src,
   queue->enqueueReadBuffer(*denoised().get(),  CL_TRUE, 0, denoised.mem_size(), (float *)dest.memory_chunk()->data());
 }
 
-//*****************************************************************************
 
 void dual_rof::denoise(const viscl::buffer &denoised,
                        const viscl::buffer &dual,
@@ -118,18 +121,20 @@ void dual_rof::denoise(const viscl::buffer &denoised,
   divergence_k->setArg(6, image_dims);
 
   // Run the kernel on specific ND range
-  cl::NDRange global_g(ni-1, nj-1);
-  cl::NDRange global_d(ni, nj);
+  ::cl::NDRange global_g(ni-1, nj-1);
+  ::cl::NDRange global_d(ni, nj);
 
   for (unsigned int i = 0; i < iterations; i++)
   {
-    queue->enqueueNDRangeKernel(*gradient_k.get(), cl::NullRange, global_g, cl::NullRange);
+    queue->enqueueNDRangeKernel(*gradient_k.get(), ::cl::NullRange, global_g, ::cl::NullRange);
     queue->enqueueBarrier();
-    queue->enqueueNDRangeKernel(*divergence_k.get(), cl::NullRange, global_d, cl::NullRange);
+    queue->enqueueNDRangeKernel(*divergence_k.get(), ::cl::NullRange, global_d, ::cl::NullRange);
     queue->enqueueBarrier();
   }
 
   queue->finish();
 }
 
-//*****************************************************************************
+} // end namespace cl
+
+} // end namespace super3d

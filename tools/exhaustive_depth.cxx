@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
     if (cfg->is_set("use_gpu") &&
         cfg->get_value<bool>("use_gpu") )
     {
-      refine_depth_cl_t rd = NEW_VISCL_TASK(refine_depth_cl);
+      super3d::cl::refine_depth_cl_t rd = NEW_VISCL_TASK(super3d::cl::refine_depth_cl);
       vil_image_view<float> depth_f(cost_volume.ni(), cost_volume.nj(), 1);
       vil_image_view<float> cv_f(cost_volume.ni(), cost_volume.nj(), 1, cost_volume.nplanes());
       vil_image_view<float> g_f;

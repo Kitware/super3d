@@ -29,6 +29,8 @@
 #ifndef CL_REFINE_DEPTH_H_
 #define CL_REFINE_DEPTH_H_
 
+#include "depth_cl_config.h"
+
 #include <vcl_vector.h>
 #include <vcl_string.h>
 
@@ -38,7 +40,14 @@
 
 #include <vil/vil_image_view.h>
 
-class refine_depth_cl : public viscl::task
+
+namespace super3d
+{
+
+namespace cl
+{
+
+class SUPER3D_DEPTH_CL_EXPORT refine_depth_cl : public viscl::task
 {
 public:
 
@@ -59,5 +68,9 @@ private:
 };
 
 typedef boost::shared_ptr<refine_depth_cl> refine_depth_cl_t;
+
+} // end namespace cl
+
+} // end namespace super3d
 
 #endif

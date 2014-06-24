@@ -5,6 +5,7 @@ set(ocl_src_files
   )
 
 set(header_files
+  depth_cl_config.h
   dual_rof.h
   super_res.h
   refine_depth.h

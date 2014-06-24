@@ -35,9 +35,15 @@
 
 #include <vil/vil_copy.h>
 
+
+namespace super3d
+{
+
+namespace cl
+{
+
 extern const char* super_res_source;
 
-//*****************************************************************************
 
 super_res_cl::super_res_cl()
 {
@@ -58,7 +64,6 @@ super_res_cl::super_res_cl()
   zero2_k = make_kernel("zero2");
 }
 
-//*****************************************************************************
 
 void convert_flow(const vil_image_view<float> &pflow, cl_float2 *iflow)
 {
@@ -74,7 +79,6 @@ void convert_flow(const vil_image_view<float> &pflow, cl_float2 *iflow)
   }
 }
 
-//*****************************************************************************
 
 void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frames,
                               const vcl_vector<vil_image_view<float> > &flows,
@@ -112,14 +116,14 @@ void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frame
     delete [] flow;
 
     zero_k->setArg(0, *q[i]().get());
-    queue->enqueueNDRangeKernel(*zero_k.get(), cl::NullRange, cl::NDRange(frames[i].ni()*frames[i].nj()), cl::NullRange);
+    queue->enqueueNDRangeKernel(*zero_k.get(), ::cl::NullRange, ::cl::NDRange(frames[i].ni()*frames[i].nj()), ::cl::NullRange);
   }
 
   viscl::buffer pr = viscl::manager::inst()->create_buffer<params>(CL_MEM_READ_ONLY, 1);
   queue->enqueueWriteBuffer(*pr().get(), CL_FALSE, 0, pr.mem_size(), &srp);
   viscl::buffer p = viscl::manager::inst()->create_buffer<cl_float2>(CL_MEM_READ_WRITE, srp.sdim.s[0] * srp.sdim.s[1]);
   zero2_k->setArg(0, *p().get());
-  queue->enqueueNDRangeKernel(*zero2_k.get(), cl::NullRange, cl::NDRange(srp.sdim.s[0] * srp.sdim.s[1]), cl::NullRange);
+  queue->enqueueNDRangeKernel(*zero2_k.get(), ::cl::NullRange, ::cl::NDRange(srp.sdim.s[0] * srp.sdim.s[1]), ::cl::NullRange);
 
   const int kernel_radius = 2;
   const int kernel_size = 2*kernel_radius+1;
@@ -151,18 +155,18 @@ void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frame
 
   dual_step_q_k->setArg(3, *pr().get());
 
-  cl::NDRange super_range(srp.sdim.s[0], srp.sdim.s[1]);
+  ::cl::NDRange super_range(srp.sdim.s[0], srp.sdim.s[1]);
 
   for (unsigned int iter = 0; iter < iterations; iter++)
   {
     //Dual step on p
-    queue->enqueueNDRangeKernel(*dual_step_p_k.get(), cl::NullRange, super_range, cl::NullRange);
+    queue->enqueueNDRangeKernel(*dual_step_p_k.get(), ::cl::NullRange, super_range, ::cl::NullRange);
     queue->enqueueBarrier();
 
     for (unsigned int f = 0; f < num_frames; f++)
     {
       zero_k->setArg(0, *temp2[f]().get());
-      queue->enqueueNDRangeKernel(*zero_k.get(), cl::NullRange, cl::NDRange(srp.sdim.s[0] * srp.sdim.s[1]), cl::NullRange);
+      queue->enqueueNDRangeKernel(*zero_k.get(), ::cl::NullRange, ::cl::NDRange(srp.sdim.s[0] * srp.sdim.s[1]), ::cl::NullRange);
     }
 
     queue->enqueueBarrier();
@@ -175,8 +179,8 @@ void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frame
       warp_foward_k->setArg(2, *cl_flows[f]().get());
       warp_foward_k->setArg(3, flow_sizes[f]);
       warp_foward_k->setArg(4, srp.sdim);
-      queue->enqueueNDRangeKernel(*warp_foward_k.get(), cl::NullRange,
-                                  cl::NDRange(flow_sizes[f].s[0], flow_sizes[f].s[1]), cl::NullRange);
+      queue->enqueueNDRangeKernel(*warp_foward_k.get(), ::cl::NullRange,
+                                  ::cl::NDRange(flow_sizes[f].s[0], flow_sizes[f].s[1]), ::cl::NullRange);
     }
 
     queue->enqueueBarrier();
@@ -189,8 +193,8 @@ void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frame
       blur1D_horiz_k->setArg(2, kernel_radius);
       blur1D_horiz_k->setArg(3, flow_sizes[f]);
       blur1D_horiz_k->setArg(4, *temp2[f]().get());
-      queue->enqueueNDRangeKernel(*blur1D_horiz_k.get(), cl::NullRange,
-                                  cl::NDRange(flow_sizes[f].s[0], flow_sizes[f].s[1]), cl::NullRange);
+      queue->enqueueNDRangeKernel(*blur1D_horiz_k.get(), ::cl::NullRange,
+                                  ::cl::NDRange(flow_sizes[f].s[0], flow_sizes[f].s[1]), ::cl::NullRange);
     }
 
     queue->enqueueBarrier();
@@ -202,8 +206,8 @@ void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frame
       blur1D_vert_k->setArg(2, kernel_radius);
       blur1D_vert_k->setArg(3, flow_sizes[f]);
       blur1D_vert_k->setArg(4, *temp1[f]().get());
-      queue->enqueueNDRangeKernel(*blur1D_vert_k.get(), cl::NullRange,
-                                  cl::NDRange(flow_sizes[f].s[0], flow_sizes[f].s[1]), cl::NullRange);
+      queue->enqueueNDRangeKernel(*blur1D_vert_k.get(), ::cl::NullRange,
+                                  ::cl::NDRange(flow_sizes[f].s[0], flow_sizes[f].s[1]), ::cl::NullRange);
     }
 
     queue->enqueueBarrier();
@@ -215,7 +219,7 @@ void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frame
       down_sample_k->setArg(2, *temp2[f]().get());
       down_sample_k->setArg(3, frame_sizes[f]);
       down_sample_k->setArg(4, (int)srp.scale_factor);
-      queue->enqueueNDRangeKernel(*down_sample_k.get(), cl::NullRange, cl::NDRange(frame_sizes[f].s[0], frame_sizes[f].s[1]), cl::NullRange);
+      queue->enqueueNDRangeKernel(*down_sample_k.get(), ::cl::NullRange, ::cl::NDRange(frame_sizes[f].s[0], frame_sizes[f].s[1]), ::cl::NullRange);
     }
 
     queue->enqueueBarrier();
@@ -227,7 +231,7 @@ void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frame
       dual_step_q_k->setArg(2, *cl_frames[f]().get());
       //arg 3 set above
       dual_step_q_k->setArg(4, frame_sizes[f]);
-      queue->enqueueNDRangeKernel(*dual_step_q_k.get(), cl::NullRange, cl::NDRange(frame_sizes[f].s[0], frame_sizes[f].s[1]), cl::NullRange);
+      queue->enqueueNDRangeKernel(*dual_step_q_k.get(), ::cl::NullRange, ::cl::NDRange(frame_sizes[f].s[0], frame_sizes[f].s[1]), ::cl::NullRange);
     }
 
     queue->enqueueBarrier();
@@ -235,7 +239,7 @@ void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frame
     for (unsigned int f = 0; f < num_frames; f++)
     {
       zero_k->setArg(0, *temp1[f]().get());
-      queue->enqueueNDRangeKernel(*zero_k.get(), cl::NullRange, cl::NDRange(flow_sizes[f].s[0] * flow_sizes[f].s[1]), cl::NullRange);
+      queue->enqueueNDRangeKernel(*zero_k.get(), ::cl::NullRange, ::cl::NDRange(flow_sizes[f].s[0] * flow_sizes[f].s[1]), ::cl::NullRange);
     }
 
     queue->enqueueBarrier();
@@ -247,7 +251,7 @@ void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frame
       up_sample_k->setArg(2, *temp1[f]().get());
       up_sample_k->setArg(3, flow_sizes[f]);
       up_sample_k->setArg(4, (int)srp.scale_factor);
-      queue->enqueueNDRangeKernel(*up_sample_k.get(), cl::NullRange, cl::NDRange(frame_sizes[f].s[0], frame_sizes[f].s[1]), cl::NullRange);
+      queue->enqueueNDRangeKernel(*up_sample_k.get(), ::cl::NullRange, ::cl::NDRange(frame_sizes[f].s[0], frame_sizes[f].s[1]), ::cl::NullRange);
     }
 
     queue->enqueueBarrier();
@@ -260,8 +264,8 @@ void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frame
       blur1D_horiz_k->setArg(2, kernel_radius);
       blur1D_horiz_k->setArg(3, flow_sizes[f]);
       blur1D_horiz_k->setArg(4, *temp2[f]().get());
-      queue->enqueueNDRangeKernel(*blur1D_horiz_k.get(), cl::NullRange,
-                                  cl::NDRange(flow_sizes[f].s[0], flow_sizes[f].s[1]), cl::NullRange);
+      queue->enqueueNDRangeKernel(*blur1D_horiz_k.get(), ::cl::NullRange,
+                                  ::cl::NDRange(flow_sizes[f].s[0], flow_sizes[f].s[1]), ::cl::NullRange);
     }
 
     queue->enqueueBarrier();
@@ -273,8 +277,8 @@ void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frame
       blur1D_vert_k->setArg(2, kernel_radius);
       blur1D_vert_k->setArg(3, flow_sizes[f]);
       blur1D_vert_k->setArg(4, *temp1[f]().get());
-      queue->enqueueNDRangeKernel(*blur1D_vert_k.get(), cl::NullRange,
-                                  cl::NDRange(flow_sizes[f].s[0], flow_sizes[f].s[1]), cl::NullRange);
+      queue->enqueueNDRangeKernel(*blur1D_vert_k.get(), ::cl::NullRange,
+                                  ::cl::NDRange(flow_sizes[f].s[0], flow_sizes[f].s[1]), ::cl::NullRange);
     }
 
     queue->enqueueBarrier();
@@ -288,8 +292,8 @@ void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frame
       warp_backward_k->setArg(2, *cl_flows[f]().get());
       warp_backward_k->setArg(3, flow_sizes[f]);
       warp_backward_k->setArg(4, srp.sdim);
-      queue->enqueueNDRangeKernel(*warp_backward_k.get(), cl::NullRange,
-                                  cl::NDRange(flow_sizes[f].s[0], flow_sizes[f].s[1]), cl::NullRange);
+      queue->enqueueNDRangeKernel(*warp_backward_k.get(), ::cl::NullRange,
+                                  ::cl::NDRange(flow_sizes[f].s[0], flow_sizes[f].s[1]), ::cl::NullRange);
     }
 
     queue->enqueueBarrier();
@@ -300,11 +304,13 @@ void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frame
   queue->finish();
 
   }
-  catch(const cl::Error &e)
+  catch(const ::cl::Error &e)
   {
     std::cerr << "ERROR: " << e.what() << " (" << e.err() << " : "
              << viscl::print_cl_errstring(e.err()) << ")" << std::endl;
   }
 }
 
-//*****************************************************************************
+} // end namespace cl
+
+} // end namespace super3d
