@@ -168,12 +168,6 @@ target_link_libraries(extract_depth_range vil vnl vul)
 super3d_add_executable(mean_shift mean_shift.cxx)
 target_link_libraries(mean_shift vil vil_algo vul vnl)
 
-<<<<<<< HEAD
-add_executable(exhaustive_stereo exhaustive_stereo.cxx)
-target_link_libraries(exhaustive_stereo depthl vil vidtk_video_transforms
-                      vidtk_tracking imesh_algo vpgl vnl vul vil_algo bp)
-
-=======
 #
 # Exhaustive Stero
 #
@@ -186,7 +180,6 @@ target_link_libraries(exhaustive_stereo
 #
 # ROFCL test
 #
->>>>>>> Rejiggered namings and fixed tools sub-directory
 if (viscl_FOUND)
    super3d_add_executable(rofcl_test rofcl_test.cxx )
    target_link_libraries(rofcl_test super3d_depth_cl vil vil_algo vul)

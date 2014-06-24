@@ -61,7 +61,7 @@
 #include <boost/scoped_ptr.hpp>
 
 #ifdef HAVE_VISCL
-#include "depth_cl/super_res.h"
+#include "super3d/depth_cl/super_res.h"
 #endif
 
 void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_image_view<double> > &flows);
@@ -262,7 +262,7 @@ int main(int argc, char* argv[])
     if (cfg->get_value<bool>("use_gpu"))
     {
 #ifdef HAVE_VISCL
-      super_res_cl::params srp;
+      super3d::cl::super_res_cl::params srp;
       srp.sdim.s[0] = scale_factor * frames[ref_frame].ni();
       srp.sdim.s[1] = scale_factor * frames[ref_frame].nj();
       srp.ldim.s[0] = frames[ref_frame].ni();
@@ -274,7 +274,7 @@ int main(int argc, char* argv[])
       srp.sigma = cfg->get_value<double>("sigma");
       srp.tau = cfg->get_value<double>("tau");
 
-      super_res_cl srcl;
+      super3d::cl::super_res_cl srcl;
       vil_image_view<float> super_u_flt;
       vcl_vector<vil_image_view<float> > frames_flt, flows_flt;
       frames_flt.resize(frames.size());
@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-      super_res_params srp;
+      super3d::super_res_params srp;
       srp.s_ni = warps[ref_frame].src_ni();
       srp.s_nj = warps[ref_frame].src_nj();
       srp.l_ni = warps[ref_frame].dst_ni();
@@ -306,7 +306,7 @@ int main(int argc, char* argv[])
       srp.epsilon_reg = cfg->get_value<double>("epsilon_reg");
       srp.sigma = cfg->get_value<double>("sigma");
       srp.tau = cfg->get_value<double>("tau");
-      super_resolve(frames, warps, super_u, srp, iterations, cfg->get_value<vcl_string>("output_image"));
+      super3d::super_resolve(frames, warps, super_u, srp, iterations, cfg->get_value<vcl_string>("output_image"));
     }
 
     vil_image_view<double> upsamp;

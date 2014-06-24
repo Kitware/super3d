@@ -36,14 +36,14 @@
 #include <vil/vil_copy.h>
 
 
+extern const char* super_res_source;
+
+
 namespace super3d
 {
 
 namespace cl
 {
-
-extern const char* super_res_source;
-
 
 super_res_cl::super_res_cl()
 {
