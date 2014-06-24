@@ -45,7 +45,3 @@ if(VXL_NETLIB_FOUND)
 else(VXL_NETLIB_FOUND)
   target_link_libraries( imesh_algo imesh vpgl vgl_algo vgl vnl_algo vnl vil )
 endif(VXL_NETLIB_FOUND)
-
-if( BUILD_TESTING )
-  add_subdirectory(tests)
-endif( BUILD_TESTING )

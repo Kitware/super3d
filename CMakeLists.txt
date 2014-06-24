@@ -26,19 +26,6 @@ include(CMakeDependentOption)
 option(BUILD_SHARED_LIBS "Build shared libraries." OFF)
 option(Super3D_ENABLE_REFINE_HOMOG "Build refine_homog (requires VXL vgui)" OFF)
 
-# Setup testing variables if enabled
-option(Super3D_ENABLE_TESTING "Build Super3D testing" OFF)
-mark_as_advanced(BUILD_TESTING)
-if(Super3D_ENABLE_TESTING)
-  enable_testing()
-  include(CTest)
-  message("Turning ON testing.")
-  set(BUILD_TESTING ON CACHE BOOL "Build the testing tree" FORCE)
-else()
-  message("Turning OFF testing.")
-  set(BUILD_TESTING OFF CACHE BOOL "Build the testing tree" FORCE)
-endif()
-
 # TODO: Determine which package dependencies are optional and add
 #       enable/disable options here.
 
@@ -103,9 +90,19 @@ add_subdirectory(super3d)
 # Tools directory
 add_subdirectory(tools)
 
-# Enter tests directory if enabled
+
+###
+# Testing
+#
+option(Super3D_ENABLE_TESTING "Build Super3D testing" OFF)
+mark_as_advanced(BUILD_TESTING)
 if(Super3D_ENABLE_TESTING)
+  enable_testing()
+  include(CTest)
+  set(BUILD_TESTING ON CACHE BOOL "Build the testing tree" FORCE)
   add_subdirectory(tests)
+else()
+  set(BUILD_TESTING OFF CACHE BOOL "Build the testing tree" FORCE)
 endif ()
 
 
