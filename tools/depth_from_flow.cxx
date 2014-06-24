@@ -39,10 +39,10 @@
 #include <vil/vil_crop.h>
 #include <vul/vul_arg.h>
 
-#include <imesh/imesh_mesh.h>
-#include <imesh/imesh_fileio.h>
-#include <imesh/algo/imesh_project.h>
-#include <imesh/imesh_operations.h>
+#include <super3d/imesh/imesh_mesh.h>
+#include <super3d/imesh/imesh_fileio.h>
+#include <super3d/imesh/algo/imesh_project.h>
+#include <super3d/imesh/imesh_operations.h>
 
 #include <vnl/vnl_double_3.h>
 #include <vnl/vnl_double_2.h>
@@ -95,11 +95,11 @@ int main(int argc, char *argv[])
   imesh_triangulate(mesh);
 
   vul_sequence_filename_map frame_seq(frame_fmt());
-  vcl_vector<vpgl_perspective_camera<double> >  cameras = load_cams(camera_file(), frame_seq);
+  vcl_vector<vpgl_perspective_camera<double> >  cameras = super3d::load_cams(camera_file(), frame_seq);
 
   //Read Images
   vcl_vector<vcl_string> filenames;
-  vcl_vector<vil_image_view<double> > frames = load_frames(frame_seq, filenames);
+  vcl_vector<vil_image_view<double> > frames = super3d::load_frames(frame_seq, filenames);
   if (frames.empty())
   {
     vcl_cerr << "No frames found"<<vcl_endl;
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 
   for (unsigned int i = 0; i < frames.size(); i++)
   {
-    cameras[i] = crop_camera(cameras[i], i0, j0);
+    cameras[i] = super3d::crop_camera(cameras[i], i0, j0);
     frames[i] = vil_crop(frames[i], i0, ni, j0, nj);
   }
 
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 
 
 
-    unsigned int n = flows.size();
+    //unsigned int n = flows.size();
     for (unsigned int i = 0; i < ref.ni(); i++)
     {
       for (unsigned int j = 0; j < ref.nj(); j++)
@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
     depth = cropped_depth;
 
     //mesh = depth_map_to_mesh(croppedcam, depth);
-    mesh = depth_map_to_mesh(cameras[ref_frame], depth);
+    mesh = super3d::depth_map_to_mesh(cameras[ref_frame], depth);
 
 
 

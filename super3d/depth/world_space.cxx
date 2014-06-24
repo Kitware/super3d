@@ -34,6 +34,10 @@
 #include <vil/vil_math.h>
 #include <vil/algo/vil_sobel_3x3.h>
 
+
+namespace super3d
+{
+
 world_space::world_space(unsigned int pixel_width, unsigned int pixel_height)
   : ni_(pixel_width), nj_(pixel_height)
 {
@@ -47,6 +51,7 @@ world_space::warp_cams(const vcl_vector<vpgl_perspective_camera<double> > &camer
 {
   return cameras;
 }
+
 
 /// warps image \in to the world volume at depth_slice,
 /// uses ni and nj as out's dimensions
@@ -91,6 +96,7 @@ void world_space::warp_image_to_depth(const vil_image_view<double> &in,
 #endif
 }
 
+
 void world_space::compute_g(const vil_image_view<double> &ref_img, vil_image_view<double> &g, double alpha, double beta)
 {
   g.set_size(ref_img.ni(), ref_img.nj(), 1);
@@ -112,3 +118,5 @@ void world_space::compute_g(const vil_image_view<double> &ref_img, vil_image_vie
     }
   }
 }
+
+} // end namespace super3d

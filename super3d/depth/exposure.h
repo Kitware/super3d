@@ -29,15 +29,24 @@
 #ifndef EXPOSURE_H_
 #define EXPOSURE_H_
 
+#include "depth_config.h"
+
 #include <vil/vil_image_view.h>
 #include <vcl_utility.h>
+
+
+namespace super3d
+{
 
 /// Scales and offsets an image to adjust for differing exposures
 /// This function first normalizes between [0,1] (although the exposure correction
 /// does not guarantee that it is normalized after being run)
 /// \param frame the image to correct
 /// \param exposure scale and offset for correcting the image
+SUPER3D_DEPTH_EXPORT
 void apply_exposure_correction(vil_image_view<double> &frame,
                                const vcl_pair<double, double> &exposure);
+
+} // end namespace super3d
 
 #endif

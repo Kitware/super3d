@@ -34,6 +34,9 @@
 #include <vcl_cstdlib.h>
 
 
+namespace super3d
+{
+
 /// Compute the forward gradient of an image
 /// produces an image with 2x the number of planes
 template <typename T>
@@ -104,6 +107,6 @@ void backward_divergence(const vil_image_view<T>& src, vil_image_view<T>& dst)
   }
 }
 
-
+} // end namespace super3d
 
 #endif //IMAGE_DERIVS_H_

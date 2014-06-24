@@ -47,6 +47,10 @@
 #include "meanshift_normals.h"
 #include "rof_normals.h"
 
+
+namespace super3d
+{
+
 void
 refine_depth_planar(world_space *ws,
                     vil_image_view<double> &d,
@@ -101,6 +105,7 @@ refine_depth_planar(world_space *ws,
     } while (ssd > 1e-4);
   }
 }
+
 
 void refine_depth_planar(const vil_image_view<double> &cost_volume,
                          world_space *ws,
@@ -179,6 +184,7 @@ void refine_depth_planar(const vil_image_view<double> &cost_volume,
   }
 }
 
+
 //semi-implicit gradient ascent on q and descent on d
 void
 huber_planar_rof(vil_image_view<double> &q,
@@ -228,6 +234,7 @@ huber_planar_rof(vil_image_view<double> &q,
   }
 }
 
+
 //semi-implicit gradient ascent on q and descent on d
 void
 huber_planar_coupled(vil_image_view<double> &q,
@@ -276,3 +283,5 @@ huber_planar_coupled(vil_image_view<double> &q,
     }
   }
 }
+
+} // end namespace super3d

@@ -29,20 +29,26 @@
 #ifndef SUPER3D_DEPTH_SUPER_CONFIG_H_
 #define SUPER3D_DEPTH_SUPER_CONFIG_H_
 
+#include "depth_config.h"
+
 #include <vcl_vector.h>
 #include <vcl_map.h>
 #include <vcl_string.h>
 #include <vcl_sstream.h>
 #include <vcl_exception.h>
 
-class config
+
+namespace super3d
+{
+
+class SUPER3D_DEPTH_EXPORT config
 {
 public:
 
   config();
   ~config();
 
-  class cfg_type_base
+  class SUPER3D_DEPTH_EXPORT cfg_type_base
   {
   public:
     cfg_type_base() {}
@@ -53,7 +59,7 @@ public:
   };
 
   template<class T>
-  class cfg_type : public cfg_type_base
+  class SUPER3D_DEPTH_EXPORT cfg_type : public cfg_type_base
   {
   public:
     cfg_type() : cfg_type_base() {}
@@ -66,7 +72,7 @@ public:
     cfg_type_base *clone();
   };
 
-  class cfg_exception : public vcl_exception
+  class SUPER3D_DEPTH_EXPORT cfg_exception : public vcl_exception
   {
   public:
 
@@ -99,5 +105,7 @@ private:
 
   vcl_vector<vcl_vector<vcl_string> > exclusives;
 };
+
+} // end namespace super3d
 
 #endif // SUPER3D_DEPTH_SUPER_CONFIG_H_

@@ -32,6 +32,9 @@
 #include <vnl/vnl_inverse.h>
 
 
+namespace super3d
+{
+
 /// Compute world normals at each pixel using a 4-connected neighborhood
 /// This version uses weighting of normals by triangle area.  These weights
 /// come out automatically from the cross product, as a result this algorithm
@@ -414,3 +417,5 @@ void byte_normal_map(const vil_image_view<double>& normal_map,
     }
   }
 }
+
+} // end namespace super3d

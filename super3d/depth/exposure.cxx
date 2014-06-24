@@ -30,6 +30,10 @@
 
 #include <vil/vil_math.h>
 
+
+namespace super3d
+{
+
 /// Scales and offsets an image to adjust for differing exposures
 /// This function first normalizes between [0,1] (although the exposure correction
 /// does not guarantee that it is normalized after being run)
@@ -50,3 +54,5 @@ void apply_exposure_correction(vil_image_view<double> &frame,
 
   vil_math_scale_and_offset_values(frame, scale, offset);
 }
+
+} // end namespace super3d

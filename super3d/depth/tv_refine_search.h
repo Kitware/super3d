@@ -29,6 +29,8 @@
 #ifndef tv_refine_search_h_
 #define tv_refine_search_h_
 
+#include "depth_config.h"
+
 #include <vcl_vector.h>
 #include <vil/vil_image_view.h>
 #include <vnl/vnl_matrix_fixed.h>
@@ -40,8 +42,14 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/locks.hpp>
 
-class depth_refinement_monitor;
 
+namespace super3d
+{
+
+class SUPER3D_DEPTH_EXPORT depth_refinement_monitor;
+
+
+SUPER3D_DEPTH_EXPORT
 void
 refine_depth(vil_image_view<double> &cost_volume,
              const vil_image_view<double> &g,
@@ -54,7 +62,7 @@ refine_depth(vil_image_view<double> &cost_volume,
              depth_refinement_monitor *drm = NULL);
 
 
-class depth_refinement_monitor
+class SUPER3D_DEPTH_EXPORT depth_refinement_monitor
 {
 public:
 
@@ -89,6 +97,7 @@ private:
 
 
 //semi-implicit gradient ascent on q and descent on d
+SUPER3D_DEPTH_EXPORT
 void huber(vil_image_view<double> &q,
            vil_image_view<double> &d,
            const vil_image_view<double> &a,
@@ -97,6 +106,8 @@ void huber(vil_image_view<double> &q,
            double step,
            double epsilon);
 
+
+SUPER3D_DEPTH_EXPORT
 void huber_central(vil_image_view<double> &q,
            vil_image_view<double> &d,
            const vil_image_view<double> &a,
@@ -105,6 +116,8 @@ void huber_central(vil_image_view<double> &q,
            double step,
            double epsilon);
 
+
+SUPER3D_DEPTH_EXPORT
 void hessian_frob(vil_image_view<double> &q,
                   vil_image_view<double> &d,
                   const vil_image_view<double> &a,
@@ -113,8 +126,12 @@ void hessian_frob(vil_image_view<double> &q,
                   double step,
                   double epsilon);
 
+
+SUPER3D_DEPTH_EXPORT
 double eval_hessian_frob(const vil_image_view<double> &d,
                          const vil_image_view<double> &costvol,
                          double lambda);
+
+} // end namespace super3d
 
 #endif // tv_refine_search_h_

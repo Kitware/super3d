@@ -29,15 +29,24 @@
 #ifndef MEANSHIFT_NORMALS_H_
 #define MEANSHIFT_NORMALS_H_
 
-#include <vil/vil_image_view.h>
+#include "depth_config.h"
 #include "world_space.h"
 
+#include <vil/vil_image_view.h>
+
+
+namespace super3d
+{
+
+SUPER3D_DEPTH_EXPORT
 void
 compute_normals_tri(const vil_image_view<double> &d,
                 vil_image_view<double> &normals,
                 world_space *ws,
                 bool normals_in_world_space = true);
 
+
+SUPER3D_DEPTH_EXPORT
 void
 meanshift(vil_image_view<double> &normal_map,
           const vil_image_view<double> &depth,
@@ -47,5 +56,7 @@ meanshift(vil_image_view<double> &normal_map,
           double k_depth,
           double k_norm,
           double k_ref);
+
+} // end namespace super3d
 
 #endif

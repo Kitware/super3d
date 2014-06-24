@@ -28,8 +28,8 @@
 
 #include "super_res.h"
 #include "super_config.h"
-#include <video_transforms/adjoint_image_derivs.h>
 
+#include <video_transforms/adjoint_image_derivs.h>
 
 #include <vil/algo/vil_gauss_filter.h>
 #include <vil/vil_save.h>
@@ -44,7 +44,11 @@ VIL_RESAMPLE_BICUB_INSTANTIATE( double , double );
 #define DEBUG
 
 
-//*****************************************************************************
+namespace super3d
+{
+
+namespace // anonymous
+{
 
 void dual_step_p(const vil_image_view<double> &u_bar,
                  vil_image_view<double> &p,
@@ -75,7 +79,6 @@ void dual_step_p(const vil_image_view<double> &u_bar,
   }
 }
 
-//*****************************************************************************
 
 void dual_step_q(const vcl_vector<vil_image_view<double> > &frames,
                  const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
@@ -112,7 +115,6 @@ void dual_step_q(const vcl_vector<vil_image_view<double> > &frames,
   }
 }
 
-//*****************************************************************************
 
 void primal_step_u(const vcl_vector<vil_image_view<double> > &q,
                    const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
@@ -141,8 +143,7 @@ void primal_step_u(const vcl_vector<vil_image_view<double> > &q,
   vcl_swap(u, work);
 }
 
-//*****************************************************************************
-
+} // end anonymous namespace
 
 
 void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
@@ -218,7 +219,6 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
   } while (++i < iterations);
 }
 
-//*****************************************************************************
 
 void compare_to_original(const vil_image_view<double> &ref_img,
                          const vil_image_view<double> &super,
@@ -240,4 +240,4 @@ void compare_to_original(const vil_image_view<double> &ref_img,
   vil_save(output, "original.png");
 }
 
-//*****************************************************************************
+} // end namespace super3d

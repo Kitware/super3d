@@ -29,9 +29,14 @@
 #ifndef WORLD_RECTILINEAR_H_
 #define WORLD_RECTILINEAR_H_
 
+#include "depth_config.h"
 #include "world_space.h"
 
-class world_rectilinear : public world_space
+
+namespace super3d
+{
+
+class SUPER3D_DEPTH_EXPORT world_rectilinear : public world_space
 {
 public:
 
@@ -65,5 +70,7 @@ private:
   double height, xscale, yscale;
 
 };
+
+} // end namespace super3d
 
 #endif

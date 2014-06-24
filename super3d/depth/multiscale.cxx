@@ -29,6 +29,8 @@
 #include "multiscale.h"
 
 
+namespace super3d
+{
 
 /// Produce the camera corresponding to a downsampled image
 /// \param camera The input camera
@@ -99,3 +101,5 @@ scale_point(const vnl_vector_fixed<double,3>& p,
   sp[1] *= scale;
   return sp;
 }
+
+} // end namespace super3d

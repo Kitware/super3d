@@ -38,6 +38,10 @@
 
 #include <vcl_vector.h>
 
+
+namespace super3d
+{
+
 void
 compute_normals_eig(const vil_image_view<double> &d,
                     vil_image_view<double> &bp,
@@ -106,6 +110,7 @@ compute_normals_eig(const vil_image_view<double> &d,
     }
   }
 }
+
 
 void
 normals_rof(vil_image_view<double> &n,
@@ -185,6 +190,7 @@ normals_rof(vil_image_view<double> &n,
     }
   }
 }
+
 
 void huber_normals_rof_preproc(const vil_image_view<double> &bp,
                                const vil_image_view<double> &d,
@@ -301,6 +307,7 @@ huber_normals_rof_update(vil_image_view<double> &q,
   }
 }
 
+
 //semi-implicit gradient ascent on q and descent on d
 void
 huber_normals_rof_update(vil_image_view<double> &q,
@@ -396,3 +403,5 @@ huber_normals_rof_update(vil_image_view<double> &q,
     }
   }
 }
+
+} // end namespace super3d

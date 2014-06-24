@@ -29,10 +29,16 @@
 #ifndef SUPER_RES_H_
 #define SUPER_RES_H_
 
+#include "depth_config.h"
+
 #include <vil/vil_image_view.h>
 #include <vcl_vector.h>
+
 #include <video_transforms/adjoint_image_op.h>
 
+
+namespace super3d
+{
 
 struct super_res_params {
   double lambda, epsilon_data, epsilon_reg, tau, sigma;
@@ -42,6 +48,7 @@ struct super_res_params {
 };
 
 
+SUPER3D_DEPTH_EXPORT
 void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
                    const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
                    vil_image_view<double> &u,
@@ -49,9 +56,13 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
                    unsigned int iterations,
                    const vcl_string &output_image = "");
 
+
+SUPER3D_DEPTH_EXPORT
 void compare_to_original(const vil_image_view<double> &ref_img,
                          const vil_image_view<double> &super,
                          const vil_image_view<double> &original,
                          unsigned int scale_factor);
+
+} // end namespace super3d
 
 #endif

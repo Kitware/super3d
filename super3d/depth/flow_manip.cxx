@@ -37,9 +37,11 @@
 #include <vnl/vnl_double_3.h>
 #include <vnl/vnl_double_4.h>
 
-#include <imesh/algo/imesh_project.h>
+#include <super3d/imesh/algo/imesh_project.h>
 
-//*****************************************************************************
+
+namespace super3d
+{
 
 void compute_flows_from_depth(const vcl_vector<vpgl_perspective_camera<double> > &cameras,
                               const vpgl_perspective_camera<double> &ref_cam,
@@ -77,7 +79,6 @@ void compute_flows_from_depth(const vcl_vector<vpgl_perspective_camera<double> >
   }
 }
 
-//*****************************************************************************
 
 void compute_occluded_flows_from_depth(const vcl_vector<vpgl_perspective_camera<double> > &cameras,
                                        const vpgl_perspective_camera<double> &ref_cam,
@@ -151,7 +152,6 @@ void compute_occluded_flows_from_depth(const vcl_vector<vpgl_perspective_camera<
   }
 }
 
-//*****************************************************************************
 
 vgl_box_2d<double>
 flow_destination_bounds(const vil_image_view<double> &flow)
@@ -175,7 +175,6 @@ flow_destination_bounds(const vil_image_view<double> &flow)
   return bbox;
 }
 
-//*****************************************************************************
 
 void translate_flow(vil_image_view<double> &flow, double dx, double dy)
 {
@@ -192,4 +191,4 @@ void translate_flow(vil_image_view<double> &flow, double dx, double dy)
   }
 }
 
-//*****************************************************************************
+} // end namespace super3d

@@ -28,6 +28,10 @@
 
 #include "world_frustum.h"
 
+
+namespace super3d
+{
+
 world_frustum::world_frustum(const vpgl_perspective_camera<double> &cam,
                              double min_depth,
                              double max_depth,
@@ -55,6 +59,7 @@ world_frustum::world_frustum(const vpgl_perspective_camera<double> &cam,
   vcl_cout << dscale << "\n";
 }
 
+
 /// returns the corner points of an image slice at depth slice.
 /// depth slice is a value between 0 and 1 over the depth range
 vcl_vector<vnl_double_3> world_frustum::get_slice(double depth_slice) const
@@ -66,6 +71,7 @@ vcl_vector<vnl_double_3> world_frustum::get_slice(double depth_slice) const
   slice.push_back(point_at_depth_on_axis(0.0, (double)nj_, depth_slice));
   return slice;
 }
+
 
 vcl_vector<vpgl_perspective_camera<double> >
 world_frustum::warp_cams(const vcl_vector<vpgl_perspective_camera<double> > &cameras, int ref_frame) const
@@ -94,6 +100,7 @@ world_frustum::warp_cams(const vcl_vector<vpgl_perspective_camera<double> > &cam
   return newcams;
 }
 
+
 vnl_double_3 world_frustum::point_at_depth_on_axis(double i, double j, double depth) const
 {
   double denomij = (focal_length * (depth * f - depth * n - f));
@@ -103,11 +110,13 @@ vnl_double_3 world_frustum::point_at_depth_on_axis(double i, double j, double de
   return pt;
 }
 
+
 vnl_double_3 world_frustum::point_at_depth(unsigned int i, unsigned int j, double depth) const
 {
   vnl_double_3 pt3d = point_at_depth_on_axis((double)i, (double)j, depth);
   return cam_center + R.transpose() * pt3d;
 }
+
 
 vnl_double_3 world_frustum::map_normal_w2n(const vnl_double_3 &vec, const vnl_double_3 &loc) const
 {
@@ -120,6 +129,7 @@ vnl_double_3 world_frustum::map_normal_w2n(const vnl_double_3 &vec, const vnl_do
   return normal.normalize();
 }
 
+
 vnl_double_3 world_frustum::map_normal_n2w(const vnl_double_3 &vec, const vnl_double_3 &loc) const
 {
   vnl_double_3 wpt = point_at_depth_on_axis(loc(0), loc(1), loc(2));
@@ -130,3 +140,5 @@ vnl_double_3 world_frustum::map_normal_n2w(const vnl_double_3 &vec, const vnl_do
   normal(2) = -(normal(0) * wpt(0)) / wpt(2) - (normal(1) * wpt(1)) / wpt(2) + (vec[2]*f*n)/(wpt[2]*wpt[2]*(f-n));
   return normal.normalize();
 }
+
+} // end namespace super3d

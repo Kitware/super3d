@@ -34,6 +34,9 @@
 #include <vcl_cstdlib.h>
 
 
+namespace super3d
+{
+
 /// fill an image with random values between min_v and max_v
 template <typename T>
 void fill_random(vil_image_view<T>& img, T min_v, T max_v)
@@ -94,5 +97,6 @@ double dot_product(const vil_image_view<T>& img1,
   return sum;
 }
 
+} // end namespace super3d
 
 #endif //norm_estimation_h_

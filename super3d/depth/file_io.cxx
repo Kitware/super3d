@@ -27,6 +27,7 @@
  */
 
 #include "file_io.h"
+#include "multiscale.h"
 
 #include <vcl_fstream.h>
 
@@ -36,7 +37,9 @@
 #include <vil/vil_image_view.h>
 #include <vil/vil_convert.h>
 
-#include "multiscale.h"
+
+namespace super3d
+{
 
 /// Load a camera file with sequence of cameras in ASCII format: i K R t
 /// where i is the frame number, K is the calibration matrix,
@@ -70,6 +73,7 @@ load_cams(const std::string& filename, vul_sequence_filename_map frame_seq)
   vcl_cout << "Loaded " << cameras.size() << " cameras.\n";
   return cameras;
 }
+
 
 /// Find all frames matching the format string and extract the frame number.
 /// \returns A vector of image views
@@ -107,6 +111,7 @@ load_frames(vul_sequence_filename_map frame_seq, vcl_vector<vcl_string> &filenam
   return frames;
 }
 
+
 /// Load an exposure file with parameters for linear exposure compensation
 /// \returns A vector of (scale, offest) pair
 vcl_vector<vcl_pair<double,double> >
@@ -132,6 +137,7 @@ load_exposure(const std::string& filename, vul_sequence_filename_map frame_seq)
   return exposure;
 }
 
+
 /// Load an exposure file with parameters for linear exposure compensation
 /// \returns A vector of (scale, offest) pair
 vcl_vector<vcl_pair<double,double> >
@@ -155,6 +161,7 @@ load_exposure(const std::string& filename, const vcl_vector<int> &framelist)
   ifs.close();
   return exposure;
 }
+
 
 /// Loads images and cameras from a file list of frames paths and camera file
 /// \param framefile file that lists frame number and frame paths
@@ -298,6 +305,7 @@ void load_from_frame_file(const char *framefile,
   framestream.close();
 }
 
+
 //Load camera from a file per camera
 vpgl_perspective_camera<double>
 load_cam(const vcl_string& filename)
@@ -317,6 +325,7 @@ load_cam(const vcl_string& filename)
 
   return cam;
 }
+
 
 /// read a flow file into 2-band image
 bool read_flow_file(vil_image_view<double> &flowimg, const char* filename)
@@ -358,3 +367,5 @@ bool read_flow_file(vil_image_view<double> &flowimg, const char* filename)
   fclose(stream);
   return true;
 }
+
+} // end namespace super3d

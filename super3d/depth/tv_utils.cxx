@@ -31,6 +31,10 @@
 #include <vcl_algorithm.h>
 #include <vcl_limits.h>
 
+
+namespace super3d
+{
+
 void
 min_search_bound(vil_image_view<double> &a,
            const vil_image_view<double> &d,
@@ -90,6 +94,7 @@ min_search_bound(vil_image_view<double> &a,
   }
 }
 
+
 void
 min_search(vil_image_view<double> &a,
            const vil_image_view<double> &d,
@@ -126,6 +131,7 @@ min_search(vil_image_view<double> &a,
   }
 }
 
+
 double subsample(double dij,
                  const vil_image_view<double> &cost_volume,
                  double coeff,
@@ -159,3 +165,5 @@ double subsample(double dij,
   double delta = -diff1/diff2;
   return aij + delta;
 }
+
+} // end namespace super3d

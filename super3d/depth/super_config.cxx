@@ -31,6 +31,10 @@
 #include <vcl_fstream.h>
 #include <vcl_algorithm.h>
 
+
+namespace super3d
+{
+
 template<class T>
 void config::cfg_type<T>::from_string(vcl_istringstream &stream)
 {
@@ -257,14 +261,16 @@ bool config::is_set(const vcl_string &varname) const
   return itr != varmap.end();
 }
 
-template double config::get_value<double>(const vcl_string &str) const;
-template int config::get_value<int>(const vcl_string &str) const;
-template unsigned int config::get_value<unsigned int>(const vcl_string &str) const;
-template vcl_string config::get_value<vcl_string>(const vcl_string &str) const;
-template bool config::get_value<bool>(const vcl_string &str) const;
+template SUPER3D_DEPTH_EXPORT double config::get_value<double>(const vcl_string &str) const;
+template SUPER3D_DEPTH_EXPORT int config::get_value<int>(const vcl_string &str) const;
+template SUPER3D_DEPTH_EXPORT unsigned int config::get_value<unsigned int>(const vcl_string &str) const;
+template SUPER3D_DEPTH_EXPORT vcl_string config::get_value<vcl_string>(const vcl_string &str) const;
+template SUPER3D_DEPTH_EXPORT bool config::get_value<bool>(const vcl_string &str) const;
 
-template class config::cfg_type<double>;
-template class config::cfg_type<int>;
-template class config::cfg_type<unsigned int>;
-template class config::cfg_type<vcl_string>;
-template class config::cfg_type<bool>;
+template class SUPER3D_DEPTH_EXPORT config::cfg_type<double>;
+template class SUPER3D_DEPTH_EXPORT config::cfg_type<int>;
+template class SUPER3D_DEPTH_EXPORT config::cfg_type<unsigned int>;
+template class SUPER3D_DEPTH_EXPORT config::cfg_type<vcl_string>;
+template class SUPER3D_DEPTH_EXPORT config::cfg_type<bool>;
+
+} // end namespace super3d

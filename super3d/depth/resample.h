@@ -32,6 +32,9 @@
 #include <vil/vil_image_view.h>
 
 
+namespace super3d
+{
+
 /// Down sample an image by selecting a subset of pixels.
 /// No averaging or bluring of pixels is done.
 /// \note This function is adjoint to \c up_sample
@@ -228,5 +231,6 @@ void up_scale(const vil_image_view<T> &input,
   }
 }
 
+} // end namespave super3d
 
 #endif //resample_h_

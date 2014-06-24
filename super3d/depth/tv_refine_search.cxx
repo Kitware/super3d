@@ -27,6 +27,8 @@
  */
 
 #include "tv_refine_search.h"
+#include "tv_utils.h"
+#include "super_config.h"
 
 #include <sstream>
 #include <iomanip>
@@ -43,9 +45,9 @@
 #include <vnl/vnl_double_2.h>
 #include <video_transforms/dual_rof_denoise.h>
 
-#include "tv_utils.h"
-#include "super_config.h"
 
+namespace super3d
+{
 
 void
 refine_depth(vil_image_view<double> &cost_volume,
@@ -119,6 +121,7 @@ refine_depth(vil_image_view<double> &cost_volume,
   }
 }
 
+
 //semi-implicit gradient ascent on q and descent on d
 void huber(vil_image_view<double> &q,
            vil_image_view<double> &d,
@@ -166,6 +169,7 @@ void huber(vil_image_view<double> &q,
   }
 }
 
+
 //semi-implicit gradient ascent on q and descent on d
 void huber_central(vil_image_view<double> &q,
            vil_image_view<double> &d,
@@ -211,6 +215,7 @@ void huber_central(vil_image_view<double> &q,
     }
   }
 }
+
 
 //semi-implicit gradient ascent on q and descent on d
 void hessian_frob(vil_image_view<double> &q,
@@ -266,6 +271,7 @@ void hessian_frob(vil_image_view<double> &q,
   }
 }
 
+
 double eval_hessian_frob(const vil_image_view<double> &d,
                          const vil_image_view<double> &costvol,
                          double lambda)
@@ -287,3 +293,5 @@ double eval_hessian_frob(const vil_image_view<double> &d,
 
   return cost;
 }
+
+} // end namespace super3d

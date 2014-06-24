@@ -29,12 +29,15 @@
 #ifndef normal_map_h_
 #define normal_map_h_
 
+#include "depth_config.h"
 
 #include <vil/vil_image_view.h>
 #include <vpgl/vpgl_perspective_camera.h>
 #include <vgl/vgl_homg_point_3d.h>
 
 
+namespace super3d
+{
 
 /// Compute world normals at each pixel using a 4-connected neighborhood
 /// This version uses weighting of normals by triangle area.  These weights
@@ -43,6 +46,7 @@
 /// \param camera The camera to use for back projection
 /// \param depth_map The depths at each pixel
 /// \retval normal_map The computed normal map (a 3-plane image)
+SUPER3D_DEPTH_EXPORT
 void
 depth_map_to_normal_map(const vpgl_perspective_camera<double>& camera,
                         const vil_image_view<double>& depth_map,
@@ -58,6 +62,7 @@ depth_map_to_normal_map(const vpgl_perspective_camera<double>& camera,
 /// \param depth_map The depths at each pixel
 /// \retval normal_map The computed normal map (a 3-plane image)
 /// \note currently assumes a zero skew and square pixel camera
+SUPER3D_DEPTH_EXPORT
 void
 depth_map_to_normal_map_inv_len(const vpgl_perspective_camera<double>& camera,
                                 const vil_image_view<double>& depth_map,
@@ -68,6 +73,7 @@ depth_map_to_normal_map_inv_len(const vpgl_perspective_camera<double>& camera,
 /// \param camera The camera to use for back projection
 /// \param depth_map The depths at each pixel
 /// \retval location_map The 3D world pixel locations (a 3-plane image)
+SUPER3D_DEPTH_EXPORT
 void
 depth_map_to_location_map(const vpgl_perspective_camera<double>& camera,
                           const vil_image_view<double>& depth_map,
@@ -81,6 +87,7 @@ depth_map_to_location_map(const vpgl_perspective_camera<double>& camera,
 /// Journal of Graphics Tools archive Vol. 4 Issue 2, March 1999 Pg. 1-6
 /// \param location_map The 3D world pixel locations (a 3-plane image)
 /// \retval normal_map The computed normal map (a 3-plane image)
+SUPER3D_DEPTH_EXPORT
 void
 location_map_to_normal_map(const vil_image_view<double>& location_map,
                            vil_image_view<double>& normal_map);
@@ -93,6 +100,7 @@ location_map_to_normal_map(const vil_image_view<double>& location_map,
 /// \param location_map The 3D world pixel locations (a 3-plane image)
 /// \param normal_map The normal map (a 3-plane image)
 /// \retval angle_map The map of dot products between normals and rays
+SUPER3D_DEPTH_EXPORT
 void
 viewing_angle_map(const vgl_homg_point_3d<double>& center,
                   const vil_image_view<double>& location_map,
@@ -104,6 +112,7 @@ viewing_angle_map(const vgl_homg_point_3d<double>& center,
 /// \param normal_map1 The first normal map (a 3-plane image)
 /// \param normal_map2 The second normal map (a 3-plane image)
 /// \retval angle_map The map of dot products between normals and rays
+SUPER3D_DEPTH_EXPORT
 void
 dot_product_map(const vil_image_view<double>& normal_map1,
                 const vil_image_view<double>& normal_map2,
@@ -115,6 +124,7 @@ dot_product_map(const vil_image_view<double>& normal_map1,
 /// \param R is the rotation matrix
 /// \retval rotated is the rotated normal map
 /// \note \a rotated can be set to \a normal_map to rotate in place
+SUPER3D_DEPTH_EXPORT
 void rotate_normal_map(const vil_image_view<double>& normal_map,
                        const vgl_rotation_3d<double>& R,
                        vil_image_view<double>& rotated);
@@ -127,8 +137,10 @@ void rotate_normal_map(const vil_image_view<double>& normal_map,
 /// Normals with negative Z map to (0,0,0)
 /// \param normal_map is the input normal map
 /// \retval dest is the byte mapped destination image
+SUPER3D_DEPTH_EXPORT
 void byte_normal_map(const vil_image_view<double>& normal_map,
                      vil_image_view<vxl_byte>& dest);
 
+} // end namespace super3d
 
 #endif // normal_map_h_

@@ -29,22 +29,30 @@
 #ifndef tv_refine_plane_h_
 #define tv_refine_plane_h_
 
+#include "depth_config.h"
+#include "world_space.h"
+
 #include <vcl_vector.h>
 #include <vil/vil_image_view.h>
 #include <vnl/vnl_matrix_fixed.h>
 #include <vnl/vnl_vector_fixed.h>
 #include <vpgl/vpgl_perspective_camera.h>
 
-#include "world_space.h"
 
-void
-refine_depth_planar(world_space *ws,
-                    vil_image_view<double> &d,
-                    vil_image_view<double> &g,
-                    const vil_image_view<double> &ref,
-                    double lambda,
-                    double step);
+namespace super3d
+{
 
+SUPER3D_DEPTH_EXPORT
+void refine_depth_planar(world_space *ws,
+                         vil_image_view<double> &d,
+                         vil_image_view<double> &g,
+                         const vil_image_view<double> &ref,
+                         double lambda,
+                         double step,
+                         double epsilon);
+
+
+SUPER3D_DEPTH_EXPORT
 void refine_depth_planar(const vil_image_view<double> &cost_volume,
                          world_space *ws,
                          vil_image_view<double> &d,
@@ -53,8 +61,11 @@ void refine_depth_planar(const vil_image_view<double> &cost_volume,
                          double beta,
                          double theta0,
                          double theta_end,
-                         double lambda);
+                         double lambda,
+                         double epsilon);
 
+
+SUPER3D_DEPTH_EXPORT
 void
 huber_planar_rof(vil_image_view<double> &q,
            vil_image_view<double> &d,
@@ -65,6 +76,8 @@ huber_planar_rof(vil_image_view<double> &q,
            double step,
            double epsilon);
 
+
+SUPER3D_DEPTH_EXPORT
 void
 huber_planar_coupled(vil_image_view<double> &q,
            vil_image_view<double> &d,
@@ -74,5 +87,7 @@ huber_planar_coupled(vil_image_view<double> &q,
            double theta,
            double step,
            double epsilon);
+
+} // end namespace super3d
 
 #endif // tv_refine_plane_h_

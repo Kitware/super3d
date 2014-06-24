@@ -29,9 +29,14 @@
 #ifndef WORLD_FRUSTUM
 #define WORLD_FRUSTUM
 
+#include "depth_config.h"
 #include "world_space.h"
 
-class world_frustum : public world_space
+
+namespace super3d
+{
+
+class SUPER3D_DEPTH_EXPORT world_frustum : public world_space
 {
 public:
 
@@ -63,5 +68,7 @@ private:
   vnl_double_3 cam_center;
   vpgl_perspective_camera<double> refcam;
 };
+
+} // end namespace super3d
 
 #endif

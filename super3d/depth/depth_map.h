@@ -29,16 +29,24 @@
 #ifndef depth_map_h_
 #define depth_map_h_
 
+#include "depth_config.h"
+
+#include <super3d/imesh/imesh_mesh.h>
 
 #include <vil/vil_image_view.h>
 #include <vpgl/vpgl_perspective_camera.h>
-#include <imesh/imesh_mesh.h>
+
+
+namespace super3d
+{
 
 class world_space;
+
 
 /// Compute the average of the finite values in the image.
 /// \param img The image. It may contain some infinite values.
 /// \return The average of finite depths
+SUPER3D_DEPTH_EXPORT
 double average_finite(const vil_image_view<double>& img);
 
 
@@ -46,6 +54,7 @@ double average_finite(const vil_image_view<double>& img);
 /// \retval img The image containing some infinite values
 ///             (modified in place)
 /// \param value The value used to replace infinite values.
+SUPER3D_DEPTH_EXPORT
 void fill_infinite(vil_image_view<double>& img, double value);
 
 
@@ -53,6 +62,7 @@ void fill_infinite(vil_image_view<double>& img, double value);
 /// For infinite pixels in \a src, the matching pixels in \a dst are unchanaged
 /// \retval src The source image containing finite and infinite values
 /// \param dest The destination image.
+SUPER3D_DEPTH_EXPORT
 void copy_finite(const vil_image_view<double>& src,
                  vil_image_view<double>& dest);
 
@@ -65,10 +75,10 @@ void copy_finite(const vil_image_view<double>& src,
 /// \param src The source image containing finite and infinite values.
 /// \retval dest The destination image (modified in place).
 /// \param iterations The number of diffusion iterations
+SUPER3D_DEPTH_EXPORT
 void diffuse_into_infinite(const vil_image_view<double>& src,
                            vil_image_view<double>& dest,
                            unsigned iterations = 10);
-
 
 
 /// Fill in missing (infinite) depths in the depth map.
@@ -79,6 +89,7 @@ void diffuse_into_infinite(const vil_image_view<double>& src,
 ///                   (modified in place)
 /// \param levels The number of 2x pyramid levels to use
 /// \param iterations The number of iterations to use at each level
+SUPER3D_DEPTH_EXPORT
 void fill_missing_depths(vil_image_view<double>& depth_map,
                          unsigned levels = 7,
                          unsigned iterations = 10);
@@ -90,6 +101,7 @@ void fill_missing_depths(vil_image_view<double>& depth_map,
 /// \retval index_image Image of indices into the array of mesh vertices
 ///                     The index is unsigned(-1) for infinite depths.
 /// \return An array of mesh vertices covering all finite depth pixels
+SUPER3D_DEPTH_EXPORT
 std::auto_ptr<imesh_vertex_array<3> >
 depth_map_to_vertices(const vpgl_perspective_camera<double>& camera,
                       const vil_image_view<double>& depth_map,
@@ -104,6 +116,7 @@ depth_map_to_vertices(const vpgl_perspective_camera<double>& camera,
 /// \param x_scale Amount to scale the unit horizontal distance between pixels
 /// \param y_scale Amount to scale the unit vertical distance between pixels
 /// \return An array of mesh vertices covering all finite height pixels
+SUPER3D_DEPTH_EXPORT
 std::auto_ptr<imesh_vertex_array<3> >
 height_map_to_vertices(const vil_image_view<double>& height_map,
                        vil_image_view<unsigned>& index_image,
@@ -116,6 +129,7 @@ height_map_to_vertices(const vil_image_view<double>& height_map,
 /// \param index_image Image of indices into an array of mesh vertices
 ///                    The index is unsigned(-1) for missing vertices
 /// \return An array of mesh faces (triangles) using the indices
+SUPER3D_DEPTH_EXPORT
 std::auto_ptr<imesh_regular_face_array<3> >
 triangulate_index_image(const vil_image_view<unsigned>& index_image);
 
@@ -124,6 +138,7 @@ triangulate_index_image(const vil_image_view<unsigned>& index_image);
 /// \param camera The camera to use for back projection
 /// \param depth_map The depths at which to project each pixel
 /// \return A dense mesh with one vertex per finite depth pixel
+SUPER3D_DEPTH_EXPORT
 imesh_mesh
 depth_map_to_mesh(const vpgl_perspective_camera<double>& camera,
                   const vil_image_view<double>& depth_map);
@@ -135,6 +150,7 @@ depth_map_to_mesh(const vpgl_perspective_camera<double>& camera,
 /// \param x_scale Amount to scale the unit horizontal distance between pixels
 /// \param y_scale Amount to scale the unit vertical distance between pixels
 /// \return A dense mesh with one vertex per finite height pixel
+SUPER3D_DEPTH_EXPORT
 imesh_mesh
 height_map_to_mesh(const vil_image_view<double>& height_map,
                    double z_scale = 1.0,
@@ -143,17 +159,23 @@ height_map_to_mesh(const vil_image_view<double>& height_map,
 
 
 /// Compute the minimum and maximum value ignoring infinite and NaN values.
+SUPER3D_DEPTH_EXPORT
 void finite_value_range(const vil_image_view<double>& img,
                         double& min_value, double& max_value);
 
 
+SUPER3D_DEPTH_EXPORT
 void save_depth(const vil_image_view<double> &depth, const char *filename);
+
+
+SUPER3D_DEPTH_EXPORT
 void load_depth(vil_image_view<double> &depth, const char *filename);
 
 
 /// Compares an image (depth) with its ground truth then reports the average
 /// error between them.  It also reports the percentage of pixels
 /// that by more than a threshold.
+SUPER3D_DEPTH_EXPORT
 void score_vs_gt(const vil_image_view<double> &depth,
                  const vil_image_view<double> &gt,
                  double threshold);
@@ -166,12 +188,15 @@ void score_vs_gt(const vil_image_view<double> &depth,
 /// \param ref reference image that the depth was computed by, used for texturing
 /// \param cam perspective camera associated with the depth map
 /// \param world_space the world space class used in the depth estimation
+SUPER3D_DEPTH_EXPORT
 void save_depth_to_vtp(const char *filename,
                        const vil_image_view<double> &depth,
                        const vil_image_view<double> &ref,
                        const vpgl_perspective_camera<double> &cam,
                        world_space *ws);
+
 #endif
 
+} // end namespace super3d
 
 #endif // depth_map_h_

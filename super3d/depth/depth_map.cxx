@@ -27,6 +27,7 @@
  */
 
 #include "depth_map.h"
+#include "world_space.h"
 
 #include <vnl/vnl_double_3.h>
 #include <vnl/vnl_inverse.h>
@@ -40,8 +41,6 @@
 #include <vil/algo/vil_threshold.h>
 #include <vil/vil_bilin_interp.h>
 
-#include "world_space.h"
-
 #ifdef HAVE_VTK
 #include <vtkXMLPolyDataWriter.h>
 #include <vtkPolyData.h>
@@ -51,6 +50,10 @@
 #include <vtkCellArray.h>
 #include <vtkPointData.h>
 #endif
+
+
+namespace super3d
+{
 
 /// Compute the average of the finite values in the image.
 /// \param img The image. It may contain some infinite values.
@@ -503,6 +506,7 @@ void save_depth(const vil_image_view<double> &depth, const char *filename)
   fclose(file);
 }
 
+
 void load_depth(vil_image_view<double> &depth, const char *filename)
 {
   vcl_string ext(filename);
@@ -532,6 +536,7 @@ void load_depth(vil_image_view<double> &depth, const char *filename)
   fclose(file);
 }
 
+
 /// Compares an image (depth) with its ground truth then reports the average
 /// error between them.  It also reports the percentage of pixels
 /// that by more than a threshold.
@@ -558,6 +563,7 @@ void score_vs_gt(const vil_image_view<double> &depth,
   vil_convert_stretch_range(bad_img, bad_img_byte);
   vil_save(bad_img_byte, "error.png");
 }
+
 
 #ifdef HAVE_VTK
 
@@ -632,3 +638,5 @@ void save_depth_to_vtp(const char *filename,
 }
 
 #endif
+
+} // end namespace super3d

@@ -28,11 +28,15 @@
 
 #include "world_rectilinear.h"
 
+
+namespace super3d
+{
+
 world_rectilinear::world_rectilinear(const vnl_double_3 &origin,
                                      const vnl_double_3 &dimensions,
                                      unsigned int pixel_width,
                                      unsigned int pixel_height) :
-world_space(pixel_width, pixel_height)
+  world_space(pixel_width, pixel_height)
 {
   double halfx = 0.5 * dimensions[0];
   double halfy = 0.5 * dimensions[1];
@@ -54,6 +58,7 @@ world_space(pixel_width, pixel_height)
   vcl_cout << "z scale: " << height << "\n";
 }
 
+
 /// returns the corner points of an image slice at depth slice.
 /// depth slice is a value between 0 and 1 over the depth range
 vcl_vector<vnl_double_3> world_rectilinear::get_slice(double depth_slice) const
@@ -69,8 +74,8 @@ vcl_vector<vnl_double_3> world_rectilinear::get_slice(double depth_slice) const
   return slice_corners;
 }
 
-//gradient weighting doesn't work with rectilinear world because there is no
 
+//gradient weighting doesn't work with rectilinear world because there is no
 void world_rectilinear::compute_g(const vil_image_view<double> &ref_img,
                                   vil_image_view<double> &g,
                                   double alpha,
@@ -79,6 +84,7 @@ void world_rectilinear::compute_g(const vil_image_view<double> &ref_img,
   g.set_size(ref_img.ni(), ref_img.nj(), 1);
   g.fill(1.0);
 }
+
 
 vnl_double_3 world_rectilinear::point_at_depth(unsigned int i, unsigned int j, double d) const
 {
@@ -90,6 +96,7 @@ vnl_double_3 world_rectilinear::point_at_depth(unsigned int i, unsigned int j, d
                       b_corners[0][2]   + d*height);
 }
 
+
 vnl_double_3 world_rectilinear::map_normal_w2n(const vnl_double_3 &vec, const vnl_double_3 &loc) const
 {
   vnl_double_3 new_vec = vec;
@@ -100,6 +107,7 @@ vnl_double_3 world_rectilinear::map_normal_w2n(const vnl_double_3 &vec, const vn
   return new_vec;
 }
 
+
 vnl_double_3 world_rectilinear::map_normal_n2w(const vnl_double_3 &vec, const vnl_double_3 &loc) const
 {
   vnl_double_3 new_vec = vec;
@@ -109,3 +117,5 @@ vnl_double_3 world_rectilinear::map_normal_n2w(const vnl_double_3 &vec, const vn
   new_vec.normalize();
   return new_vec;
 }
+
+} // end namespace super3d

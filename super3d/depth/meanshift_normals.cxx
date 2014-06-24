@@ -36,6 +36,10 @@
 
 #define EPSILON .01
 
+
+namespace super3d
+{
+
 void
 compute_normals_tri(const vil_image_view<double> &d,
                 vil_image_view<double> &normals,
@@ -67,6 +71,7 @@ compute_normals_tri(const vil_image_view<double> &d,
     }
   }
 }
+
 
 void
 meanshift(vil_image_view<double> &normal_map,
@@ -206,3 +211,5 @@ meanshift(vil_image_view<double> &normal_map,
   vil_convert_cast<double, vxl_byte>(filtered, to_save);
   vil_save(to_save, "meanshifted.png");
 }
+
+} // end namespace super3d

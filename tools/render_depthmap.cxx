@@ -33,9 +33,9 @@
 #include <vil/vil_save.h>
 #include <vul/vul_arg.h>
 #include <vul/vul_sprintf.h>
-#include <imesh/imesh_mesh.h>
-#include <imesh/imesh_fileio.h>
-#include <imesh/algo/imesh_project.h>
+#include <super3d/imesh/imesh_mesh.h>
+#include <super3d/imesh/imesh_fileio.h>
+#include <super3d/imesh/algo/imesh_project.h>
 #include <vpgl/vpgl_perspective_camera.h>
 
 #include <super3d/depth/multiscale.h>
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
     vpgl_perspective_camera<double> camera = citr->second;
     if (resolution_scale.set())
     {
-      camera = scale_camera(camera, resolution_scale());
+      camera = super3d::scale_camera(camera, resolution_scale());
     }
     scaled_cameras[citr->first] = camera;
     std::cout << "Rendering depth map from camera " << citr->first << std::endl;
@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
     if (byte_images())
     {
       double min_d, max_d;
-      finite_value_range(depth_map, min_d, max_d);
+      super3d::finite_value_range(depth_map, min_d, max_d);
       std::cout << "min depth: "<<min_d<<" max depth: "<<max_d<<std::endl;
       std::cout << "Saving byte image to" << name << std::endl;
       vil_image_view<vxl_byte> byte_image;

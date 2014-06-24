@@ -27,17 +27,19 @@
  */
 
 #include "weighted_dbw.h"
+#include "super_config.h"
 
 #include <video_transforms/adjoint_flow_warp.h>
 #include <video_transforms/adjoint_resample.h>
-
-#include "super_config.h"
 
 #include <boost/bind.hpp>
 
 #include <vil/algo/vil_gauss_filter.h>
 #include <vil/vil_math.h>
 
+
+namespace super3d
+{
 
 /// Helper class to contain a set of 2 image operators that run in sequence.
 /// Intermediate results are cached to avoid re-allocation of memory
@@ -90,8 +92,6 @@ private:
   mutable vil_image_view<T> tmp_;
 };
 
-
-//*****************************************************************************
 
 vidtk::adjoint_image_ops_func<double>
 create_dbw_from_flow(const vil_image_view<double> &flow,
@@ -148,4 +148,4 @@ create_dbw_from_flow(const vil_image_view<double> &flow,
                                                ni, nj, np);
 }
 
-//*****************************************************************************
+} // end namespace super3d

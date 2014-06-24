@@ -146,15 +146,15 @@ IMPLEMENT_TEST(test_compare_direct_indirect)
   // compute normals in world coordinates
   vil_image_view<double> location;
   vil_image_view<double> normal_wld;
-  depth_map_to_location_map(cam, depth, location);
-  location_map_to_normal_map(location, normal_wld);
+  super3d::depth_map_to_location_map(cam, depth, location);
+  super3d::location_map_to_normal_map(location, normal_wld);
 
   // compute normals directly in depth coordinates
   vil_image_view<double> normal_img;
-  depth_map_to_normal_map_inv_len(cam, depth, normal_img);
+  super3d::depth_map_to_normal_map_inv_len(cam, depth, normal_img);
 
   vil_image_view<double> dp;
-  dot_product_map(normal_wld, normal_img, dp);
+  super3d::dot_product_map(normal_wld, normal_img, dp);
 
   // ignore a 1 pixel border where the normals are not computed
   dp = vil_crop(dp, 1, ni-2, 1, nj-2);
@@ -170,18 +170,18 @@ IMPLEMENT_TEST(test_compare_direct_indirect)
 #if 1
   // write out the test images
   double min_d, max_d;
-  finite_value_range(depth, min_d, max_d);
+  super3d::finite_value_range(depth, min_d, max_d);
   vil_image_view<vxl_byte> byte_img;
   vil_convert_stretch_range_limited(depth, byte_img, min_d, max_d);
   vil_save(byte_img, "depth_true.png");
 
-  byte_normal_map(normal, byte_img);
+  super3d::byte_normal_map(normal, byte_img);
   vil_save(byte_img, "normal_true.png");
 
-  byte_normal_map(normal_wld, byte_img);
+  super3d::byte_normal_map(normal_wld, byte_img);
   vil_save(byte_img, "normal_wld_inv_len.png");
 
-  byte_normal_map(normal_img, byte_img);
+  super3d::byte_normal_map(normal_img, byte_img);
   vil_save(byte_img, "normal_img_inv_len.png");
 #endif
 }

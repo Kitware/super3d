@@ -29,13 +29,19 @@
 #ifndef WORLD_SPACE_H_
 #define WORLD_SPACE_H_
 
+#include "depth_config.h"
+
 #include <vcl_vector.h>
 #include <vil/vil_image_view.h>
 #include <vpgl/vpgl_perspective_camera.h>
 #include <vnl/vnl_double_3.h>
 #include <video_transforms/warp_image.h>
 
-class world_space
+
+namespace super3d
+{
+
+class SUPER3D_DEPTH_EXPORT world_space
 {
 public:
   world_space(unsigned int pixel_width, unsigned int pixel_height);
@@ -74,5 +80,7 @@ protected:
 
   vidtk::warp_image_parameters wip;
 };
+
+} // end namespace super3d
 
 #endif

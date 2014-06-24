@@ -29,16 +29,22 @@
 #ifndef multiscale_h_
 #define multiscale_h_
 
+#include "depth_config.h"
+
 #include <vil/vil_image_view.h>
 #include <vil/algo/vil_gauss_filter.h>
 
 #include <vpgl/vpgl_perspective_camera.h>
 
 
+namespace super3d
+{
+
 /// Produce the camera corresponding to a downsampled image
 /// \param camera The input camera
 /// \param scale The scale of the downsampled image (default is 0.5)
 /// \return A camera corresponding to the downsampled image
+SUPER3D_DEPTH_EXPORT
 vpgl_perspective_camera<double>
 scale_camera(const vpgl_perspective_camera<double>& camera,
                   double scale=0.5);
@@ -49,6 +55,7 @@ scale_camera(const vpgl_perspective_camera<double>& camera,
 /// \param left the left coordinate of the cropping
 /// \param top the left coordinate of the cropping
 /// \return A camera corresponding to the cropped image
+SUPER3D_DEPTH_EXPORT
 vpgl_perspective_camera<double>
 crop_camera(const vpgl_perspective_camera<double>& camera, double left, double top);
 
@@ -58,6 +65,7 @@ crop_camera(const vpgl_perspective_camera<double>& camera, double left, double t
 /// \param H The homography for the original images
 /// \param scale The scale of the downsampled images (default is 0.5)
 /// \returns The homography mapping between the downsampled images
+SUPER3D_DEPTH_EXPORT
 vnl_matrix_fixed<double,3,3>
 scale_homography(const vnl_matrix_fixed<double,3,3>& H,
                       double scale = 0.5);
@@ -67,9 +75,11 @@ scale_homography(const vnl_matrix_fixed<double,3,3>& H,
 /// \param p The homogeneous point in the original image
 /// \param scale The scale of the downsampled image (default is 0.5)
 /// \returns The homogeneous point in the downsampled image
+SUPER3D_DEPTH_EXPORT
 vnl_vector_fixed<double,3>
 scale_point(const vnl_vector_fixed<double,3>& p,
                  double scale = 0.5);
 
+} // end namespace super3d
 
 #endif // multiscale_h_

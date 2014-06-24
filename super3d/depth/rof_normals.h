@@ -29,10 +29,16 @@
 #ifndef ROF_NORMALS_H_
 #define ROF_NORMALS_H_
 
-#include <vil/vil_image_view.h>
+#include "depth_config.h"
 #include "world_space.h"
 
+#include <vil/vil_image_view.h>
 
+
+namespace super3d
+{
+
+SUPER3D_DEPTH_EXPORT
 void
 compute_normals_eig(const vil_image_view<double> &d,
                     vil_image_view<double> &bp,
@@ -42,6 +48,8 @@ compute_normals_eig(const vil_image_view<double> &d,
                     double thresh,
                     bool normalize = true);
 
+
+SUPER3D_DEPTH_EXPORT
 void
 normals_rof(vil_image_view<double> &n,
             const vil_image_view<double> &d,
@@ -54,6 +62,8 @@ normals_rof(vil_image_view<double> &n,
             double step,
             double epsilon);
 
+
+SUPER3D_DEPTH_EXPORT
 void huber_normals_rof_preproc(const vil_image_view<double> &bp,
                                const vil_image_view<double> &d,
                                vcl_vector<vcl_vector<vnl_matrix_fixed<double, 2, 2> > > &AtAinv,
@@ -63,6 +73,8 @@ void huber_normals_rof_preproc(const vil_image_view<double> &bp,
                                int neighborhood,
                                double depth_thresh);
 
+
+SUPER3D_DEPTH_EXPORT
 void
 huber_normals_rof_update(vil_image_view<double> &q,
                          vil_image_view<double> &n,
@@ -73,6 +85,8 @@ huber_normals_rof_update(vil_image_view<double> &q,
                          double step,
                          double epsilon);
 
+
+SUPER3D_DEPTH_EXPORT
 void
 huber_normals_rof_update(vil_image_view<double> &q,
                          vil_image_view<double> &n,
@@ -84,5 +98,7 @@ huber_normals_rof_update(vil_image_view<double> &q,
                          double step,
                          double epsilon,
                          double thresh);
+
+} // end namespace super3d
 
 #endif

@@ -29,6 +29,8 @@
 #ifndef FLOW_MANIP_H_
 #define FLOW_MANIP_H_
 
+#include "depth_config.h"
+
 #include <vcl_vector.h>
 
 #include <vil/vil_image_view.h>
@@ -36,12 +38,16 @@
 #include <vgl/vgl_box_2d.h>
 
 
+namespace super3d
+{
+
 /// Compute optical flows induced by camera pair and a depth map.
 /// One flow field is produced for each camera in \a cameras.
 /// \param cameras The cameras viewing destination images of the flow fields
 /// \param ref_cam The reference camera viewing the source of all flow fields.
 /// \param depth  The depth map relative to \a ref_cam.
 /// \retval flows The computed optical flow fields from \a ref_cam to all \a cameras.
+SUPER3D_DEPTH_EXPORT
 void compute_flows_from_depth(const vcl_vector<vpgl_perspective_camera<double> > &cameras,
                               const vpgl_perspective_camera<double> &ref_cam,
                               const vil_image_view<double> &depth,
@@ -56,6 +62,7 @@ void compute_flows_from_depth(const vcl_vector<vpgl_perspective_camera<double> >
 /// \param ref_cam The reference camera viewing the source of all flow fields.
 /// \param depth  The depth map relative to \a ref_cam.
 /// \retval flows The computed optical flow fields from \a ref_cam to all \a cameras.
+SUPER3D_DEPTH_EXPORT
 void compute_occluded_flows_from_depth(const vcl_vector<vpgl_perspective_camera<double> > &cameras,
                                        const vpgl_perspective_camera<double> &ref_cam,
                                        const vil_image_view<double> &depth,
@@ -64,6 +71,7 @@ void compute_occluded_flows_from_depth(const vcl_vector<vpgl_perspective_camera<
 
 /// Compute the axis-aligned bounding box contain all flow vectors destinations.
 /// \note this ignores all pixels with invalid flow
+SUPER3D_DEPTH_EXPORT
 vgl_box_2d<double>
 flow_destination_bounds(const vil_image_view<double> &flow);
 
@@ -72,7 +80,9 @@ flow_destination_bounds(const vil_image_view<double> &flow);
 /// \param flow The flow field to translate in place
 /// \param dx The value added to the first (X) channel
 /// \param dy The value added to the second (Y) channel
+SUPER3D_DEPTH_EXPORT
 void translate_flow(vil_image_view<double> &flow, double dx, double dy);
 
+} // end namespace super3d
 
 #endif

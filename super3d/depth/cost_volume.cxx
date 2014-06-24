@@ -26,7 +26,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include "cost_volume.h"
 
 #include <vcl_cstdio.h>
@@ -47,6 +46,9 @@
 #include <vcl_limits.h>
 
 
+namespace
+{
+
 const double two_pi = 2.0*vnl_math::pi;
 
 double p(double c, double alpha)
@@ -54,7 +56,11 @@ double p(double c, double alpha)
   return 1.0 - exp(-c/alpha);
 }
 
-//*****************************************************************************
+} // end anonymous namespace
+
+
+namespace super3d
+{
 
 void
 compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
@@ -175,7 +181,6 @@ compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
   vcl_cout << "\n";
 }
 
-//*****************************************************************************
 
 void
 compute_cost_volume_warp(const vcl_vector<vil_image_view<double> > &frames,
@@ -258,7 +263,6 @@ compute_cost_volume_warp(const vcl_vector<vil_image_view<double> > &frames,
   }
 }
 
-//*****************************************************************************
 
 void
 compute_cost_volume_bp(const vcl_vector<vil_image_view<double> > &frames,
@@ -328,7 +332,6 @@ compute_cost_volume_bp(const vcl_vector<vil_image_view<double> > &frames,
   }
 }
 
-//*****************************************************************************
 
 //disparity increases along negative x
 void compute_cost_volume_rectified(const vcl_vector<vil_image_view<double> > &frames,
@@ -389,7 +392,6 @@ void compute_cost_volume_rectified(const vcl_vector<vil_image_view<double> > &fr
   }
 }
 
-//*****************************************************************************
 
 vxl_uint_64 compute_census(const vil_image_view<double> &img, int u, int v)
 {
@@ -413,7 +415,6 @@ vxl_uint_64 compute_census(const vil_image_view<double> &img, int u, int v)
   return census;
 }
 
-//*****************************************************************************
 
 unsigned int hamming_distance(vxl_uint_64 l, vxl_uint_64 r)
 {
@@ -427,7 +428,6 @@ unsigned int hamming_distance(vxl_uint_64 l, vxl_uint_64 r)
   return count;
 }
 
-//*****************************************************************************
 
 g_census compute_g_census(const vil_image_view<double> &grad, int u, int v, double thresh)
 {
@@ -463,7 +463,6 @@ g_census compute_g_census(const vil_image_view<double> &grad, int u, int v, doub
   return census;
 }
 
-//*****************************************************************************
 
 unsigned int hamming_distance(const g_census &l, const g_census &r)
 {
@@ -477,7 +476,6 @@ unsigned int hamming_distance(const g_census &l, const g_census &r)
   return count;
 }
 
-//*****************************************************************************
 
 void save_cost_volume(const vil_image_view<double> &cost_volume,
                       const vil_image_view<double> &g_weight,
@@ -510,7 +508,6 @@ void save_cost_volume(const vil_image_view<double> &cost_volume,
   fclose(file);
 }
 
-//*****************************************************************************
 
 void load_cost_volume(vil_image_view<double> &cost_volume,
                       vil_image_view<double> &g_weight,
@@ -546,7 +543,6 @@ void load_cost_volume(vil_image_view<double> &cost_volume,
   fclose(file);
 }
 
-//*****************************************************************************
 
 void
 read_cost_volume_at(FILE *file,
@@ -564,7 +560,6 @@ read_cost_volume_at(FILE *file,
   }
 }
 
-//*****************************************************************************
 
 void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
                          const vcl_string &landmark_file, double &min_depth, double &max_depth)
@@ -613,3 +608,5 @@ void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
 
   infile.close();
 }
+
+} // end namespace super3d

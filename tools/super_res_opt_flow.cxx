@@ -109,7 +109,7 @@ void create_low_res(vcl_vector<vil_image_view<double> > &frames,
 int main(int argc, char* argv[])
 {
   try  {
-    boost::scoped_ptr<config> cfg(new config);
+    boost::scoped_ptr<super3d::config> cfg(new super3d::config);
     cfg->read_config(argv[1]);
     cfg->read_argument_updates(argc, argv);
 
@@ -129,8 +129,8 @@ int main(int argc, char* argv[])
     const unsigned int ref_frame = cfg->get_value<unsigned int>("ref_frame");
     const double scale_factor = cfg->get_value<double>("scale_factor");
 
-    load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames,
-                         cfg->get_value<bool>("use_color"), cfg->get_value<bool>("use_rgb12"));
+    super3d::load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames,
+                                  cfg->get_value<bool>("use_color"), cfg->get_value<bool>("use_rgb12"));
 
     int i0, ni, j0, nj;
     vil_image_view<double> ref_image;
@@ -309,7 +309,6 @@ int main(int argc, char* argv[])
       super_resolve(frames, warps, super_u, srp, iterations, cfg->get_value<vcl_string>("output_image"));
     }
 
-
     vil_image_view<double> upsamp;
     upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::CUBIC);
     vil_image_view<unsigned short> output;
@@ -329,7 +328,7 @@ int main(int argc, char* argv[])
     vil_convert_stretch_range_limited(super_u, output, 0.0, 1.0, 0, 65535);
     vil_save(output, cfg->get_value<vcl_string>("output_image").c_str());
   }
-  catch (const config::cfg_exception &e)  {
+  catch (const super3d::config::cfg_exception &e)  {
     vcl_cout << "Error in config: " << e.what() << "\n";
   }
 
@@ -348,7 +347,7 @@ void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
   for (unsigned int i=0; i<flows.size(); ++i)
   {
     // get a bounding box around the flow and expand by a margin
-    vgl_box_2d<double> bounds = flow_destination_bounds(flows[i]);
+    vgl_box_2d<double> bounds = super3d::flow_destination_bounds(flows[i]);
     vgl_box_2d<int> bbox(vcl_floor(bounds.min_x()), vcl_ceil(bounds.max_x()),
                          vcl_floor(bounds.min_y()), vcl_ceil(bounds.max_y()));
     bbox.expand_about_centroid(2*margin);
@@ -362,7 +361,7 @@ void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
     // crop the image and translated the flow accordingly
     frames[i].deep_copy(vil_crop(frames[i], bbox.min_x(), bbox.width(), bbox.min_y(), bbox.height()));
     bbox.scale_about_origin(scale_factor);
-    translate_flow(flows[i], -bbox.min_x(), -bbox.min_y());
+    super3d::translate_flow(flows[i], -bbox.min_x(), -bbox.min_y());
   }
 }
 
@@ -403,7 +402,7 @@ void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_imag
   while (infile >> flowname)
   {
     vil_image_view<double> flowimg;
-    read_flow_file(flowimg, (dir + flowname).c_str());
+    super3d::read_flow_file(flowimg, (dir + flowname).c_str());
     flows.push_back(flowimg);
   }
   vcl_cout << "Read " << flows.size() << " flows.\n";
@@ -437,7 +436,7 @@ void load_homogs(const char *homog_list, vcl_vector<vgl_h_matrix_2d<double> > &h
 
       homogs.push_back(H);
       index++;
-      if (index == frameindex.size())
+      if (index == static_cast<int>(frameindex.size()))
         break;
     }
 

@@ -29,10 +29,15 @@
 #ifndef DBW_H_
 #define DBW_H_
 
+#include "depth_config.h"
+
 #include <vil/vil_image_view.h>
 #include <vcl_vector.h>
 #include <video_transforms/adjoint_dbw.h>
 
+
+namespace super3d
+{
 
 /// Create DBW adjoint operator from a flow field, weights, and various options
 /// \param flow The optical flow field used in the warping step, also defined input resolution.
@@ -43,6 +48,7 @@
 /// \param scale_factor The scale factor for the down sampling step
 /// \param down_sample_averaging If true, average pixels in a box to down scale
 ///        rather than just picking one pixel to sample.
+SUPER3D_DEPTH_EXPORT
 vidtk::adjoint_image_ops_func<double>
 create_dbw_from_flow(const vil_image_view<double> &flow,
                      const vil_image_view<double> &weights,
@@ -50,5 +56,6 @@ create_dbw_from_flow(const vil_image_view<double> &flow,
                      int scale_factor, double sensor_sigma, bool down_sample_averaging,
                      bool bicubic_warping);
 
+} // end namespace super3d
 
 #endif

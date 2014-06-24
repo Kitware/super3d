@@ -43,9 +43,9 @@
 #include <vul/vul_arg.h>
 #include <vnl/vnl_double_3.h>
 #include <vnl/vnl_inverse.h>
-#include <imesh/imesh_mesh.h>
-#include <imesh/imesh_fileio.h>
-#include <imesh/algo/imesh_project.h>
+#include <super3d/imesh/imesh_mesh.h>
+#include <super3d/imesh/imesh_fileio.h>
+#include <super3d/imesh/algo/imesh_project.h>
 #include <vpgl/vpgl_perspective_camera.h>
 
 #include <vil/vil_decimate.h>
@@ -92,14 +92,14 @@ int main(int argc, char* argv[])
             <<" verts and "<<mesh.num_faces()<<" faces"<<vcl_endl;
 
   //Read Cameras
-  vcl_vector<vpgl_perspective_camera<double> >  cameras = load_cams(camera_file(), frame_seq);
+  vcl_vector<vpgl_perspective_camera<double> >  cameras = super3d::load_cams(camera_file(), frame_seq);
   if (camera_scale() != 1.0)
     for (unsigned int i = 0; i < cameras.size(); i++)
-      cameras[i] = scale_camera(cameras[i], camera_scale());
+      cameras[i] = super3d::scale_camera(cameras[i], camera_scale());
 
   //Read Images
   vcl_vector<vcl_string> filenames;
-  vcl_vector<vil_image_view<double> > frames = load_frames(frame_seq, filenames);
+  vcl_vector<vil_image_view<double> > frames = super3d::load_frames(frame_seq, filenames);
   if (frames.empty())
   {
     vcl_cerr << "No frames found"<<vcl_endl;
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
 
   vcl_vector<vcl_pair<double, double> > exposures;
   if (exposure_file.set())
-    exposures = load_exposure(exposure_file(), frame_seq);
+    exposures = super3d::load_exposure(exposure_file(), frame_seq);
 
   vcl_cout << "Making image pyramids"<<vcl_endl;
   unsigned levels = 4;
@@ -165,9 +165,9 @@ int main(int argc, char* argv[])
   vcl_vector<vil_image_view<double> > pyr_depth(levels+1);
   pyr_depth[levels].set_size(pyr_ref[levels].ni(), pyr_ref[levels].nj());
   imesh_project_depth(mesh,
-                      scale_camera(cameras[ref_frame], 1.0/(1<<levels)),
+                      super3d::scale_camera(cameras[ref_frame], 1.0/(1<<levels)),
                       pyr_depth[levels]);
-  fill_missing_depths(pyr_depth[levels],4,20);
+  super3d::fill_missing_depths(pyr_depth[levels],4,20);
 
   vil_image_view<vxl_byte> depth;
   vil_convert_stretch_range_limited(pyr_depth[levels],depth,0.94,0.96);
@@ -185,8 +185,8 @@ int main(int argc, char* argv[])
     for (unsigned i = 0; i < pyrs.size(); ++i)
     {
       scaled_I1.push_back(pyrs[i][s]);
-      scaled_H.push_back(scale_homography(Hs[i],scale));
-      scaled_e.push_back(scale_point(es[i],scale));
+      scaled_H.push_back(super3d::scale_homography(Hs[i],scale));
+      scaled_e.push_back(super3d::scale_point(es[i],scale));
     }
     refine_depths(pyr_ref[s],scaled_I1,
                   scaled_H, scaled_e,
@@ -210,12 +210,12 @@ int main(int argc, char* argv[])
 
   //  theta /= 10.0;
   //}
-  vpgl_perspective_camera<double> croppedcam = crop_camera(cameras[ref_frame], i0, j0);
+  vpgl_perspective_camera<double> croppedcam = super3d::crop_camera(cameras[ref_frame], i0, j0);
   vil_image_view<double> cropped_depth = vil_crop(pyr_depth[0], i0, ni, j0, nj);
 
   vcl_cout << "writing mesh"<<vcl_endl;
-  imesh_mesh nm = depth_map_to_mesh(scale_camera(croppedcam, 1.0/output_decimate()),
-                                    vil_decimate(cropped_depth,output_decimate()));
+  imesh_mesh nm = super3d::depth_map_to_mesh(super3d::scale_camera(croppedcam, 1.0/output_decimate()),
+                                             vil_decimate(cropped_depth,output_decimate()));
   imesh_write_obj(output_mesh(),nm);
 
   return 0;
