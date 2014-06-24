@@ -79,5 +79,5 @@ int main(int argc, char *argv[])
 
   vil_save(out_byte, output_image().c_str());
 
-   return 0;
+  return 0;
 }
