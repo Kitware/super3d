@@ -1,10 +1,10 @@
 #include <testlib/testlib_test.h>
-#include <imesh/algo/imesh_kd_tree.h>
-#include <imesh/imesh_mesh.h>
-#include <imesh/algo/imesh_intersect.h>
-#include <imesh/imesh_operations.h>
+#include <super3d/imesh/algo/imesh_kd_tree.h>
+#include <super3d/imesh/imesh_mesh.h>
+#include <super3d/imesh/algo/imesh_intersect.h>
+#include <super3d/imesh/imesh_operations.h>
 #include "test_share.h"
-#include <imesh/algo/imesh_transform.h>
+#include <super3d/imesh/algo/imesh_transform.h>
 #include <vcl_iostream.h>
 #include <vnl/vnl_math.h>
 

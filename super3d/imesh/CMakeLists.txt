@@ -31,6 +31,7 @@ target_link_libraries(imesh vgl vul vbl_io vbl)
 # Algorithms
 add_subdirectory(algo)
 
-#IF( BUILD_TESTING )
-#  SUBDIRS(tests)
-#ENDIF( BUILD_TESTING )
+if( BUILD_TESTING )
+  message(STATUS "[imesh] Entering tests subdirectory")
+  add_subdirectory(tests)
+endif( BUILD_TESTING )

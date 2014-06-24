@@ -7,7 +7,7 @@
 // \author Matt Leotta (mleotta@lems.brown.edu)
 // \date June 26, 2008
 
-#include <imesh/imesh_mesh.h>
+#include <super3d/imesh/imesh_mesh.h>
 
 // generate a cube mesh for testing
 void make_cube(imesh_mesh& cube);

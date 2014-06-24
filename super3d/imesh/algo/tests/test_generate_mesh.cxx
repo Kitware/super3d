@@ -1,5 +1,5 @@
 #include <testlib/testlib_test.h>
-#include <imesh/algo/imesh_generate_mesh.h>
+#include <super3d/imesh/algo/imesh_generate_mesh.h>
 #include <vgl/vgl_point_2d.h>
 #include <vgl/vgl_line_segment_2d.h>
 #include <vcl_vector.h>

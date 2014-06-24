@@ -13,8 +13,12 @@ cmake_dependent_option(Super3D_INSTALL_DOCS
   Super3D_ENABLE_DOCS OFF
   )
 
+mark_as_advanced(BUILD_DOCUMENTATION)
 if(Super3D_ENABLE_DOCS)
   add_custom_target(doxygen ALL)
+  set(BUILD_DOCUMENTATION ON)
+else()
+  set(BUILD_DOCUMENTATION OFF)
 endif()
 
 

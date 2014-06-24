@@ -1,5 +1,5 @@
 #include <testlib/testlib_test.h>
-#include <imesh/algo/imesh_intersect.h>
+#include <super3d/imesh/algo/imesh_intersect.h>
 #include <vcl_limits.h>
 #include <vcl_iostream.h>
 #include <vgl/vgl_triangle_3d.h>

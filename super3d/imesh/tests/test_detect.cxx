@@ -1,5 +1,5 @@
 #include <testlib/testlib_test.h>
-#include <imesh/imesh_detection.h>
+#include <super3d/imesh/imesh_detection.h>
 #include "test_share.h"
 
 static void test_detect()

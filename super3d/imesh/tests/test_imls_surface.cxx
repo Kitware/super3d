@@ -1,11 +1,11 @@
 #include <testlib/testlib_test.h>
-#include <imesh/algo/imesh_imls_surface.h>
+#include <super3d/imesh/algo/imesh_imls_surface.h>
 #include "test_share.h"
-#include <imesh/algo/imesh_transform.h>
+#include <super3d/imesh/algo/imesh_transform.h>
 #include <vcl_iostream.h>
 
-#include <imesh/imesh_fileio.h>
-#include <imesh/imesh_operations.h>
+#include <super3d/imesh/imesh_fileio.h>
+#include <super3d/imesh/imesh_operations.h>
 #include <vnl/vnl_matlab_filewrite.h>
 #include <vnl/vnl_matrix.h>
 #include <vnl/vnl_math.h>
