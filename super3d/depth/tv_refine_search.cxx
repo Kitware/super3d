@@ -89,7 +89,6 @@ refine_depth(vil_image_view<double> &cost_volume,
   q.fill(0.0);
 
   vil_image_view<double> a(cost_volume.ni(), cost_volume.nj(), 1);
-  int i = 0;
 
   double theta = theta0;
   double denom = log(10.0);
@@ -154,9 +153,9 @@ void huber(vil_image_view<double> &q,
   }
 
   double theta_inv = 1.0 / theta, denom = (1.0 + (step / theta));
-  for (int j = 0; j < d.nj(); j++)
+  for (unsigned int j = 0; j < d.nj(); j++)
   {
-    for (int i = 0; i < d.ni(); i++)
+    for (unsigned int i = 0; i < d.ni(); i++)
     {
       //add scaled divergence
       double divx = q(i,j,0), divy = q(i,j,1);
@@ -201,9 +200,9 @@ void huber_central(vil_image_view<double> &q,
   }
 
   double theta_inv = 1.0 / theta, denom = (1.0 + (step / theta));
-  for (int j = 0; j < d.nj(); j++)
+  for (unsigned int j = 0; j < d.nj(); j++)
   {
-    for (int i = 0; i < d.ni(); i++)
+    for (unsigned int i = 0; i < d.ni(); i++)
     {
       //add scaled divergence
       double divx = q(i,j,0), divy = q(i,j,1);
@@ -226,18 +225,18 @@ void hessian_frob(vil_image_view<double> &q,
                   double step,
                   double epsilon)
 {
-  int ni = d.ni()-1, nj = d.nj()-1;
+  unsigned int ni = d.ni()-1, nj = d.nj()-1;
   double stepsilon1 = 1.0 + step*epsilon;
 
-  for (int j = 0; j <= nj; j++)
+  for (unsigned int j = 0; j <= nj; j++)
   {
-    for (int i = 0; i <= ni; i++)
+    for (unsigned int i = 0; i <= ni; i++)
     {
       double &xx = q(i,j,0), &xy = q(i,j,1), &yy = q(i,j,2);
       double dij = d(i,j);
       double scale = step * g(i,j);
       int ip1 = vcl_min(ni, i+1), jp1 = vcl_min(nj, j+1);
-      int im1 = vcl_max(i-1, 0), jm1 = vcl_max(j-1, 0);
+      int im1 = vcl_max(i-1, (unsigned int)0), jm1 = vcl_max(j-1, (unsigned int)0);
       xx = (xx + scale * (d(ip1,j) - 2.0 *dij + d(im1,j)))/stepsilon1;
       xy = (xy + scale * 0.25 * (d(ip1,jp1) - d(ip1,jm1) - d(im1,jp1) + d(im1,jm1)))/stepsilon1;
       yy = (yy + scale * (d(i,jm1) - 2.0*dij + d(i,jp1)))/stepsilon1;
@@ -255,14 +254,14 @@ void hessian_frob(vil_image_view<double> &q,
   }
 
   double theta_inv = 1.0 / theta, denom = (1.0 + (step / theta));
-  for (int j = 0; j < d.nj(); j++)
+  for (unsigned int j = 0; j < d.nj(); j++)
   {
-    for (int i = 0; i < d.ni(); i++)
+    for (unsigned int i = 0; i < d.ni(); i++)
     {
       double qxx = q(i,j,0), qxy = q(i,j,1), qyy = q(i,j,2);
       double &dij = d(i,j);
       int ip1 = vcl_min(ni, i+1), jp1 = vcl_min(nj, j+1);
-      int im1 = vcl_max(i-1, 0), jm1 = vcl_max(j-1, 0);
+      int im1 = vcl_max(i-1, (unsigned int)0), jm1 = vcl_max(j-1, (unsigned int)0);
       qxx = - q(im1,j,0) + 2.0*qxx - q(ip1,j,0);
       qyy = -q(i,jm1,2) + 2.0*qyy - q(i,jp1,2);
       qxy = -0.25 * (q(ip1,jp1,1) - q(ip1,jm1,1) - q(im1,jp1,1) + q(im1,jm1,1));
@@ -277,10 +276,9 @@ double eval_hessian_frob(const vil_image_view<double> &d,
                          double lambda)
 {
   double cost = 0;
-  unsigned int ni = d.ni() - 1, nj = d.nj() - 1;
   for (unsigned int i = 0; i < d.ni(); i++)
   {
-    for (unsigned int j = 1; j < nj; j++)
+    for (unsigned int j = 1; j < d.nj(); j++)
     {
       double ixx = d(i-1,j) - 2.0*d(i,j) + d(i+1,j);
       double iyy = d(i,j-1) - 2.0*d(i,j) + d(i,j+1);

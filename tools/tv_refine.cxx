@@ -450,7 +450,6 @@ void output_function(const vil_image_view<double>& bcc,
                      unsigned i, unsigned j)
 {
   const unsigned num_views = bcc.nplanes()/2;
-  double u = depth;
 
   vcl_ofstream pts("pts.txt");
   double min = 0; double min_e = 1e10;

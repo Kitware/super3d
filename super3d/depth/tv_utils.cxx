@@ -149,7 +149,7 @@ double subsample(double dij,
   {
     double aij_m = a_step * m + aij;
 
-    int loc = k + m;
+    unsigned int loc = k + m;
     if (loc < 0 || loc >= S)
       return aij;
 

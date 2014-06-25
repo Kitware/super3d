@@ -210,7 +210,7 @@ void Picker::OnLeftButtonDown()
     ids->SetNumberOfComponents(1);
     ids->InsertNextValue(picker->GetPointId());
 
-    double *pt = Data->GetPoint(picker->GetPointId());
+    //double *pt = Data->GetPoint(picker->GetPointId());
     //std::cout << picker->GetPointId() << " " << pt[0] << " " << pt[1] << " " << pt[2] << "\n";
     //PlaceArrow(pt);
     UpdateChart(picker->GetPointId());

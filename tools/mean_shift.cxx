@@ -71,10 +71,10 @@ int main(int argc, char *argv[])
   vil_image_view<double> filtered(image.ni(), image.nj());
   double h_s = 10, h_r = 5;
   vcl_cout << "Filtering with h = " << h_s << "\n";
-  for (int i = 0; i < image.ni(); i++)
+  for (unsigned int i = 0; i < image.ni(); i++)
   {
     //vcl_cout << i << " ";
-    for (int j = 0; j < image.nj(); j++)
+    for (unsigned int j = 0; j < image.nj(); j++)
     {
       vnl_double_3 mean = vnl_double_3(x(i,j,0), x(i,j,1), x(i,j,2)), last;
 

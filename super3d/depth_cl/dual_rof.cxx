@@ -124,7 +124,7 @@ void dual_rof::denoise(const viscl::buffer &denoised,
   ::cl::NDRange global_g(ni-1, nj-1);
   ::cl::NDRange global_d(ni, nj);
 
-  for (unsigned int i = 0; i < iterations; i++)
+  for (int i = 0; i < iterations; i++)
   {
     queue->enqueueNDRangeKernel(*gradient_k.get(), ::cl::NullRange, global_g, ::cl::NullRange);
     queue->enqueueBarrier();

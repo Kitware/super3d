@@ -62,14 +62,14 @@ compute_normals_eig(const vil_image_view<double> &d,
     }
   }
 
-  for (int i = 0; i < d.ni(); i++)
+  for (unsigned int i = 0; i < d.ni(); i++)
   {
-    for (int j = 0; j < d.nj(); j++)
+    for (unsigned int j = 0; j < d.nj(); j++)
     {
-      int mini = vcl_max(0, i-neighborhood);
+      int mini = vcl_max(0, (int)i-neighborhood);
       int minj = vcl_max(0, (int)j-neighborhood);
-      int maxi = vcl_min((int)n.ni()-1, i+neighborhood);
-      int maxj = vcl_min((int)n.nj()-1, j+neighborhood);
+      int maxi = vcl_min((int)n.ni()-1, (int)i+neighborhood);
+      int maxj = vcl_min((int)n.nj()-1, (int)j+neighborhood);
       int numpix = (maxi-mini + 1)*(maxj-minj + 1);
       vnl_matrix<double> A1(numpix, 2);
       vnl_vector<double> b1(numpix);
@@ -203,23 +203,22 @@ void huber_normals_rof_preproc(const vil_image_view<double> &bp,
 {
   AtAinv.resize(bp.ni());
   Atb.resize(bp.ni());
-  for (int i = 0; i < bp.ni(); i++)
+  for (unsigned int i = 0; i < bp.ni(); i++)
   {
     AtAinv[i].resize(bp.nj());
     Atb[i].resize(bp.ni());
 
-    for (int j = 0; j < bp.nj(); j++)
+    for (unsigned int j = 0; j < bp.nj(); j++)
     {
-      int mini = vcl_max(0, i-neighborhood);
+      int mini = vcl_max(0, (int)i-neighborhood);
       int minj = vcl_max(0, (int)j-neighborhood);
-      int maxi = vcl_min((int)bp.ni()-1, i+neighborhood);
-      int maxj = vcl_min((int)bp.nj()-1, j+neighborhood);
+      int maxi = vcl_min((int)bp.ni()-1, (int)i+neighborhood);
+      int maxj = vcl_min((int)bp.nj()-1, (int)j+neighborhood);
       int numpix = (maxi-mini + 1)*(maxj-minj + 1);
       vnl_matrix<double> A1(numpix, 2);
       vnl_vector<double> b1(numpix);
       int row = 0;
       vnl_double_3 center(bp(i,j,0), bp(i,j,1), bp(i,j,2));
-      double depth = d(i,j);
       for (int n_i = mini; n_i <= maxi; n_i++)
       {
         for (int n_j = minj; n_j <= maxj; n_j++)
@@ -282,9 +281,9 @@ huber_normals_rof_update(vil_image_view<double> &q,
     }
   }
 
-  for (int j = 0; j < n.nj(); j++)
+  for (unsigned int j = 0; j < n.nj(); j++)
   {
-    for (int i = 0; i < n.ni(); i++)
+    for (unsigned int i = 0; i < n.ni(); i++)
     {
       vnl_vector_fixed<double, 2> div;
       for (unsigned int k = 0; k < 2; k++)
@@ -347,9 +346,9 @@ huber_normals_rof_update(vil_image_view<double> &q,
     }
   }
 
-  for (int j = 0; j < n.nj(); j++)
+  for (unsigned int j = 0; j < n.nj(); j++)
   {
-    for (int i = 0; i < n.ni(); i++)
+    for (unsigned int i = 0; i < n.ni(); i++)
     {
       vnl_vector_fixed<double, 2> div;
       for (unsigned int k = 0; k < 2; k++)
@@ -363,10 +362,10 @@ huber_normals_rof_update(vil_image_view<double> &q,
       }
 
       vnl_vector_fixed<double, 2> nij(n(i,j,0),n(i,j,1));
-      int mini = vcl_max(0, i-neighborhood);
+      int mini = vcl_max(0, (int)i-neighborhood);
       int minj = vcl_max(0, (int)j-neighborhood);
-      int maxi = vcl_min((int)n.ni()-1, i+neighborhood);
-      int maxj = vcl_min((int)n.nj()-1, j+neighborhood);
+      int maxi = vcl_min((int)n.ni()-1, (int)i+neighborhood);
+      int maxj = vcl_min((int)n.nj()-1, (int)j+neighborhood);
       int numpix = (maxi-mini + 1)*(maxj-minj + 1);
       vnl_matrix<double> A1(numpix, 2);
       vnl_vector<double> b1(numpix);

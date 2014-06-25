@@ -70,10 +70,10 @@ refine_depth_planar(world_space *ws,
   vil_image_view<double> last_depth;
   last_depth.deep_copy(d);
 
-  double normal_bandwidth = 0.4;
-  double radius = 10.0;
-  double depth_bandwidth = 0.05;
-  double intensity_bandwidth = 0.05;
+//  double normal_bandwidth = 0.4;
+//  double radius = 10.0;
+//  double depth_bandwidth = 0.05;
+//  double intensity_bandwidth = 0.05;
 
   //g.fill(1.0);
   vil_image_view<double> bp(d.ni(), d.nj(), 3);
@@ -119,7 +119,6 @@ void refine_depth_planar(const vil_image_view<double> &cost_volume,
                          double epsilon)
 {
   vil_image_view<double> sqrt_cost_range(cost_volume.ni(), cost_volume.nj(), 1);
-  double a_step = 1.0 / cost_volume.nplanes();
 
   for (unsigned int j = 0; j < cost_volume.nj(); j++)
   {
@@ -127,13 +126,11 @@ void refine_depth_planar(const vil_image_view<double> &cost_volume,
     {
       double min, max;
       min = max = cost_volume(i,j,0);
-      unsigned int min_k = 0;
       for (unsigned int k = 1; k < cost_volume.nplanes(); k++)
       {
         const double &cost = cost_volume(i,j,k);
         if (cost < min) {
           min = cost;
-          min_k = k;
         }
         if (cost > max)
           max = cost;
@@ -156,10 +153,10 @@ void refine_depth_planar(const vil_image_view<double> &cost_volume,
   vil_image_view<double> last_depth;
   last_depth.deep_copy(d);
 
-  double normal_bandwidth = 0.4;
-  double radius = 10.0;
-  double depth_bandwidth = 0.05;
-  double image_bandwidth = 0.05;
+//  double normal_bandwidth = 0.4;
+//  double radius = 10.0;
+//  double depth_bandwidth = 0.05;
+//  double image_bandwidth = 0.05;
 
   double new_lambda = lambda/100.0;
   lambda = new_lambda;
@@ -269,9 +266,9 @@ huber_planar_coupled(vil_image_view<double> &q,
   }
 
   double theta_inv = 1.0 / theta, denom = (1.0 + (step / theta));
-  for (int j = 0; j < d.nj(); j++)
+  for (unsigned int j = 0; j < d.nj(); j++)
   {
-    for (int i = 0; i < d.ni(); i++)
+    for (unsigned int i = 0; i < d.ni(); i++)
     {
       //add scaled divergence
       double divx = q(i,j,0), divy = q(i,j,1);

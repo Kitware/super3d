@@ -83,11 +83,6 @@ int main(int argc, char* argv[])
 
     vil_math_scale_values(img, 1.0/255.0);
 
-    int i0, ni, j0, nj;
-    i0 = j0 = 0;
-    ni = img.ni();
-    nj = img.nj();
-
     vcl_cout << "Creating downsampled frames\n";
     vcl_vector<vil_image_view<double> > frames;
 

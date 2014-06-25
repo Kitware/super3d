@@ -84,8 +84,8 @@ int main(int argc, char *argv[])
   vnl_double_3 plane[3];
   ClipFromPlane(polydata, plane, 1);
 
-  vnl_double_3 plane_pt = plane[0];
-  vnl_double_3 plane_n = vnl_cross_3d(plane[1] - plane[0], plane[2] - plane[0]).normalize();
+//  vnl_double_3 plane_pt = plane[0];
+//  vnl_double_3 plane_n = vnl_cross_3d(plane[1] - plane[0], plane[2] - plane[0]).normalize();
 
   vcl_string filename(argv[1]);
   filename[filename.size()-3] = 'v';
@@ -345,7 +345,6 @@ void ClipFromPlane(vtkSmartPointer<vtkPolyData> &polydata, vnl_double_3 *plane, 
     vnl_double_3 normal = vnl_cross_3d(br-ar, cr-ar).normalize();
 
     double error = 0.0;
-    int side = 0;
     for (unsigned int i = 0; i < n; i++)
     {
       vnl_double_3 pt;
