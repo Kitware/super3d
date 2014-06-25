@@ -20,26 +20,32 @@ VIL_RESAMPLE_BICUB_INSTANTIATE( double , double );
 
 #define DEBUG
 
+namespace super3d
+{
+
+namespace // anonymous
+{
+
 //*****************************************************************************
 
 void dual_step_pr(const vil_image_view<double> &u_bar,
                   vil_image_view<double> &pr,
-                  const super_res_params &srp)
+                  const super3d::super_res_params &srp)
 {
   vil_image_view<double> work;
   vidtk::forward_gradient(u_bar, work);
 
-  double denom;
+  double denom=1.0;
   switch( srp.cost_function )
   {
-  case super_res_params::HUBER_NORM:
+  case super3d::super_res_params::HUBER_NORM:
     denom = 1.0 + ( srp.sigma_pr * srp.alpha_r) / srp.lambda_r;
     break;
-  case super_res_params::TRUNCATED_QUADRATIC:
+  case super3d::super_res_params::TRUNCATED_QUADRATIC:
     denom = 1.0 + srp.sigma_pr / (2.0 * srp.gamma_r * srp.lambda_r );
 //    vil_transform( work, rho_truncated_quadratic_functor(srp.alpha_r, srp.gamma_r) );
     break;
-  case super_res_params::GENERALIZED_HUBER:
+  case super3d::super_res_params::GENERALIZED_HUBER:
     denom = 1.0 + srp.sigma_pr / (2.0 * srp.gamma_r * srp.lambda_r );
     break;
   }
@@ -72,7 +78,7 @@ void dual_step_pr(const vil_image_view<double> &u_bar,
 //*****************************************************************************
 void dual_step_pl(const vil_image_view<double> &u_bar,
                   vil_image_view<double> &pl,
-                  const super_res_params &srp)
+                  const super3d::super_res_params &srp)
 {
   vil_image_view<double> work;
   vidtk::forward_gradient(u_bar, work);
@@ -80,13 +86,13 @@ void dual_step_pl(const vil_image_view<double> &u_bar,
   double denom;
   switch( srp.cost_function )
   {
-  case super_res_params::HUBER_NORM:
+  case super3d::super_res_params::HUBER_NORM:
     denom = 1.0 + ( srp.sigma_pl * srp.alpha_l) / srp.lambda_l;
     break;
-  case super_res_params::TRUNCATED_QUADRATIC:
+  case super3d::super_res_params::TRUNCATED_QUADRATIC:
     denom = 1.0 + srp.sigma_pl / (2.0 * srp.gamma_l * srp.lambda_l );
     break;
-  case super_res_params::GENERALIZED_HUBER:
+  case super3d::super_res_params::GENERALIZED_HUBER:
     denom = 1.0 + srp.sigma_pl / (2.0 * srp.gamma_l * srp.lambda_l );
     break;
   }
@@ -123,18 +129,18 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
                   const vcl_vector<vil_image_view<double> > &weights,
                   const vil_image_view<double> &u_bar,
                   vcl_vector<vil_image_view<double> > &qa,
-                  const super_res_params &srp)
+                  const super3d::super_res_params &srp)
 {
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
 
-  double denom;
+  double denom=1.0;
   switch( srp.cost_function )
   {
-  case super_res_params::HUBER_NORM:
+  case super3d::super_res_params::HUBER_NORM:
     denom = 1.0 + ( srp.sigma_qa * srp.alpha_a) / sf_2;
     break;
-  case super_res_params::TRUNCATED_QUADRATIC:
-  case super_res_params::GENERALIZED_HUBER:
+  case super3d::super_res_params::TRUNCATED_QUADRATIC:
+  case super3d::super_res_params::GENERALIZED_HUBER:
     denom = 1.0 + srp.sigma_qa / (2.0 * srp.gamma_a * sf_2 );
     break;
   }
@@ -172,10 +178,12 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
           double diff = l_u(i, j, k) - frames[f](i, j, k);
           switch( srp.cost_function )
           {
-          case super_res_params::TRUNCATED_QUADRATIC:
+          case super3d::super_res_params::HUBER_NORM:
+            break;
+          case super3d::super_res_params::TRUNCATED_QUADRATIC:
             diff = rho_truncated_quadratic(diff, srp.alpha_a, srp.gamma_a);
             break;
-          case super_res_params::GENERALIZED_HUBER:
+          case super3d::super_res_params::GENERALIZED_HUBER:
             diff = rho_generalized_huber(diff, srp.alpha_a, srp.beta_a,  srp.gamma_a);
             break;
           }
@@ -197,18 +205,18 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
                   const vcl_vector<vil_image_view<double> > &weights,
                   const vil_image_view<double> &u_bar,
                   vcl_vector<vil_image_view<double> > &qg,
-                  const super_res_params &srp)
+                  const super3d::super_res_params &srp)
 {
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
 
-  double denom;
+  double denom=1.0;
   switch( srp.cost_function )
   {
-  case super_res_params::HUBER_NORM:
+  case super3d::super_res_params::HUBER_NORM:
     denom = 1.0 + ( srp.sigma_qg * srp.alpha_g) / ( srp.lambda_g * sf_2);
     break;
-  case super_res_params::TRUNCATED_QUADRATIC:
-  case super_res_params::GENERALIZED_HUBER:
+  case super3d::super_res_params::TRUNCATED_QUADRATIC:
+  case super3d::super_res_params::GENERALIZED_HUBER:
     denom = 1.0 + srp.sigma_qg / (2.0 * srp.gamma_g * srp.lambda_g * sf_2 );
     break;
   }
@@ -235,10 +243,12 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
           double diff = gradient_lu(i, j, k) - gradient_frames[f](i, j, k);
           switch( srp.cost_function )
           {
-          case super_res_params::TRUNCATED_QUADRATIC:
+          case super3d::super_res_params::HUBER_NORM:
+            break;
+          case super3d::super_res_params::TRUNCATED_QUADRATIC:
             diff = rho_truncated_quadratic(diff, srp.alpha_g, srp.gamma_g);
             break;
-          case super_res_params::GENERALIZED_HUBER:
+          case super3d::super_res_params::GENERALIZED_HUBER:
             diff = rho_generalized_huber(diff, srp.alpha_g, srp.beta_g, srp.gamma_g );
             break;
           }
@@ -260,7 +270,7 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
                    const vil_image_view<double> &pr,
                    vil_image_view<double> &u,
                    vil_image_view<double> &u_bar,
-                   const super_res_params &srp)
+                   const super3d::super_res_params &srp)
 {
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
 
@@ -314,6 +324,9 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
   vcl_swap(u, work);
 }
 
+} // end anonymous namespace
+
+
 //*****************************************************************************
 
 void super_resolve_robust(
@@ -322,18 +335,19 @@ void super_resolve_robust(
   vil_image_view<double> &Y,
   super_res_params srp,
   unsigned int iterations,
-  vcl_vector< vil_image_view<double> > &As)
+  vcl_vector< vil_image_view<double> > &As,
+  const vcl_string &output_image)
 {
 
-  if( srp.tv_method == super_res_params::SUPER3D_BASELINE )
-    return super_resolve( frames, warps, Y, srp, iterations );
+  if( srp.tv_method == super3d::super_res_params::SUPER3D_BASELINE )
+    return super_resolve( frames, warps, Y, srp, iterations, output_image );
 
   vil_image_view<double>& u = Y;
 
   if (frames.empty())
     return;
 
-  int np = frames[0].nplanes();
+  unsigned int np = frames[0].nplanes();
   for (unsigned int i = 1; i < frames.size(); i++)
   {
     if (frames[i].nplanes() != np)
@@ -385,28 +399,28 @@ void super_resolve_robust(
 
   switch( srp.tv_method )
   {
-  case super_res_params::IMAGEDATA_IMAGEPRIOR:
+  case super3d::super_res_params::IMAGEDATA_IMAGEPRIOR:
     srp.image_data_1=false;
     srp.image_data_N=true;
     srp.gradient_data=false;
     srp.image_prior=true;
     srp.illumination_prior=false;
     break;
-  case super_res_params::GRADIENTDATA_IMAGEPRIOR:
+  case super3d::super_res_params::GRADIENTDATA_IMAGEPRIOR:
     srp.image_data_1=true;
     srp.image_data_N=false;
     srp.gradient_data=true;
     srp.image_prior=true;
     srp.illumination_prior=false;
     break;
-  case super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
+  case super3d::super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
     srp.image_data_1=false;
     srp.image_data_N=true;
     srp.gradient_data=false;
     srp.image_prior=true;
     srp.illumination_prior=true;
     break;
-  case super_res_params::IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
+  case super3d::super_res_params::IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
     srp.image_data_1=false;
     srp.image_data_N=true;
     srp.gradient_data=true;
@@ -435,21 +449,21 @@ void super_resolve_robust(
     double minv, maxv;
     switch( srp.tv_method )
     {
-    case super_res_params::IMAGEDATA_IMAGEPRIOR:
+    case super3d::super_res_params::IMAGEDATA_IMAGEPRIOR:
       dual_step_pr(u, pr, srp);
       dual_step_qa(frames, warps, weights, u, qa, srp);
       primal_step_Y(qa, qg, warps, pr, u, u_bar, srp);
       break;
 
-    case super_res_params::GRADIENTDATA_IMAGEPRIOR:
+    case super3d::super_res_params::GRADIENTDATA_IMAGEPRIOR:
       dual_step_pr(u, pr, srp);
       dual_step_qa(frames, warps, weights, u, qa, srp);
       dual_step_qg(frames_gradient, warps, weights, u, qg, srp);
       primal_step_Y(qa, qg, warps, pr, u, u_bar, srp);
       break;
 
-    case super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
-    case super_res_params::IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
+    case super3d::super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
+    case super3d::super_res_params::IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
     default:
       vcl_cerr << "unknown tv method.\n";
       return;
@@ -462,7 +476,7 @@ void super_resolve_robust(
       vil_image_view<double> outd;
       vil_convert_stretch_range_limited(u, outd, vcl_max(0.0,minv), vcl_min(1.0,maxv), 0.0, 255.0);
       vil_convert_cast(outd, output);
-      vil_save(output, config::inst()->get_value<vcl_string>("output_image").c_str());
+      vil_save(output, output_image.c_str());
     }
 #endif
 
@@ -525,3 +539,4 @@ inline double psi_generalized_huber( double x, double alpha, double beta, double
 }
 
 //*****************************************************************************
+} // end namespace super3d

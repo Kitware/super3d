@@ -18,6 +18,7 @@ set(header_files
   world_space.h
   weighted_dbw.h
   super_res.h
+  super_res_robust_function.h
   )
 
 set(cxx_files
@@ -39,6 +40,7 @@ set(cxx_files
   world_space.cxx
   weighted_dbw.cxx
   super_res.cxx
+  super_res_robust.cxx
   )
 
 super3d_install_headers(${header_files} SUBDIR depth)

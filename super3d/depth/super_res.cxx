@@ -156,7 +156,7 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
   if (frames.empty())
     return;
 
-  int np = frames[0].nplanes();
+  unsigned int np = frames[0].nplanes();
   for (unsigned int i = 1; i < frames.size(); i++)
   {
     if (frames[i].nplanes() != np)
@@ -229,7 +229,6 @@ void compare_to_original(const vil_image_view<double> &ref_img,
   vil_image_view<double> upsample;
   vil_resample_bicub(ref_img, upsample, scale_factor * ref_img.ni(), scale_factor * ref_img.nj());
 
-  double ssd = 0;
   vcl_cout << "SSD Super-res: " << vil_math_ssd(original, super, double()) << "\n";
   vcl_cout << "SSD Upsample: " << vil_math_ssd(original, upsample, double()) << "\n";
 

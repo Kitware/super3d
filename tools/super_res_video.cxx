@@ -321,26 +321,26 @@ int main(int argc, char* argv[])
 //    super3d::super_resolve(frames, warps, super_u, srp, iterations, output_image);
 
     // additional parameters
-    vcl_string tv_method_str = cfg::inst()->get_value<vcl_string>("tv_method");
+    vcl_string tv_method_str = cfg->get_value<vcl_string>("tv_method");
     if( tv_method_str.compare("SUPER3D_BASELINE") == 0 )
     {
-      srp.tv_method = super_res_params::SUPER3D_BASELINE;
+      srp.tv_method = super3d::super_res_params::SUPER3D_BASELINE;
     }
     else if ( tv_method_str.compare("IMAGEDATA_IMAGEPRIOR") == 0 )
     {
-      srp.tv_method = super_res_params::IMAGEDATA_IMAGEPRIOR;
+      srp.tv_method = super3d::super_res_params::IMAGEDATA_IMAGEPRIOR;
     }
     else if ( tv_method_str.compare("GRADIENTDATA_IMAGEPRIOR") == 0 )
     {
-      srp.tv_method = super_res_params::GRADIENTDATA_IMAGEPRIOR;
+      srp.tv_method = super3d::super_res_params::GRADIENTDATA_IMAGEPRIOR;
     }
     else if ( tv_method_str.compare("IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR") == 0 )
     {
-      srp.tv_method = super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR;
+      srp.tv_method = super3d::super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR;
     }
     else if ( tv_method_str.compare("IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR") == 0 )
     {
-      srp.tv_method = super_res_params::IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR;
+      srp.tv_method = super3d::super_res_params::IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR;
     }
     else
     {
@@ -349,18 +349,18 @@ int main(int argc, char* argv[])
     }
     vcl_cout << "tv method : " << tv_method_str << vcl_endl;
 
-    vcl_string str = cfg::inst()->get_value<vcl_string>("cost_function");
+    vcl_string str = cfg->get_value<vcl_string>("cost_function");
     if( str.compare("HUMBER_NORM") == 0 )
     {
-      srp.cost_function = super_res_params::HUBER_NORM;
+      srp.cost_function = super3d::super_res_params::HUBER_NORM;
     }
     else if( str.compare("TRUNCATED_QUADRATIC") == 0 )
     {
-      srp.cost_function = super_res_params::TRUNCATED_QUADRATIC;
+      srp.cost_function = super3d::super_res_params::TRUNCATED_QUADRATIC;
     }
     else if( str.compare("GENERALIZED_HUBER") == 0 )
     {
-      srp.cost_function = super_res_params::GENERALIZED_HUBER;
+      srp.cost_function = super3d::super_res_params::GENERALIZED_HUBER;
     }
     else
     {
@@ -369,57 +369,57 @@ int main(int argc, char* argv[])
     }
     vcl_cout << "cost function : " << str << vcl_endl;
 
-    if (cfg::inst()->is_set("alpha_a"))
-      srp.alpha_a = cfg::inst()->get_value<double>("alpha_a");
-    if (cfg::inst()->is_set("gamma_a"))
-      srp.gamma_a = cfg::inst()->get_value<double>("gamma_a");
-    if (cfg::inst()->is_set("beta_a"))
-      srp.beta_a = cfg::inst()->get_value<double>("beta_a");
+    if (cfg->is_set("alpha_a"))
+      srp.alpha_a = cfg->get_value<double>("alpha_a");
+    if (cfg->is_set("gamma_a"))
+      srp.gamma_a = cfg->get_value<double>("gamma_a");
+    if (cfg->is_set("beta_a"))
+      srp.beta_a = cfg->get_value<double>("beta_a");
 
-    if (cfg::inst()->is_set("lambda_g"))
-      srp.lambda_g = cfg::inst()->get_value<double>("lambda_g");
-    if (cfg::inst()->is_set("alpha_g"))
-      srp.alpha_g = cfg::inst()->get_value<double>("alpha_g");
-    if (cfg::inst()->is_set("gamma_g"))
-      srp.gamma_g = cfg::inst()->get_value<double>("gamma_g");
-    if (cfg::inst()->is_set("beta_g"))
-      srp.beta_g = cfg::inst()->get_value<double>("beta_g");
+    if (cfg->is_set("lambda_g"))
+      srp.lambda_g = cfg->get_value<double>("lambda_g");
+    if (cfg->is_set("alpha_g"))
+      srp.alpha_g = cfg->get_value<double>("alpha_g");
+    if (cfg->is_set("gamma_g"))
+      srp.gamma_g = cfg->get_value<double>("gamma_g");
+    if (cfg->is_set("beta_g"))
+      srp.beta_g = cfg->get_value<double>("beta_g");
 
-    if (cfg::inst()->is_set("lambda_r"))
-      srp.lambda_r = cfg::inst()->get_value<double>("lambda_r");
-    if (cfg::inst()->is_set("alpha_r"))
-      srp.alpha_r = cfg::inst()->get_value<double>("alpha_r");
-    if (cfg::inst()->is_set("gamma_r"))
-      srp.gamma_r = cfg::inst()->get_value<double>("gamma_r");
-    if (cfg::inst()->is_set("beta_r"))
-      srp.beta_r = cfg::inst()->get_value<double>("beta_r");
+    if (cfg->is_set("lambda_r"))
+      srp.lambda_r = cfg->get_value<double>("lambda_r");
+    if (cfg->is_set("alpha_r"))
+      srp.alpha_r = cfg->get_value<double>("alpha_r");
+    if (cfg->is_set("gamma_r"))
+      srp.gamma_r = cfg->get_value<double>("gamma_r");
+    if (cfg->is_set("beta_r"))
+      srp.beta_r = cfg->get_value<double>("beta_r");
 
-    if (cfg::inst()->is_set("lambda_l"))
-      srp.lambda_l = cfg::inst()->get_value<double>("lambda_l");
-    if (cfg::inst()->is_set("alpha_l"))
-      srp.alpha_l = cfg::inst()->get_value<double>("alpha_l");
-    if (cfg::inst()->is_set("gamma_l"))
-      srp.gamma_l = cfg::inst()->get_value<double>("gamma_l");
-    if (cfg::inst()->is_set("beta_l"))
-      srp.beta_l = cfg::inst()->get_value<double>("beta_l");
+    if (cfg->is_set("lambda_l"))
+      srp.lambda_l = cfg->get_value<double>("lambda_l");
+    if (cfg->is_set("alpha_l"))
+      srp.alpha_l = cfg->get_value<double>("alpha_l");
+    if (cfg->is_set("gamma_l"))
+      srp.gamma_l = cfg->get_value<double>("gamma_l");
+    if (cfg->is_set("beta_l"))
+      srp.beta_l = cfg->get_value<double>("beta_l");
 
-    if (cfg::inst()->is_set("sigma_pr"))
-      srp.sigma_pr = cfg::inst()->get_value<double>("sigma_pr");
-    if (cfg::inst()->is_set("sigma_pl"))
-      srp.sigma_pl = cfg::inst()->get_value<double>("sigma_pl");
-    if (cfg::inst()->is_set("sigma_qa"))
-      srp.sigma_qa = cfg::inst()->get_value<double>("sigma_qa");
-    if (cfg::inst()->is_set("sigma_qg"))
-      srp.sigma_qg = cfg::inst()->get_value<double>("sigma_qg");
-    if (cfg::inst()->is_set("sigma_A"))
-      srp.sigma_A = cfg::inst()->get_value<double>("sigma_A");
-    if (cfg::inst()->is_set("sigma_Y"))
-      srp.sigma_Y = cfg::inst()->get_value<double>("sigma_Y");
+    if (cfg->is_set("sigma_pr"))
+      srp.sigma_pr = cfg->get_value<double>("sigma_pr");
+    if (cfg->is_set("sigma_pl"))
+      srp.sigma_pl = cfg->get_value<double>("sigma_pl");
+    if (cfg->is_set("sigma_qa"))
+      srp.sigma_qa = cfg->get_value<double>("sigma_qa");
+    if (cfg->is_set("sigma_qg"))
+      srp.sigma_qg = cfg->get_value<double>("sigma_qg");
+    if (cfg->is_set("sigma_A"))
+      srp.sigma_A = cfg->get_value<double>("sigma_A");
+    if (cfg->is_set("sigma_Y"))
+      srp.sigma_Y = cfg->get_value<double>("sigma_Y");
 
     vcl_vector< vil_image_view<double> > As;
-    super3d::super_resolve_robust(frames, warps, super_u, srp, iterations, As);
+    super3d::super_resolve_robust(frames, warps, super_u, srp, iterations, As, output_image);
 
-    if (cfg::inst()->is_set("ground_truth"))
+    if (cfg->is_set("ground_truth"))
     {
       vil_math_scale_values(gt, normalizer);
       super3d::compare_to_original(ref_image, super_u, gt, scale_factor);
@@ -438,7 +438,7 @@ int main(int argc, char* argv[])
     vil_convert_stretch_range_limited(super_u, output, 0.0, 1.0);
     vil_save(output, output_image.c_str());
   }
-  catch (const super3d::cfg::cfg_exception &e)  {
+  catch (const super3d::config::cfg_exception &e)  {
     vcl_cout << "Error in config: " << e.what() << "\n";
   }
 

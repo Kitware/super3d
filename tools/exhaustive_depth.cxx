@@ -60,10 +60,10 @@
 
 #include <vpgl/vpgl_perspective_camera.h>
 
+
 int main(int argc, char* argv[])
 {
-
-  if (argc != 2)
+  try
   {
     boost::scoped_ptr<super3d::config> cfg(new super3d::config);
     cfg->read_config(argv[1]);
@@ -79,7 +79,6 @@ int main(int argc, char* argv[])
   vcl_vector<vil_image_view<double> > frames;
   vcl_vector<vpgl_perspective_camera<double> >  cameras;
   vcl_vector<vcl_string> filenames;
-
   vcl_string camera_file = cfg->get_value<vcl_string>("camera_file");
 
   if (cfg->is_set("frame_format"))
@@ -94,17 +93,13 @@ int main(int argc, char* argv[])
     frames = super3d::load_frames(frame_seq, filenames);
     if (frames.empty())
     {
-      vcl_string camera_file = config::inst()->get_value<vcl_string>("camera_file");
-      vcl_cout << "Using frame file: " << frame_file << " to find images and " << camera_file  << " to find cameras.\n";
-      load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames);
-      load_cams(camera_file.c_str(), frameindex, cameras);
+      vcl_cerr << "No frames found"<<vcl_endl;
+      return -1;
     }
-    else if (config::inst()->is_set("camera_dir"))
+    else if (frames.size() < 2)
     {
-      vcl_string camera_dir = config::inst()->get_value<vcl_string>("camera_dir");
-      vcl_cout << "Using frame file: " << frame_file << " to find images and " << camera_dir  << " to find cameras.\n";
-      load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames);
-      load_krtd_cams(camera_dir.c_str(), frameindex, cameras);
+      vcl_cerr << "At least 2 frames are required"<<vcl_endl;
+      return -1;
     }
 
     //Apply exposure correction
@@ -135,7 +130,7 @@ int main(int argc, char* argv[])
   }
   else
   {
-    vcl_cerr << "Error: must use frame list.\n";
+    vcl_cerr << "Error: must use either frame list (-fl) or frame format string (-ff).\n";
     return -1;
   }
 
@@ -152,8 +147,7 @@ int main(int argc, char* argv[])
   int i0, ni, j0, nj;
   double depth_min, depth_max;
 
-//  if (cfg->is_set("landmarks_path"))
-  if (config::inst()->is_set("compute_depth_range") && config::inst()->get_value<bool>("compute_depth_range"))
+  if (cfg->is_set("landmarks_path"))
   {
     vcl_cout << "Computing depth range from " << cfg->get_value<vcl_string>("landmarks_path") << "\n";
     super3d::compute_depth_range(cameras[ref_frame], cfg->get_value<vcl_string>("landmarks_path"), depth_min, depth_max);
@@ -403,34 +397,4 @@ int main(int argc, char* argv[])
   }
 
   return 0;
-}
-
-void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
-                         const vcl_string &landmark_file, double &min_depth, double &max_depth)
-{
-  vcl_ifstream infile(landmark_file.c_str());
-  vcl_string x;
-  do { infile >> x; } while (x != vcl_string("end_header"));
-
-  min_depth = 1e20;
-  max_depth = -1e20;
-
-  vnl_double_3 c(ref_cam.get_camera_center().x(),
-                 ref_cam.get_camera_center().y(),
-                 ref_cam.get_camera_center().z());
-
-  while (infile.good())
-  {
-    double x, y, z;
-    unsigned int id;
-    infile >> x >> y >> z >> id;
-    double dist = (c - vnl_double_3(x, y, z)).two_norm();
-    if (min_depth > dist)
-      min_depth = dist;
-    if (max_depth < dist)
-      max_depth = dist;
-  }
-
-  vcl_cout << "Max estimated depth: " << max_depth << "\n";
-  vcl_cout << "Min estimated depth: " << min_depth << "\n";
 }

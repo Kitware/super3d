@@ -10,6 +10,9 @@
 #include <vcl_vector.h>
 #include <vcl_cmath.h>
 
+namespace super3d
+{
+
 inline double rho_huber_norm( double x, double alpha );
 inline double psi_huber_norm( double x );
 
@@ -87,5 +90,7 @@ public:
 private:
   double alpha_, beta_, gamma_;
 };
+
+} // end namespace super3d
 
 #endif

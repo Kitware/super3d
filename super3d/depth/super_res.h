@@ -30,12 +30,12 @@
 #define SUPER_RES_H_
 
 #include "depth_config.h"
+#include "super_res_robust_function.h"
 
 #include <vil/vil_image_view.h>
 #include <vcl_vector.h>
 
 #include <video_transforms/adjoint_image_op.h>
-#include <super_res_robust_function.h>
 
 namespace super3d
 {
@@ -97,7 +97,8 @@ void super_resolve_robust(
   vil_image_view<double> &Y,
   super_res_params srp,
   unsigned int iterations,
-  vcl_vector< vil_image_view<double> > &As);
+  vcl_vector< vil_image_view<double> > &As,
+  const vcl_string &output_image = "");
 
 SUPER3D_DEPTH_EXPORT
 void compare_to_original(const vil_image_view<double> &ref_img,
