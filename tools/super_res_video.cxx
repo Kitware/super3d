@@ -350,7 +350,7 @@ int main(int argc, char* argv[])
     vcl_cout << "tv method : " << tv_method_str << vcl_endl;
 
     vcl_string str = cfg->get_value<vcl_string>("cost_function");
-    if( str.compare("HUMBER_NORM") == 0 )
+    if( str.compare("HUBER_NORM") == 0 )
     {
       srp.cost_function = super3d::super_res_params::HUBER_NORM;
     }
