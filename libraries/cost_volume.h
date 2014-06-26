@@ -36,9 +36,6 @@
 
 #include "world_space.h"
 
-void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
-                         const vcl_string &landmark_file, double &min_depth, double &max_depth);
-
 void
 compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
                           const vcl_vector<vpgl_perspective_camera<double> > &cameras,

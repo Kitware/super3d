@@ -309,7 +309,7 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
 
     if (!output_image.empty() && !(i % 15))
     {
-      save_image(u, config::inst()->get_value<vcl_string>("output_image").c_str());
+      save_image(u, output_image.c_str());
       char buf[40];
       for (unsigned int i = 0; i < frames.size(); i++)
       {
