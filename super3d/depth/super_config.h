@@ -48,7 +48,7 @@ public:
   config();
   ~config();
 
-  class SUPER3D_DEPTH_EXPORT cfg_type_base
+  class cfg_type_base
   {
   public:
     cfg_type_base() {}
@@ -59,7 +59,7 @@ public:
   };
 
   template<class T>
-  class SUPER3D_DEPTH_EXPORT cfg_type : public cfg_type_base
+  class cfg_type : public cfg_type_base
   {
   public:
     cfg_type() : cfg_type_base() {}
@@ -72,7 +72,7 @@ public:
     cfg_type_base *clone();
   };
 
-  class SUPER3D_DEPTH_EXPORT cfg_exception : public vcl_exception
+  class cfg_exception : public vcl_exception
   {
   public:
 
