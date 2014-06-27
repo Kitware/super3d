@@ -39,7 +39,7 @@
 
 /// Define symbol visibility in super3d::depth_cl
 #ifndef SUPER3D_IMESH_EXPORT
-# ifdef MAKE_SUPER3D_IMESH_LIB
+# ifdef MAKE_IMESH_LIB
 #   define SUPER3D_IMESH_EXPORT SUPER3D_EXPORT
 # else
 #   define SUPER3D_IMESH_EXPORT SUPER3D_IMPORT

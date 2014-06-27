@@ -219,7 +219,8 @@ function(super3d_add_library name)
       RUNTIME_OUTPUT_DIRECTORY  "${Super3D_BINARY_DIR}/bin"
       VERSION                   "${Super3D_VERSION}"
       SOVERSION                 0
-      DEFINE_SYMBOL             ${defined_make_symbol}
+      #DEFINE_SYMBOL             ${defined_make_symbol}  # Only works on windows when building shared
+      COMPILE_FLAGS             -D${defined_make_symbol}
     )
 
   # For multi-config generators, define target location properties for each
