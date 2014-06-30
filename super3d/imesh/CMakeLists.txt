@@ -1,5 +1,8 @@
-# brl/bbas/imesh/CMakeLists.txt
-# indexed mesh library
+# Indexed mesh library
+#
+# This library has been ported from vxl/contrib/brl/bbas/imesh to remove
+# dependency on contrib/brl
+#
 
 set(imesh_headers
   imesh_config.h

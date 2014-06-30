@@ -1,8 +1,6 @@
-# brl/bbas/imesh/algo/CMakeLists.txt
-# indexed mesh library algorithms
-
-# GEL include directories already included in top-level CMakeLists.txt
-#INCLUDE_DIRECTORIES( ${GEL_INCLUDE_DIR}/mrc )
+# Indexed mesh library algorithms
+#
+# Originally from vxl/contrib/brl/bbas/imesh/algo
 
 set(imesh_algo_headers
     imesh_algo_config.h
