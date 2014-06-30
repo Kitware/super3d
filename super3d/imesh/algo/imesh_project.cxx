@@ -75,17 +75,15 @@ imesh_project_verts(const imesh_vertex_array<3>& verts3d,
 }
 
 
-/*
 void
 imesh_distort_verts(const vcl_vector<vgl_point_2d<double> >& in_verts,
-                    const bpgl_lens_distortion<double>& lens,
+                    const vpgl_lens_distortion<double>& lens,
                     vcl_vector<vgl_point_2d<double> >& out_verts)
 {
   out_verts.resize(in_verts.size());
   for (unsigned int i=0; i<in_verts.size(); ++i)
     out_verts[i] = lens.undistort(vgl_homg_point_2d<double>(in_verts[i]));
 }
-*/
 
 
 //: Render a triangle defined by its vertices
@@ -221,12 +219,11 @@ imesh_render_faces_interp(const imesh_mesh& mesh,
 }
 
 
-/*
 //: project the mesh onto the image plane using the camera and lens distortion
 //  Set each pixel of the image to true if the mesh project onto it
 void imesh_project(const imesh_mesh& mesh,
                    const vpgl_proj_camera<double>& camera,
-                   const bpgl_lens_distortion<double>& lens,
+                   const vpgl_lens_distortion<double>& lens,
                    vil_image_view<bool>& image)
 {
   assert(mesh.vertices().dim() == 3);
@@ -245,7 +242,7 @@ void imesh_project(const imesh_mesh& mesh,
 void imesh_project(const imesh_mesh& mesh,
                    const vcl_vector<vgl_vector_3d<double> >& normals,
                    const vpgl_proj_camera<double>& camera,
-                   const bpgl_lens_distortion<double>& lens,
+                   const vpgl_lens_distortion<double>& lens,
                    vil_image_view<bool>& image,
                    vgl_box_2d<unsigned int>* bbox)
 {
@@ -291,7 +288,6 @@ void imesh_project(const imesh_mesh& mesh,
                           image);
   }
 }
-*/
 
 
 //: project the mesh onto the image plane using the camera
