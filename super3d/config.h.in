@@ -53,7 +53,7 @@
 
 #cmakedefine SUPER3D_HAVE_GCC_VISIBILITY
 #cmakedefine BUILD_SHARED_LIBS
- 
+
 // Visibility macros
 #if defined(_WIN32) || defined(_WIN64)
 # define SUPER3D_EXPORT __declspec(dllexport)
