@@ -51,11 +51,17 @@
  * \brief Hide the symbol from outside the library.
  */
 
-// Visibility macros
 #cmakedefine SUPER3D_HAVE_GCC_VISIBILITY
+#cmakedefine BUILD_SHARED_LIBS
+ 
+// Visibility macros
 #if defined(_WIN32) || defined(_WIN64)
 # define SUPER3D_EXPORT __declspec(dllexport)
-# define SUPER3D_IMPORT __declspec(dllimport)
+# if defined(BUILD_SHARED_LIBS)
+#   define SUPER3D_IMPORT __declspec(dllimport)
+# else
+#   define SUPER3D_IMPORT
+# endif
 # define SUPER3D_NO_EXPORT
 #elif defined(SUPER3D_HAVE_GCC_VISIBILITY)
 # define SUPER3D_EXPORT __attribute__((__visibility__("default")))

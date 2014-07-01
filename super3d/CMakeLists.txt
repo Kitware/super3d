@@ -9,6 +9,7 @@ super3d_configure_file(config.h
   "${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/config.h"
   SUPER3D_HAVE_GCC_VISIBILITY
+  BUILD_SHARED_LIBS
   )
 super3d_install_headers("${CMAKE_CURRENT_BINARY_DIR}/config.h"
   STRIP "${CMAKE_CURRENT_BINARY_DIR}"
