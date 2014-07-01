@@ -6,6 +6,7 @@
 
 #include "super_res.h"
 #include "super_config.h"
+#include <stdio.h>
 #include <video_transforms/adjoint_image_derivs.h>
 
 #include <vil/algo/vil_gauss_filter.h>
@@ -14,7 +15,7 @@
 #include <vil/vil_resample_bilin.h>
 #include <vil/vil_resample_bicub.h>
 #include <vil/vil_convert.h>
-
+#include <vil/algo/vil_greyscale_erode.h>
 #include <vil/vil_resample_bicub.txx>
 VIL_RESAMPLE_BICUB_INSTANTIATE( double , double );
 
@@ -232,6 +233,15 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
     vil_image_view<double> gradient_lu;
     vidtk::forward_gradient(l_u, gradient_lu);
 
+//    char buf[50];
+//    vil_image_view<vxl_byte> output;
+//    sprintf(buf,"images/frame_warp_%03d.png",f);
+//    vil_convert_stretch_range_limited(l_u, output, 0.0, 1.0);
+//    vil_save( output, buf );
+//    sprintf(buf,"images/weights_%03d.png",f);
+//    vil_convert_stretch_range_limited(weights[f], output, 0.0, 1.0);
+//    vil_save( output, buf );
+
     for (unsigned int j = 0; j < nj; j++)
     {
       for (unsigned int i = 0; i < ni; i++)
@@ -267,6 +277,7 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
 void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
                    const vcl_vector<vil_image_view<double> > &qg,
                    const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                   const vcl_vector<vil_image_view<double> > &weights,
                    const vil_image_view<double> &pr,
                    vil_image_view<double> &u,
                    vil_image_view<double> &u_bar,
@@ -294,7 +305,10 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
   for (unsigned int i = start_frame; i < start_frame+number_of_frames; i++)
   {
     // apply transpose linear operator to upsample, blur, and warp
-    warps[i].apply_At(qa[i], super_qa);
+    vil_image_view<double> weighted_qa;
+    vil_math_image_product( qa[i], weights[i], weighted_qa );
+
+    warps[i].apply_At(weighted_qa, super_qa);
     vil_math_image_sum(sum_super_qa, super_qa, sum_super_qa);
   }
 
@@ -308,7 +322,11 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
       // apply transpose linear operator to upsample, blur, and warp
       vil_image_view<double> div;
       vidtk::backward_divergence(qg[i], div);
-      warps[i].apply_At(div, super_qg);
+
+      vil_image_view<double> weighted_qg_div;
+      vil_math_image_product( div, weights[i], weighted_qg_div );
+
+      warps[i].apply_At( weighted_qg_div, super_qg);
       vil_math_image_sum(sum_super_qg, super_qg, sum_super_qg);
     }
 
@@ -385,7 +403,12 @@ void super_resolve_robust(
     pl[i].set_size(srp.s_ni, srp.s_nj, 2*np);
     pl[i].fill(0.0);
 
-    weights.push_back(warps[i].weight_map());
+    vil_image_view<double> erode;
+    vil_structuring_element element;
+    element.set_to_disk( 3.0 );
+    vil_greyscale_erode( warps[i].weight_map(), erode, element );
+    weights.push_back( erode );
+//    weights.push_back(warps[i].weight_map());
   }
 
   double ssd;
@@ -452,14 +475,14 @@ void super_resolve_robust(
     case super3d::super_res_params::IMAGEDATA_IMAGEPRIOR:
       dual_step_pr(u, pr, srp);
       dual_step_qa(frames, warps, weights, u, qa, srp);
-      primal_step_Y(qa, qg, warps, pr, u, u_bar, srp);
+      primal_step_Y(qa, qg, warps, weights, pr, u, u_bar, srp);
       break;
 
     case super3d::super_res_params::GRADIENTDATA_IMAGEPRIOR:
       dual_step_pr(u, pr, srp);
       dual_step_qa(frames, warps, weights, u, qa, srp);
       dual_step_qg(frames_gradient, warps, weights, u, qg, srp);
-      primal_step_Y(qa, qg, warps, pr, u, u_bar, srp);
+      primal_step_Y(qa, qg, warps, weights, pr, u, u_bar, srp);
       break;
 
     case super3d::super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
