@@ -19,8 +19,6 @@
 #include <vil/vil_resample_bicub.txx>
 VIL_RESAMPLE_BICUB_INSTANTIATE( double , double );
 
-#define DEBUG
-
 namespace super3d
 {
 
@@ -29,43 +27,47 @@ namespace // anonymous
 
 //*****************************************************************************
 
-void dual_step_pr(const vil_image_view<double> &u_bar,
-                  vil_image_view<double> &pr,
-                  const super3d::super_res_params &srp)
+void dual_step_grad_prior(const vil_image_view<double> &primal,
+                          vil_image_view<double> &dual,
+                          const double lambda,
+                          const double sigma,
+                          const double alpha,
+                          const double gamma=0.0,
+                          int cost_function=super_res_params::HUBER_NORM)
 {
   vil_image_view<double> work;
-  vidtk::forward_gradient(u_bar, work);
+  vidtk::forward_gradient(primal, work);
 
   double denom=1.0;
-  switch( srp.cost_function )
+  switch( cost_function )
   {
-  case super3d::super_res_params::HUBER_NORM:
-    denom = 1.0 + ( srp.sigma_pr * srp.alpha_r) / srp.lambda_r;
+  case super_res_params::HUBER_NORM:
+    denom = 1.0 + ( sigma * alpha ) / lambda;
     break;
-  case super3d::super_res_params::TRUNCATED_QUADRATIC:
-    denom = 1.0 + srp.sigma_pr / (2.0 * srp.gamma_r * srp.lambda_r );
-//    vil_transform( work, rho_truncated_quadratic_functor(srp.alpha_r, srp.gamma_r) );
+  case super_res_params::TRUNCATED_QUADRATIC:
+    denom = 1.0 + sigma / (2.0 * gamma * lambda );
     break;
-  case super3d::super_res_params::GENERALIZED_HUBER:
-    denom = 1.0 + srp.sigma_pr / (2.0 * srp.gamma_r * srp.lambda_r );
+  case super_res_params::GENERALIZED_HUBER:
+    denom = 1.0 + sigma / (2.0 * gamma * lambda );
+    break;
+  default:
     break;
   }
 
-  for (unsigned int j = 0; j < srp.s_nj; j++)
+  for (unsigned int j = 0; j < dual.nj(); j++)
   {
-    for (unsigned int i = 0; i < srp.s_ni; i++)
+    for (unsigned int i = 0; i < dual.ni(); i++)
     {
-      for (unsigned int k = 0; k < u_bar.nplanes(); k++)
+      for (unsigned int k = 0; k < primal.nplanes(); k++)
       {
         const unsigned k2=2*k;
         const unsigned k1=k2+1;
+        double &x = dual(i,j,k2);
+        double &y = dual(i,j,k1);
+        x = ( x + sigma * work(i,j,k2) ) / denom;
+        y = ( y + sigma * work(i,j,k1) ) / denom;
 
-        double &x = pr(i,j,k2);
-        double &y = pr(i,j,k1);
-        x = ( x + srp.sigma_pr * work(i,j,k2) ) / denom;
-        y = ( y + srp.sigma_pr * work(i,j,k1) ) / denom;
-
-        const double mag = sqrt(x*x + y*y)/srp.lambda_r;
+        const double mag = sqrt(x*x + y*y) / lambda;
         if (mag > 1.0)
         {
           x /= mag;
@@ -77,48 +79,24 @@ void dual_step_pr(const vil_image_view<double> &u_bar,
 }
 
 //*****************************************************************************
-void dual_step_pl(const vil_image_view<double> &u_bar,
-                  vil_image_view<double> &pl,
+
+void dual_step_pr(const vil_image_view<double> &u,
+                  vil_image_view<double> &pr,
                   const super3d::super_res_params &srp)
 {
-  vil_image_view<double> work;
-  vidtk::forward_gradient(u_bar, work);
+  return dual_step_grad_prior(u, pr, srp.lambda_r, srp.sigma_pr, srp.alpha_r, srp.gamma_r, srp.cost_function);
+}
 
-  double denom;
-  switch( srp.cost_function )
+//*****************************************************************************
+void dual_step_pl(const vcl_vector< vil_image_view<double> >&As,
+                  vcl_vector< vil_image_view<double> >&pl,
+                  const super3d::super_res_params &srp)
+{
+  if( srp.illumination_prior )
   {
-  case super3d::super_res_params::HUBER_NORM:
-    denom = 1.0 + ( srp.sigma_pl * srp.alpha_l) / srp.lambda_l;
-    break;
-  case super3d::super_res_params::TRUNCATED_QUADRATIC:
-    denom = 1.0 + srp.sigma_pl / (2.0 * srp.gamma_l * srp.lambda_l );
-    break;
-  case super3d::super_res_params::GENERALIZED_HUBER:
-    denom = 1.0 + srp.sigma_pl / (2.0 * srp.gamma_l * srp.lambda_l );
-    break;
-  }
-
-  for (unsigned int j = 0; j < srp.s_nj; j++)
-  {
-    for (unsigned int i = 0; i < srp.s_ni; i++)
+    for(unsigned int i=0; i<As.size(); i++)
     {
-      for (unsigned int k = 0; k < u_bar.nplanes(); k++)
-      {
-        const unsigned k2=2*k;
-        const unsigned k1=k2+1;
-
-        double &x = pl(i,j,k2);
-        double &y = pl(i,j,k1);
-        x = ( x + srp.sigma_pl * work(i,j,k2) ) / denom;
-        y = ( y + srp.sigma_pl * work(i,j,k1) ) / denom;
-
-        const double mag = sqrt(x*x + y*y)/srp.lambda_l;
-        if (mag > 1.0)
-        {
-          x /= mag;
-          y /= mag;
-        }
-      }
+      dual_step_grad_prior(As[i], pl[i], srp.lambda_l, srp.sigma_pl, srp.alpha_l, srp.gamma_l, srp.cost_function);
     }
   }
 }
@@ -128,8 +106,9 @@ void dual_step_pl(const vil_image_view<double> &u_bar,
 void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
                   const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
                   const vcl_vector<vil_image_view<double> > &weights,
-                  const vil_image_view<double> &u_bar,
+                  const vil_image_view<double> &u,
                   vcl_vector<vil_image_view<double> > &qa,
+                  vcl_vector< vil_image_view<double> > &As,
                   const super3d::super_res_params &srp)
 {
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
@@ -165,7 +144,32 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
 
     // apply the linear operator to warp, blur, and downsample
     vil_image_view<double> l_u;
-    warps[f].apply_A(u_bar, l_u);
+    if( srp.illumination_prior )
+    {
+      vil_image_view<double> work(u.ni(),u.nj(),u.nplanes());
+      vil_image_view<double> A0=As[2*f];
+      vil_image_view<double> A1=As[2*f+1];
+      double a,b;
+      for(unsigned int j=0; j<u.nj(); j++)
+      {
+        for(unsigned int i=0; i<u.ni(); i++)
+        {
+          a = A1(i,j);
+          b = A0(i,j);
+          for(unsigned int k=0; k<u.nplanes(); k++ )
+          {
+            work(i,j,k) = u(i,j,k) * a + b;
+          }
+        }
+      }
+//      vil_math_image_product( u, As[2*f+1], work);
+//      vil_math_image_sum( work, As[2*f], work);
+      warps[f].apply_A( work, l_u );
+    }
+    else
+    {
+      warps[f].apply_A(u, l_u);
+    }
 
     for (unsigned int j = 0; j < nj; j++)
     {
@@ -204,7 +208,7 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
 void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
                   const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
                   const vcl_vector<vil_image_view<double> > &weights,
-                  const vil_image_view<double> &u_bar,
+                  const vil_image_view<double> &u,
                   vcl_vector<vil_image_view<double> > &qg,
                   const super3d::super_res_params &srp)
 {
@@ -229,18 +233,21 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
 
     // apply the linear operator to warp, blur, and downsample
     vil_image_view<double> l_u;
-    warps[f].apply_A(u_bar, l_u);
+    warps[f].apply_A(u, l_u);
     vil_image_view<double> gradient_lu;
     vidtk::forward_gradient(l_u, gradient_lu);
 
-//    char buf[50];
-//    vil_image_view<vxl_byte> output;
-//    sprintf(buf,"images/frame_warp_%03d.png",f);
-//    vil_convert_stretch_range_limited(l_u, output, 0.0, 1.0);
-//    vil_save( output, buf );
-//    sprintf(buf,"images/weights_%03d.png",f);
-//    vil_convert_stretch_range_limited(weights[f], output, 0.0, 1.0);
-//    vil_save( output, buf );
+    if( srp.debug )
+    {
+      char buf[50];
+      vil_image_view<vxl_byte> output;
+      sprintf(buf,"images/frame_warp_%03d.png",f);
+      vil_convert_stretch_range_limited(l_u, output, 0.0, 1.0);
+      vil_save( output, buf );
+      sprintf(buf,"images/weights_%03d.png",f);
+      vil_convert_stretch_range_limited(weights[f], output, 0.0, 1.0);
+      vil_save( output, buf );
+    }
 
     for (unsigned int j = 0; j < nj; j++)
     {
@@ -273,14 +280,76 @@ void dual_step_qg(const vcl_vector<vil_image_view<double> > &gradient_frames,
 }
 
 //*****************************************************************************
+void primal_step_A(const vcl_vector<vil_image_view<double> > &qa,
+                   const vcl_vector<vil_image_view<double> > &qg,
+                   const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                   const vil_image_view<double> &pr,
+                   const vil_image_view<double> &u,
+                   vcl_vector<vil_image_view<double> > &As,
+                   const super_res_params &srp)
+{
+  if( !srp.illumination_prior )
+    return;
 
+  const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
+
+  vil_image_view<double> super_qa(srp.s_ni, srp.s_nj, u.nplanes());
+  vil_image_view<double> super_qay(srp.s_ni, srp.s_nj, u.nplanes());
+
+  for (unsigned int i = 0; i < qa.size(); i++)
+  {
+    vil_image_view<double>& A0 = As[2*i];
+    vil_image_view<double>& A1 = As[2*i+1];
+
+    warps[i].apply_At(qa[i], super_qa);
+
+    if( srp.gradient_data )
+    {
+      vil_image_view<double> super_qg( srp.s_ni, srp.s_nj, u.nplanes() );
+      vil_image_view<double> div;
+      vidtk::backward_divergence(qg[i], div);
+      warps[i].apply_At(div, super_qg);
+      vil_math_add_image_fraction(super_qa, 1.0, super_qg, -1.0);
+    }
+    vil_math_image_product( u, super_qa, super_qay);
+
+    vil_image_view<double> work, buf;
+    vidtk::backward_divergence(pr, work);
+    buf.deep_copy( work );
+
+    vil_math_add_image_fraction(buf, srp.tau, super_qa, -srp.tau * sf_2);
+//    vil_math_image_sum(A0, buf, buf);
+//    vil_math_add_image_fraction( A0, -1.0, buf, 2.0);
+
+    vil_math_add_image_fraction(work, srp.tau, super_qay, -srp.tau * sf_2);
+//    vil_math_image_sum(A1, work, work);
+//    vil_math_add_image_fraction( A1, -1.0, work, 2.0);
+
+    for(unsigned int j=0; j<buf.nj(); j++)
+    {
+      for(unsigned int i=0; i<buf.ni(); i++)
+      {
+        double& a0=A0(i,j);
+        double& a1=A1(i,j);
+        for(unsigned int k=0; k<buf.nplanes(); k++ )
+        {
+          a0 = (a0 + buf(i,j,k)) * 2.0 - a0;
+          a1 = (a1 + work(i,j,k))* 2.0 - a1;
+        }
+      }
+    }
+
+  }
+}
+
+//*****************************************************************************
 void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
                    const vcl_vector<vil_image_view<double> > &qg,
                    const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
                    const vcl_vector<vil_image_view<double> > &weights,
                    const vil_image_view<double> &pr,
                    vil_image_view<double> &u,
-                   vil_image_view<double> &u_bar,
+                   const vcl_vector< vil_image_view<double> > &As,
                    const super3d::super_res_params &srp)
 {
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
@@ -307,8 +376,25 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
     // apply transpose linear operator to upsample, blur, and warp
     vil_image_view<double> weighted_qa;
     vil_math_image_product( qa[i], weights[i], weighted_qa );
-
     warps[i].apply_At(weighted_qa, super_qa);
+
+    if( srp.illumination_prior )
+    {
+//      vil_math_image_product(super_qa, As[2*i+1], super_qa);
+      vil_image_view<double> A1=As[2*i+1];
+      for(unsigned int jj=0; jj<super_qa.nj(); jj++)
+      {
+        for(unsigned int ii=0; ii<super_qa.ni(); ii++)
+        {
+          const double& a1=A1(ii,jj);
+          for(unsigned int kk=0; kk<super_qa.nplanes(); kk++ )
+          {
+            super_qa(ii,jj,kk) *= a1;
+          }
+        }
+      }
+    }
+
     vil_math_image_sum(sum_super_qa, super_qa, sum_super_qa);
   }
 
@@ -325,8 +411,25 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
 
       vil_image_view<double> weighted_qg_div;
       vil_math_image_product( div, weights[i], weighted_qg_div );
-
       warps[i].apply_At( weighted_qg_div, super_qg);
+
+      if( srp.illumination_prior )
+      {
+//        vil_math_image_product(super_qg, As[2*i+1], super_qg);
+        vil_image_view<double> A1=As[2*i+1];
+        for(unsigned int jj=0; jj<super_qg.nj(); jj++)
+        {
+          for(unsigned int ii=0; ii<super_qg.ni(); ii++)
+          {
+            const double& a1=A1(ii,jj);
+            for(unsigned int kk=0; kk<super_qg.nplanes(); kk++ )
+            {
+              super_qg(ii,jj,kk) *= a1;
+            }
+          }
+        }
+      }
+
       vil_math_image_sum(sum_super_qg, super_qg, sum_super_qg);
     }
 
@@ -336,10 +439,9 @@ void primal_step_Y(const vcl_vector<vil_image_view<double> > &qa,
   vil_image_view<double> work;
   vidtk::backward_divergence(pr, work);
   vil_math_add_image_fraction(work, srp.tau, sum_super_qa, -srp.tau * sf_2);
+
   vil_math_image_sum(u, work, work);
-  u_bar.deep_copy(work);
-  vil_math_add_image_fraction(u_bar, 2.0, u, -1.0);
-  vcl_swap(u, work);
+  vil_math_add_image_fraction(u, -1.0, work, 2.0);
 }
 
 } // end anonymous namespace
@@ -387,7 +489,7 @@ void super_resolve_robust(
 
   vcl_vector<vil_image_view<double> > qa(frames.size());
   vcl_vector<vil_image_view<double> > qg(frames.size());
-  vcl_vector<vil_image_view<double> > pl(frames.size());
+  vcl_vector<vil_image_view<double> > pl(frames.size()*2);
   vcl_vector<vil_image_view<double> > weights;
 
   for (unsigned int i = 0; i < frames.size(); i++)
@@ -397,28 +499,49 @@ void super_resolve_robust(
     qa[i].set_size(warps[i].dst_ni(), warps[i].dst_nj(), np);
     qa[i].fill(0.0);
 
-    qg[i].set_size(warps[i].dst_ni(), warps[i].dst_nj(), 2*np);
-    qg[i].fill(0.0);
+    if( srp.gradient_data )
+    {
+      qg[i].set_size(warps[i].dst_ni(), warps[i].dst_nj(), 2*np);
+      qg[i].fill(0.0);
+    }
 
-    pl[i].set_size(srp.s_ni, srp.s_nj, 2*np);
-    pl[i].fill(0.0);
+    unsigned int j=2*i;
+    pl[j].set_size(srp.s_ni, srp.s_nj, 2);
+    pl[j].fill(0.0);
+    ++j;
+    pl[j].set_size(srp.s_ni, srp.s_nj, 2);
+    pl[j].fill(0.0);
 
-    vil_image_view<double> erode;
+    vil_image_view<double> erode, wmap;
     vil_structuring_element element;
-    element.set_to_disk( 3.0 );
-    vil_greyscale_erode( warps[i].weight_map(), erode, element );
+    element.set_to_disk( srp.erosion_radius );
+    if( warps[i].weight_map().nplanes() == 1 )
+    {
+      wmap = warps[i].weight_map();
+    }
+    else
+    {
+      vil_math_mean_over_planes(warps[i].weight_map(), wmap);
+    }
+    vil_greyscale_erode( wmap, erode, element );
     weights.push_back( erode );
-//    weights.push_back(warps[i].weight_map());
+
+    if( srp.illumination_prior )
+    {
+      vil_image_view<double> A0( srp.s_ni, srp.s_nj, 1 );
+      A0.fill(0.0);
+      As.push_back( A0 );
+
+      vil_image_view<double> A1( srp.s_ni, srp.s_nj, 1 );
+      A1.fill(1.0);
+      As.push_back( A1 );
+    }
   }
 
   double ssd;
-  vil_image_view<double> u_bar, last;
-  u_bar.deep_copy(u);
+  vil_image_view<double> last;
   last.deep_copy(u);
   unsigned int i = 0;
-#ifdef DEBUG
-  vil_image_view<vxl_byte> output;
-#endif
 
   switch( srp.tv_method )
   {
@@ -474,18 +597,25 @@ void super_resolve_robust(
     {
     case super3d::super_res_params::IMAGEDATA_IMAGEPRIOR:
       dual_step_pr(u, pr, srp);
-      dual_step_qa(frames, warps, weights, u, qa, srp);
-      primal_step_Y(qa, qg, warps, weights, pr, u, u_bar, srp);
+      dual_step_qa(frames, warps, weights, u, qa, As, srp);
+      primal_step_Y(qa, qg, warps, weights, pr, u, As, srp);
       break;
 
     case super3d::super_res_params::GRADIENTDATA_IMAGEPRIOR:
       dual_step_pr(u, pr, srp);
-      dual_step_qa(frames, warps, weights, u, qa, srp);
+      dual_step_qa(frames, warps, weights, u, qa, As, srp);
       dual_step_qg(frames_gradient, warps, weights, u, qg, srp);
-      primal_step_Y(qa, qg, warps, weights, pr, u, u_bar, srp);
+      primal_step_Y(qa, qg, warps, weights, pr, u, As, srp);
       break;
 
     case super3d::super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
+      dual_step_pr(u, pr, srp);
+      dual_step_pl(As, pl, srp);
+      dual_step_qa(frames, warps, weights, u, qa, As, srp);
+      primal_step_A( qa, qg, warps, pr, u, As, srp );
+      primal_step_Y(qa, qg, warps, weights, pr, u, As, srp);
+      break;
+
     case super3d::super_res_params::IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
     default:
       vcl_cerr << "unknown tv method.\n";
@@ -493,15 +623,14 @@ void super_resolve_robust(
     }
 
     vil_math_value_range(u, minv, maxv);
-#ifdef DEBUG
     if (!(i % 15))
     {
       vil_image_view<double> outd;
+      vil_image_view<vxl_byte> output;
       vil_convert_stretch_range_limited(u, outd, vcl_max(0.0,minv), vcl_min(1.0,maxv), 0.0, 255.0);
       vil_convert_cast(outd, output);
       vil_save(output, output_image.c_str());
     }
-#endif
 
     ssd = vil_math_ssd(last, u, double());
     vcl_cout << " SSD: " << ssd << " " << minv << " " << maxv << "\n";

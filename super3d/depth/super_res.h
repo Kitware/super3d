@@ -56,6 +56,8 @@ struct super_res_params {
     IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR
   } tv_method;
 
+  bool debug;
+  double erosion_radius;
   bool image_data_1, image_data_N, gradient_data, image_prior, illumination_prior;
 
   // 0:huber_norm; 1:truncated_quadratic; 2:generalized_huber

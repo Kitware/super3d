@@ -56,9 +56,6 @@
 #include <vgl/vgl_intersection.h>
 #include <video_transforms/warp_image.h>
 
-//#define DEBUG
-
-
 /// Use the valid region of the flow destinations to crop the frames and translate the flow.
 void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
                              vcl_vector<vil_image_view<double> > &frames,
@@ -104,12 +101,19 @@ void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
 
 int main(int argc, char* argv[])
 {
-  try  {
+  try
+  {
     boost::scoped_ptr<super3d::config> cfg(new super3d::config);
     cfg->read_config(argv[1]);
     vcl_vector<vil_image_view<double> > frames;
     vcl_vector<vpgl_perspective_camera<double> >  cameras;
     vcl_vector<vcl_string> filenames;
+
+    super3d::super_res_params srp;
+    if (cfg->is_set("debug"))
+      srp.debug = cfg->get_value<bool>("debug");
+    else
+      srp.debug = false;
 
     vcl_string camera_file = cfg->get_value<vcl_string>("camera_file");
     vcl_string frame_file = cfg->get_value<vcl_string>("frame_list");
@@ -213,13 +217,14 @@ int main(int argc, char* argv[])
       super3d::depth_map_to_location_map(ref_cam, depth, location_map);
       super3d::viewing_angle_map(ref_cam.camera_center(), location_map, normal_map, ref_angle_map);
 
-#ifdef DEBUG
-      vil_image_view<double> rotated;
-      vil_image_view<vxl_byte> byte_normals;
-      rotate_normal_map(normal_map, ref_cam.get_rotation(), rotated);
-      byte_normal_map(rotated, byte_normals);
-      vil_save(byte_normals, "images/normal_map.png");
-#endif
+      if( srp.debug )
+      {
+        vil_image_view<double> rotated;
+        vil_image_view<vxl_byte> byte_normals;
+        super3d::rotate_normal_map(normal_map, ref_cam.get_rotation(), rotated);
+        super3d::byte_normal_map(rotated, byte_normals);
+        vil_save(byte_normals, "images/normal_map.png");
+      }
 
       for (unsigned int i = 0; i < cameras.size(); i++)
       {
@@ -244,66 +249,67 @@ int main(int argc, char* argv[])
     vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
     create_warps_from_flows(flows, frames, weights, warps, scale_factor, cfg.get());
 
- #ifdef DEBUG
-    for (unsigned int i = 0; i < warps.size(); i++)
+    if ( srp.debug )
     {
-      // test if the DBW operator for image i is adjoint
-      vcl_cout << "is adjoint "<<i<<" "<<warps[i].is_adjoint()<<vcl_endl;
 
-      char buf[50];
-      vil_image_view<vxl_byte> output;
+      for (unsigned int i = 0; i < warps.size(); i++)
+      {
+        // test if the DBW operator for image i is adjoint
+        vcl_cout << "is adjoint "<<i<<" "<<warps[i].is_adjoint()<<vcl_endl;
 
-      // cropped frames
-      sprintf(buf, "images/frames-%03d.png", i);
-      vil_convert_stretch_range_limited(frames[i], output, 0.0, 1.0);
-      vil_save(output, buf);
+        char buf[50];
+        vil_image_view<vxl_byte> output;
 
-      // apply DBW to ground truth super res image to predict frame i
-      vil_image_view<double> gts, pred;
-      vil_convert_stretch_range_limited(gt, gts, 0.0, 255.0, 0.0, 1.0);
-      warps[i].apply_A(gts, pred);
-      vil_convert_stretch_range_limited(pred, output, 0.0, 1.0);
-      sprintf(buf, "images/predicted-%03d.png", i);
-      vil_save(output, buf);
+        // cropped frames
+        sprintf(buf, "images/frames-%03d.png", i);
+        vil_convert_stretch_range_limited(frames[i], output, 0.0, 1.0);
+        vil_save(output, buf);
 
-      // write out the alpha weight map
-      vil_image_view<double> map = warps[i].weight_map();
-      vil_convert_stretch_range_limited(map, output, 0.0, 2.0);
-      sprintf(buf, "images/weight-%03d.png", i);
-      vil_save(output, buf);
+        // apply DBW to ground truth super res image to predict frame i
+        vil_image_view<double> gts, pred;
+        vil_convert_stretch_range_limited(gt, gts, 0.0, 255.0, 0.0, 1.0);
+        warps[i].apply_A(gts, pred);
+        vil_convert_stretch_range_limited(pred, output, 0.0, 1.0);
+        sprintf(buf, "images/predicted-%03d.png", i);
+        vil_save(output, buf);
 
-      // apply DBW alpha map weighting to frame i
-      vil_image_view<double> wframe;
-      vil_math_image_product(frames[i], map, wframe);
-      vil_convert_stretch_range_limited(wframe, output, 0.0, 1.0);
-      sprintf(buf, "images/weighted-frame-%03d.png", i);
-      vil_save(output, buf);
+        // write out the alpha weight map
+        vil_image_view<double> map = warps[i].weight_map();
+        vil_convert_stretch_range_limited(map, output, 0.0, 2.0);
+        sprintf(buf, "images/weight-%03d.png", i);
+        vil_save(output, buf);
 
-      // write weighted difference between prediction and data
-      vil_math_image_difference(wframe, pred, pred);
-      vil_convert_stretch_range_limited(pred, output, -1.0, 1.0);
-      sprintf(buf, "images/predition-error%03d.png", i);
-      vil_save(output, buf);
+        // apply DBW alpha map weighting to frame i
+        vil_image_view<double> wframe;
+        vil_math_image_product(frames[i], map, wframe);
+        vil_convert_stretch_range_limited(wframe, output, 0.0, 1.0);
+        sprintf(buf, "images/weighted-frame-%03d.png", i);
+        vil_save(output, buf);
 
-      // write out the viewing angle based weights
-      vil_convert_stretch_range_limited(weights[i], output, 0.0, 2.0);
-      sprintf(buf, "images/angle-weight-%03d.png", i);
-      vil_save(output, buf);
+        // write weighted difference between prediction and data
+        vil_math_image_difference(wframe, pred, pred);
+        vil_convert_stretch_range_limited(pred, output, -1.0, 1.0);
+        sprintf(buf, "images/predition-error%03d.png", i);
+        vil_save(output, buf);
 
-      // apply DBW inverse to frames
-      vil_image_view<double> register_frames;
-      warps[i].apply_At(frames[i], register_frames);
-      vil_convert_stretch_range_limited(register_frames, output, 0.0, 1.0);
-      sprintf(buf, "images/register-frames-%03d.png", i);
-      vil_save(output, buf);
+        // write out the viewing angle based weights
+        vil_convert_stretch_range_limited(weights[i], output, 0.0, 2.0);
+        sprintf(buf, "images/angle-weight-%03d.png", i);
+        vil_save(output, buf);
+
+        // apply DBW inverse to frames
+        vil_image_view<double> register_frames;
+        warps[i].apply_At(frames[i], register_frames);
+        vil_convert_stretch_range_limited(register_frames, output, 0.0, 1.0);
+        sprintf(buf, "images/register-frames-%03d.png", i);
+        vil_save(output, buf);
+      }
     }
-#endif
 
     vcl_cout << "Computing super resolution\n";
 
     //Initilize super resolution parameters
     vil_image_view<double> super_u;
-    super3d::super_res_params srp;
     srp.scale_factor = scale_factor;
     srp.ref_frame = ref_frame;
     srp.s_ni = warps[ref_frame].src_ni();
@@ -416,6 +422,15 @@ int main(int argc, char* argv[])
     if (cfg->is_set("sigma_Y"))
       srp.sigma_Y = cfg->get_value<double>("sigma_Y");
 
+    if (cfg->is_set("erosion_radius"))
+    {
+      srp.erosion_radius = cfg->get_value<double>("erosion_radius");
+    }
+    else
+    {
+      srp.erosion_radius = 3.0;
+    }
+
     vcl_vector< vil_image_view<double> > As;
     super3d::super_resolve_robust(frames, warps, super_u, srp, iterations, As, output_image);
 
@@ -437,6 +452,18 @@ int main(int argc, char* argv[])
     vil_image_view<vxl_byte> output;
     vil_convert_stretch_range_limited(super_u, output, 0.0, 1.0);
     vil_save(output, output_image.c_str());
+
+    if ( srp.debug )
+    {
+      for (unsigned int i = 0; i < As.size(); i++)
+      {
+        char buf[50];
+        vil_image_view<vxl_byte> output;
+        sprintf(buf, "images/A%d-%03d.png", i%2, i );
+        vil_convert_stretch_range_limited(As[i], output, 0.0, 1.0);
+        vil_save(output, buf);
+      }
+    }
   }
   catch (const super3d::config::cfg_exception &e)  {
     vcl_cout << "Error in config: " << e.what() << "\n";
