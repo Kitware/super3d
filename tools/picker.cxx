@@ -43,8 +43,8 @@
 #include <vtkTextProperty.h>
 #include <vtkObjectFactory.h>
 
-#include "cost_volume.h"
-#include "depth_map.h"
+#include <super3d/depth/cost_volume.h>
+#include <super3d/depth/depth_map.h>
 
 //*****************************************************************************
 
