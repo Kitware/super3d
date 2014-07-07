@@ -96,7 +96,10 @@ void dual_step_pl(const vcl_vector< vil_image_view<double> >&As,
   {
     for(unsigned int i=0; i<As.size(); i++)
     {
-      dual_step_grad_prior(As[i], pl[i], srp.lambda_l, srp.sigma_pl, srp.alpha_l, srp.gamma_l, srp.cost_function);
+      if( (int)(i/2) != srp.ref_frame )
+      {
+        dual_step_grad_prior(As[i], pl[i], srp.lambda_l, srp.sigma_pl, srp.alpha_l, srp.gamma_l, srp.cost_function);
+      }
     }
   }
 }
@@ -139,6 +142,9 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
 
   for (unsigned int f = start_frame; f < start_frame + number_of_frames; f++)
   {
+    if( i == srp.ref_frame )
+      continue;
+
     const unsigned int ni = weights[f].ni();
     const unsigned int nj = weights[f].nj();
 
@@ -147,8 +153,8 @@ void dual_step_qa(const vcl_vector<vil_image_view<double> > &frames,
     if( srp.illumination_prior )
     {
       vil_image_view<double> work(u.ni(),u.nj(),u.nplanes());
-      vil_image_view<double> A0=As[2*f];
-      vil_image_view<double> A1=As[2*f+1];
+      vil_image_view<double>& A0=As[2*f];
+      vil_image_view<double>& A1=As[2*f+1];
       double a,b;
       for(unsigned int j=0; j<u.nj(); j++)
       {
@@ -298,6 +304,10 @@ void primal_step_A(const vcl_vector<vil_image_view<double> > &qa,
 
   for (unsigned int i = 0; i < qa.size(); i++)
   {
+
+    if( i/2 == srp.ref_frame )
+      continue;
+
     vil_image_view<double>& A0 = As[2*i];
     vil_image_view<double>& A1 = As[2*i+1];
 
