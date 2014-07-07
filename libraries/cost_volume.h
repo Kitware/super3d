@@ -79,12 +79,10 @@ vxl_uint_64 compute_census(const vil_image_view<double> &ref, int u, int v);
 unsigned int hamming_distance(vxl_uint_64 l, vxl_uint_64 r);
 
 struct g_census {
-  vxl_uint_64 ones, twos, fours;
+  vxl_uint_64 ori, mag;
 };
 
-g_census compute_g_census(const vil_image_view<double> &grad, int u, int v, double thresh);
-
-unsigned int hamming_distance(const g_census &l, const g_census &r);
+g_census compute_g_census(const vil_image_view<double> &grad, int u, int v);
 
 void save_cost_volume(const vil_image_view<double> &cost_volume,
                       const vil_image_view<double> &g_weight,

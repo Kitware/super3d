@@ -89,9 +89,8 @@ compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
   double denom = 1.0 / (frames.size() - 1.0);
 
   vbl_array_2d<vxl_uint_64> warp_ref_census;
-  //vbl_array_2d<g_census> warp_ref_g_census;
+  vbl_array_2d<g_census> warp_ref_g_census;
 
-  const double g_census_thresh = 1e-4;
   vil_image_view<int> counts(ni, nj, 1);
 
   //Depths
@@ -102,18 +101,18 @@ compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
 
     //Warp ref image to world volume
     ws->warp_image_to_depth(ref, warp_ref, warp_cams[ref_frame], s, ref_frame);
-    if (gradient_weight)
+    //if (gradient_weight)
     {
       vil_sobel_3x3(warp_ref, warp_ref_grad);
     }
     if (census_weight)
     {
-      warp_ref_census.resize(ref.ni(), ref.nj());
-      //warp_ref_g_census.resize(ref.ni(), ref.nj());
+      //warp_ref_census.resize(ref.ni(), ref.nj());
+      warp_ref_g_census.resize(ref.ni(), ref.nj());
       for (unsigned int i = 0; i < warp_ref.ni(); i++) {
         for (unsigned int j = 0; j < warp_ref.nj(); j++) {
-        warp_ref_census(i, j) = compute_census(warp_ref, i, j);
-        //warp_ref_g_census(i, j) = compute_g_census(warp_ref_grad, i, j, g_census_thresh);
+        //warp_ref_census(i, j) = compute_census(warp_ref, i, j);
+        warp_ref_g_census(i, j) = compute_g_census(warp_ref_grad, i, j);
         }
       }
     }
@@ -126,7 +125,7 @@ compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
 
       //Warp frame to world volume
       ws->warp_image_to_depth(frames[f], warp, warp_cams[f], s, f);
-      if (gradient_weight)
+      //if (gradient_weight)
       {
         vil_sobel_3x3(warp, warp_grad);
       }
@@ -143,16 +142,26 @@ compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
           double cost = intesity_weight * Di;
           if (gradient_weight)
           {
-            double Dgx = warp_ref_grad(i,j,0) - warp_grad(i,j,0);
-            double Dgy = warp_ref_grad(i,j,1) - warp_grad(i,j,1);
-            double Dg = sqrt(Dgx*Dgx + Dgy*Dgy);
-            cost += gradient_weight * Dg;
+            vnl_double_2 warp_ref(warp_ref_grad(i,j,0), warp_ref_grad(i,j,1));
+            vnl_double_2 warp(warp_grad(i,j,0), warp_grad(i,j,1));
+            double Dg1 = (warp_ref - warp).two_norm();
+            double Dg2 = (warp_ref + warp).two_norm();
+
+            //double Dgx = warp_ref_grad(i,j,0) - warp_grad(i,j,0);
+            //double Dgy = warp_ref_grad(i,j,1) - warp_grad(i,j,1);
+            //double Dg = sqrt(Dgx*Dgx + Dgy*Dgy);
+            cost += gradient_weight * (Dg1 < Dg2 ? Dg1 : Dg2);
           }
           if (census_weight)
           {
-            double hamming = (double)hamming_distance(compute_census(warp, i, j), warp_ref_census(i,j));
-            //double hamming = (double)hamming_distance(compute_g_census(warp_grad, i, j, g_census_thresh), warp_ref_g_census(i, j));
-            cost += census_weight * hamming/63.0;
+            //double hamming = (double)hamming_distance(compute_census(warp, i, j), warp_ref_census(i,j));
+            //cost += census_weight * hamming/63.0;
+
+            g_census gc = compute_g_census(warp_grad, i, j);
+            //double hamming_mag = (double)hamming_distance(gc.mag, warp_ref_g_census(i, j).mag);
+            double hamming_ori = (double)hamming_distance(gc.ori, warp_ref_g_census(i, j).ori);
+            cost += census_weight * hamming_ori/63.0;
+
             //cost += p(hamming, 30) + p(Di, 10);
           }
           cost_volume(i, j, k) += cost;
@@ -400,10 +409,15 @@ vxl_uint_64 compute_census(const vil_image_view<double> &img, int u, int v)
   int minj = vcl_max(0, v-3);
   int maxi = vcl_min((int)img.ni()-1, u+4);
   int maxj = vcl_min((int)img.nj()-1, v+3);
-  for (int j = minj; j <= maxj; j++)
+  for (int j = v - 3; j <= v + 3; j++)
   {
-    for (int i = mini; i <= maxi; i++)
+    for (int i = u - 4; i <= u + 4; i++)
     {
+      if (i < 0 || i >= img.ni() || j < 0 || j >= img.nj()) {
+        census = census << 1;
+        continue;
+      }
+
       if (img(i,j) <= val)
         census = (census << 1) | 1;
       else
@@ -430,52 +444,40 @@ unsigned int hamming_distance(vxl_uint_64 l, vxl_uint_64 r)
 
 //*****************************************************************************
 
-g_census compute_g_census(const vil_image_view<double> &grad, int u, int v, double thresh)
+g_census compute_g_census(const vil_image_view<double> &grad, int u, int v)
 {
-  const unsigned int n_bins = 16;
   vnl_double_2 center(grad(u,v,0), grad(u,v,1));
   g_census census;
-  census.ones = census.twos = census.fours = 0;
+  census.ori = 0;
+  census.mag = 0;
   for (int j = v - 3; j <= v + 3; j++)
   {
     for (int i = u - 4; i <= u + 4; i++)
     {
       if (i < 0 || i >= grad.ni() || j < 0 || j >= grad.nj()) {
-        census.ones  = census.ones  << 1;
-        census.twos  = census.twos  << 1;
-        census.fours = census.fours << 1;
+        census.ori = census.ori << 1;
+        census.mag = census.mag << 1;
         continue;
       }
 
-      vnl_double_2 vec = vnl_double_2(grad(i,j,0), grad(i,j,1));
-      vec = center - vec;
+      vnl_double_2 neighbor(grad(i,j,0), grad(i,j,1));
+      double angle = fabs(atan2(center[1], center[0]) - atan2(neighbor[1], neighbor[0]));
+      if (angle > vnl_math::pi)
+        angle = fabs(angle - two_pi);
 
-      unsigned char bin = 0;
-      double angle = atan2(vec[1], vec[0]);
-      if (angle < 0.0) angle += two_pi;
-      bin = ((unsigned char)((angle/two_pi) * (double)n_bins));
+      if (center.squared_magnitude() <= neighbor.squared_magnitude())
+        census.mag = (census.mag << 1) | 1;
+      else
+        census.mag = census.mag << 1;
 
-      census.ones  = (census.ones  << 1) | (bin  & 0x1);
-      census.twos  = (census.twos  << 1) | ((bin & 0x2) >> 1);
-      census.fours = (census.fours << 1) | ((bin & 0x4) >> 2);
+      if (angle <= vnl_math::pi_over_2)
+        census.ori = (census.ori << 1) | 1;
+      else
+        census.ori = census.ori << 1;
     }
   }
 
   return census;
-}
-
-//*****************************************************************************
-
-unsigned int hamming_distance(const g_census &l, const g_census &r)
-{
-  vxl_uint_64 n = (l.ones ^ r.ones) | (l.twos ^ r.twos) | (l.fours ^ r.fours);
-  unsigned int count = 0;
-  while (n) {
-     count++;
-     n &= (n - 1);
-  }
-
-  return count;
 }
 
 //*****************************************************************************

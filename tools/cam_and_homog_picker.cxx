@@ -9,6 +9,7 @@
 #include <vul/vul_arg.h>
 #include <vul/vul_file.h>
 
+
 int main(int argc, char *argv[])
 {
   vul_arg<vcl_string> homog_file("-h", "homog file", "");
@@ -126,9 +127,11 @@ int main(int argc, char *argv[])
       cam.set_camera_center(vgl_point_3d<double>(camx, camy, camz));
       cam.set_calibration(K);
 
-      unsigned int found = filename.find_last_of("/\\");
+      std::string::size_type found = filename.find_last_of("/\\");
       if (found != std::string::npos)
-        filename = filename.substr(found+1, filename.size() - 4 - found - 1);
+        filename = filename.substr(found+1, filename.size() - found - 1);
+
+      filename = filename.substr(0, filename.size() - 4);
 
       std::cout << "writing cam: " << directory + "/" + filename + ".krtd\n";
       std::ofstream outfile((directory + "/" + filename + ".krtd").c_str());
@@ -138,6 +141,8 @@ int main(int argc, char *argv[])
 
     unsigned int numpts;
     infile >> numpts;
+    std::string line;
+    std::getline(infile, line);
 
     std::ofstream plyfile((directory + "/model.ply").c_str());
     plyfile << "ply\nformat ascii 1.0\nelement vertex " << numpts << "\n";
@@ -146,13 +151,12 @@ int main(int argc, char *argv[])
 
     for (unsigned int i = 0; i < numpts; i++)
     {
-      std::string line;
       std::getline(infile, line);
 
       std::istringstream sstr(line);
       float x, y, z;
       sstr >> x >> y >> z;
-      plyfile << x << y << z << "\n";
+      plyfile << x << " " << y << " " << z << "\n";
     }
 
     plyfile.close();
