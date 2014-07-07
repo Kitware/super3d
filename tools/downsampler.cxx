@@ -38,7 +38,7 @@
 #include <video_transforms/adjoint_dbw.h>
 #include <video_transforms/adjoint_resample.h>
 
-#include "file_io.h"
+#include <super3d/depth/file_io.h>
 
 int main(int argc, char *argv[])
 {
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
   vcl_vector<vil_image_view<double> > frames;
   vcl_vector<vcl_string> filenames;
   vcl_vector<int> framelist;
-  load_from_frame_file(framefile().c_str(), directory(), filenames, framelist, frames);
+  super3d::load_from_frame_file(framefile().c_str(), directory(), filenames, framelist, frames);
 
   double scale_factor = downsampling();
   double sensor_sigma = 0.25 * sqrt(scale_factor * scale_factor - 1.0);

@@ -26,8 +26,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "tv_refine_search.h"
-#include "cost_volume.h"
+#include <super3d/depth/tv_refine_search.h>
+#include <super3d/depth/cost_volume.h>
 
 // VXL includes
 #include <vil/vil_image_view.h>
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
   vcl_vector<vil_image_view<double> > frames;
   frames.push_back(img1);
   frames.push_back(img2);
-  compute_cost_volume_rectified(frames, 0, S, idepth_min, idepth_max, cost_volume);
+  super3d::compute_cost_volume_rectified(frames, 0, S, idepth_min, idepth_max, cost_volume);
 
   g.set_size(depth.ni(), depth.nj(), 1);
 
@@ -126,12 +126,12 @@ int main(int argc, char* argv[])
     }
   }
 
-  save_cost_volume(cost_volume, g, "cost_volume_stereo.dat");
+  super3d::save_cost_volume(cost_volume, g, "cost_volume_stereo.dat");
 #else
-  load_cost_volume(cost_volume, g, "cost_volume_stereo.dat");
+  super3d::load_cost_volume(cost_volume, g, "cost_volume_stereo.dat");
 #endif
 
-  refine_depth(cost_volume, g, depth, beta, theta0, beta_end, lambda, epsilon);
+  super3d::refine_depth(cost_volume, g, depth, beta, theta0, beta_end, lambda, epsilon);
 
   // convert inverse depths back to depths
   for (unsigned int j = 0; j < depth.nj(); j++) {

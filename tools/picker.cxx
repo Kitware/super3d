@@ -43,8 +43,8 @@
 #include <vtkTextProperty.h>
 #include <vtkObjectFactory.h>
 
-#include "cost_volume.h"
-#include "depth_map.h"
+#include <super3d/depth/cost_volume.h>
+#include <super3d/depth/depth_map.h>
 
 //*****************************************************************************
 
@@ -104,7 +104,7 @@ void Picker::SetUpChart(vtkRenderer *chart_renderer,
   chart_renderer->AddActor(chartActor.GetPointer());
   chartScene->SetRenderer(chart_renderer);
 
-  load_depth(depth, depth_filename);
+  super3d::load_depth(depth, depth_filename);
 }
 
 //*****************************************************************************
@@ -121,7 +121,7 @@ void Picker::UpdateChart(unsigned int picked)
   vcl_cout << i << " " << j << "\n";
 
   vnl_vector<double> values;
-  read_cost_volume_at(costvol, dims, i, j, values);
+  super3d::read_cost_volume_at(costvol, dims, i, j, values);
 
   vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
   vtkSmartPointer<vtkFloatArray> arrD = vtkSmartPointer<vtkFloatArray>::New();

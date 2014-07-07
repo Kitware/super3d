@@ -39,7 +39,7 @@
 
 #include <vul/vul_arg.h>
 
-#include "depth_cl/dual_rof.h"
+#include <super3d/depth_cl/dual_rof.h>
 
 const char *print_cl_errstring(cl_int err);
 
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
   vil_image_view<float> g(img.ni(), img.nj());
   g.fill(1.0f);
 
-  dual_rof_t rof = NEW_VISCL_TASK(dual_rof);
+  super3d::cl::dual_rof_t rof = NEW_VISCL_TASK(super3d::cl::dual_rof);
   rof->denoise(img, out_img, g, 20000, 200.0f, .25, 0.01f);
 
   float min, max;
@@ -79,5 +79,5 @@ int main(int argc, char *argv[])
 
   vil_save(out_byte, output_image().c_str());
 
-   return 0;
+  return 0;
 }

@@ -26,8 +26,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "super_config.h"
-#include "super_res.h"
+#include <super3d/depth/super_config.h>
+#include <super3d/depth/super_res.h>
+#include <super3d/depth/resample.h>
 
 #include <video_transforms/adjoint_dbw.h>
 #include <video_transforms/adjoint_flow_warp.h>
@@ -41,15 +42,14 @@
 #include <vil/vil_math.h>
 #include <vil/vil_convert.h>
 
-#include "resample.h"
 
 #define DEBUG
 
 vcl_vector<vidtk::adjoint_image_ops_func<double> >
-create_warps_simple(int sni, int snj, int scale_factor, config *cfg);
+create_warps_simple(int sni, int snj, int scale_factor, super3d::config *cfg);
 
 vcl_vector<vidtk::adjoint_image_ops_func<double> >
-create_warps(int sni, int snj, int scale_factor, config *cfg);
+create_warps(int sni, int snj, int scale_factor, super3d::config *cfg);
 
 void create_downsampled_frames(const vil_image_view<double> &high_res,
                                const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
@@ -60,7 +60,7 @@ void create_downsampled_frames(const vil_image_view<double> &high_res,
 int main(int argc, char* argv[])
 {
   try  {
-    boost::scoped_ptr<config> cfg(new config);
+    boost::scoped_ptr<super3d::config> cfg(new super3d::config);
     cfg->read_config(argv[1]);
     double scale_factor = cfg->get_value<double>("scale_factor");
     vcl_string img_name = cfg->get_value<vcl_string>("single_frame");
@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
 
     vcl_cout << "Computing super resolution\n";
     vil_image_view<double> super_u;
-    super_res_params srp;
+    super3d::super_res_params srp;
     srp.scale_factor = scale_factor;
     srp.ref_frame = ref_frame;
     srp.s_ni = img.ni();
@@ -124,13 +124,13 @@ int main(int argc, char* argv[])
     vcl_string output_image = cfg->get_value<vcl_string>("output_image");
     super_resolve(frames, warps, super_u, srp, iterations, output_image);
 
-    compare_to_original(frames[ref_frame], super_u, img, scale_factor);
+    super3d::compare_to_original(frames[ref_frame], super_u, img, scale_factor);
 
     vil_image_view<vxl_byte> output;
     vil_convert_stretch_range_limited(super_u, output, 0.0, 1.0);
     vil_save(output, output_image.c_str());
   }
-  catch (const config::cfg_exception &e)  {
+  catch (const super3d::config::cfg_exception &e)  {
     vcl_cout << "Error in config: " << e.what() << "\n";
   }
 
@@ -140,9 +140,9 @@ int main(int argc, char* argv[])
 //*****************************************************************************
 
 vcl_vector<vidtk::adjoint_image_ops_func<double> >
-create_warps_simple(int sni, int snj, int scale_factor, config *cfg)
+create_warps_simple(int sni, int snj, int scale_factor, super3d::config *cfg)
 {
-  int num_imgs = scale_factor * scale_factor;
+  //int num_imgs = scale_factor * scale_factor;
   int dni = sni / scale_factor;
   int dnj = snj / scale_factor;
   bool down_sample_averaging = cfg->get_value<bool>("down_sample_averaging");
@@ -152,9 +152,9 @@ create_warps_simple(int sni, int snj, int scale_factor, config *cfg)
   typedef vidtk::adjoint_image_ops_func<double>::func_t func_t;
   vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
 
-  for (unsigned int i = 0; i < scale_factor; i++)
+  for (unsigned int i = 0; i < static_cast<unsigned int>(scale_factor); i++)
   {
-    for (unsigned int j = 0; j < scale_factor; j++)
+    for (unsigned int j = 0; j < static_cast<unsigned int>(scale_factor); j++)
     {
       vil_image_view<double> flow(sni, snj, 2);
       vil_plane<double>(flow, 0).fill(static_cast<double>(i));
@@ -171,7 +171,7 @@ create_warps_simple(int sni, int snj, int scale_factor, config *cfg)
 //*****************************************************************************
 
 vcl_vector<vidtk::adjoint_image_ops_func<double> >
-create_warps(int sni, int snj, int scale_factor, config *cfg)
+create_warps(int sni, int snj, int scale_factor, super3d::config *cfg)
 {
   int dni = sni / scale_factor;
   int dnj = snj / scale_factor;

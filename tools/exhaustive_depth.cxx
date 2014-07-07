@@ -26,21 +26,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "super_config.h"
+#include <super3d/depth/super_config.h>
 
-#include "tv_refine_search.h"
-#include "cost_volume.h"
+#include <super3d/depth/tv_refine_search.h>
+#include <super3d/depth/cost_volume.h>
 
-#include "file_io.h"
-#include "depth_map.h"
-#include "multiscale.h"
-#include "tv_refine_plane.h"
-#include "world_rectilinear.h"
-#include "world_frustum.h"
+#include <super3d/depth/file_io.h>
+#include <super3d/depth/depth_map.h>
+#include <super3d/depth/multiscale.h>
+#include <super3d/depth/tv_refine_plane.h>
+#include <super3d/depth/world_rectilinear.h>
+#include <super3d/depth/world_frustum.h>
+#include <super3d/depth/exposure.h>
 
 #include <boost/scoped_ptr.hpp>
 
-#include "exposure.h"
 
 // VXL includes
 #include <vil/vil_convert.h>
@@ -49,11 +49,11 @@
 #include <vil/vil_load.h>
 #include <vil/vil_copy.h>
 #include <vil/vil_decimate.h>
-#include <imesh/imesh_mesh.h>
-#include <imesh/imesh_fileio.h>
+#include <super3d/imesh/imesh_mesh.h>
+#include <super3d/imesh/imesh_fileio.h>
 
 #ifdef HAVE_VISCL
-#include "depth_cl/refine_depth.h"
+#include <super3d/depth_cl/refine_depth.h>
 #endif
 
 #include <boost/chrono.hpp>
@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 {
   try
   {
-    boost::scoped_ptr<config> cfg(new config);
+    boost::scoped_ptr<super3d::config> cfg(new super3d::config);
     cfg->read_config(argv[1]);
 
 #ifndef HAVE_VISCL
@@ -87,10 +87,10 @@ int main(int argc, char* argv[])
     vul_sequence_filename_map frame_seq(cfg->get_value<vcl_string>("frame_format"));
 
     //Read Cameras
-    cameras = load_cams(camera_file, frame_seq);
+    cameras = super3d::load_cams(camera_file, frame_seq);
 
     //Read Images
-    frames = load_frames(frame_seq, filenames);
+    frames = super3d::load_frames(frame_seq, filenames);
     if (frames.empty())
     {
       vcl_cerr << "No frames found"<<vcl_endl;
@@ -106,10 +106,10 @@ int main(int argc, char* argv[])
     if (cfg->is_set("exposure_file"))
     {
       vcl_vector<vcl_pair<double, double> > exposures;
-      exposures = load_exposure(cfg->get_value<vcl_string>("exposure_file"), frame_seq);
+      exposures = super3d::load_exposure(cfg->get_value<vcl_string>("exposure_file"), frame_seq);
 
       for (unsigned int i = 0; i < frames.size(); i++)
-        apply_exposure_correction(frames[i], exposures[i]);
+        super3d::apply_exposure_correction(frames[i], exposures[i]);
     }
   }
   else if (cfg->is_set("frame_list"))
@@ -118,14 +118,14 @@ int main(int argc, char* argv[])
     vcl_string dir = cfg->get_value<vcl_string>("directory");
     vcl_cout << "Using frame file: " << frame_file << " to find images and " << camera_file  << " to find cameras.\n";
     vcl_vector<int> frameindex;
-    load_from_frame_file(frame_file.c_str(), camera_file.c_str(), dir, filenames, frameindex, frames, cameras);
+    super3d::load_from_frame_file(frame_file.c_str(), camera_file.c_str(), dir, filenames, frameindex, frames, cameras);
     if (cfg->is_set("exposure_file"))
     {
       vcl_vector<vcl_pair<double, double> > exposures;
-      exposures = load_exposure(cfg->get_value<vcl_string>("exposure_file"), frameindex);
+      exposures = super3d::load_exposure(cfg->get_value<vcl_string>("exposure_file"), frameindex);
 
       for (unsigned int i = 0; i < frames.size(); i++)
-        apply_exposure_correction(frames[i], exposures[i]);
+        super3d::apply_exposure_correction(frames[i], exposures[i]);
     }
   }
   else
@@ -143,14 +143,14 @@ int main(int argc, char* argv[])
   unsigned int ref_frame = cfg->get_value<unsigned int>("ref_frame");
   vpgl_perspective_camera<double> ref_cam = cameras[ref_frame];
 
-  world_space *ws = NULL;
+  super3d::world_space *ws = NULL;
   int i0, ni, j0, nj;
   double depth_min, depth_max;
 
   if (cfg->is_set("landmarks_path"))
   {
     vcl_cout << "Computing depth range from " << cfg->get_value<vcl_string>("landmarks_path") << "\n";
-    compute_depth_range(cameras[ref_frame], cfg->get_value<vcl_string>("landmarks_path"), depth_min, depth_max);
+    super3d::compute_depth_range(cameras[ref_frame], cfg->get_value<vcl_string>("landmarks_path"), depth_min, depth_max);
     vcl_cout << "Max estimated depth: " << depth_max << "\n";
     vcl_cout << "Min estimated depth: " << depth_min << "\n";
   }
@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
     for (unsigned int i = 0; i < 3; i++)  wvstream >> origin[i];
     for (unsigned int i = 0; i < 3; i++)  wvstream >> dimensions[i];
     wvstream >> ni >> nj;
-    ws = new world_rectilinear(origin, dimensions, ni, nj);
+    ws = new super3d::world_rectilinear(origin, dimensions, ni, nj);
   }
   else
   {
@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
     {
       camera_scale = cfg->get_value<double>("camera_scale");
       for (unsigned int i = 0; i < cameras.size(); i++)
-        cameras[i] = scale_camera(cameras[i], camera_scale);
+        cameras[i] = super3d::scale_camera(cameras[i], camera_scale);
     }
     //Compute the window cropping, scale the cropping by the specified scale so that we do not
     //need to recompute cropping input for super resolution.
@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
       nj = (int)(nj*camera_scale);
       vcl_cout << "Crop window: " << i0 << " " << ni << " " << j0 << " " << nj << "\n";
       frames[ref_frame] = vil_crop(frames[ref_frame], i0, ni, j0, nj);
-      cameras[ref_frame] = crop_camera(cameras[ref_frame], i0, j0);
+      cameras[ref_frame] = super3d::crop_camera(cameras[ref_frame], i0, j0);
     }
     else
     {
@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
       nj = frames[ref_frame].nj();
     }
 
-    ws = new world_frustum(cameras[ref_frame], depth_min, depth_max, ni, nj);
+    ws = new super3d::world_frustum(cameras[ref_frame], depth_min, depth_max, ni, nj);
   }
 
   vcl_cout << "Refining depth"<<vcl_endl;
@@ -221,14 +221,14 @@ int main(int argc, char* argv[])
     double iw = cfg->get_value<double>("intensity_cost_weight");
     double gw = cfg->get_value<double>("gradient_cost_weight");
     double cw = cfg->get_value<double>("census_cost_weight");
-    compute_world_cost_volume(frames, cameras, ws, ref_frame, S, cost_volume, iw, gw, cw);
+    super3d::compute_world_cost_volume(frames, cameras, ws, ref_frame, S, cost_volume, iw, gw, cw);
     //compute_cost_volume_warp(frames, cameras, ref_frame, S, depth_min, depth_max, cost_volume);
     ws->compute_g(frames[ref_frame], g, gw_alpha, 1.0);
 
     if(cfg->is_set("cost_volume_file"))
     {
       vcl_string cost_file = cfg->get_value<vcl_string>("cost_volume_file");
-      save_cost_volume(cost_volume, g, cost_file.c_str());
+      super3d::save_cost_volume(cost_volume, g, cost_file.c_str());
     }
   }
   else if (cfg->is_set("cost_volume_file"))
@@ -244,15 +244,15 @@ int main(int argc, char* argv[])
       vcl_string ext = cost_file.substr(pos);
       vcl_string basename = cost_file.substr(0, pos);
       vil_image_view<double> tmp;
-      load_cost_volume(cost_volume, g, (basename+"_intensity"+ext).c_str());
-      load_cost_volume(tmp, g, (basename+"_gradient"+ext).c_str());
+      super3d::load_cost_volume(cost_volume, g, (basename+"_intensity"+ext).c_str());
+      super3d::load_cost_volume(tmp, g, (basename+"_gradient"+ext).c_str());
       vil_math_add_image_fraction(cost_volume, iw, tmp, gw);
-      load_cost_volume(tmp, g, (basename+"_census"+ext).c_str());
+      super3d::load_cost_volume(tmp, g, (basename+"_census"+ext).c_str());
       vil_math_add_image_fraction(cost_volume, 1.0, tmp, cw);
     }
     else
     {
-      load_cost_volume(cost_volume, g, cost_file.c_str());
+      super3d::load_cost_volume(cost_volume, g, cost_file.c_str());
     }
   }
   else
@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
     if (cfg->is_set("use_gpu") &&
         cfg->get_value<bool>("use_gpu") )
     {
-      refine_depth_cl_t rd = NEW_VISCL_TASK(refine_depth_cl);
+      super3d::cl::refine_depth_cl_t rd = NEW_VISCL_TASK(super3d::cl::refine_depth_cl);
       vil_image_view<float> depth_f(cost_volume.ni(), cost_volume.nj(), 1);
       vil_image_view<float> cv_f(cost_volume.ni(), cost_volume.nj(), 1, cost_volume.nplanes());
       vil_image_view<float> g_f;
@@ -298,20 +298,20 @@ int main(int argc, char* argv[])
     {
       boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
       unsigned int iterations = cfg->get_value<double>("iterations");
-      refine_depth(cost_volume, g, depth, iterations, theta0, theta_end, lambda, epsilon);
+      super3d::refine_depth(cost_volume, g, depth, iterations, theta0, theta_end, lambda, epsilon);
       boost::chrono::duration<double> sec = boost::chrono::system_clock::now() - start;
       vcl_cout << "super3d took " << sec.count() << " seconds.\n";
     }
     if(cfg->is_set("init_depthmap_file"))
     {
       vcl_string depthmap_file = cfg->get_value<vcl_string>("init_depthmap_file");
-      save_depth(depth, depthmap_file.c_str());
+      super3d::save_depth(depth, depthmap_file.c_str());
     }
   }
   else if (cfg->is_set("init_depthmap_file"))
   {
     vcl_string depthmap_file = cfg->get_value<vcl_string>("init_depthmap_file");
-    load_depth(depth, depthmap_file.c_str());
+    super3d::load_depth(depth, depthmap_file.c_str());
   }
   else
   {
@@ -322,7 +322,7 @@ int main(int argc, char* argv[])
 
   //refine_depth_planar(ws, depth, g, frames[ref_frame], 1, 0.25);
   //refine_depth_planar(cost_volume, ws, depth, g, frames[ref_frame], beta, theta0, theta_end, lambda);
-  save_depth(depth, "depth_map_normals.dat");
+  super3d::save_depth(depth, "depth_map_normals.dat");
 
 #else
   bp_refine(cost_volume, depth_min, depth_max, depth);    //TODO: need to check if this works after idepth->depth change
@@ -360,8 +360,8 @@ int main(int argc, char* argv[])
   if (cfg->is_set("obj_file"))
   {
     double output_decimate = 1.0;
-    imesh_mesh nm = depth_map_to_mesh(scale_camera(cameras[ref_frame], 1.0/output_decimate),
-                                      vil_decimate(depth,output_decimate));
+    imesh_mesh nm = super3d::depth_map_to_mesh(super3d::scale_camera(cameras[ref_frame], 1.0/output_decimate),
+                                               vil_decimate(depth,output_decimate));
     imesh_write_obj(cfg->get_value<vcl_string>("obj_file"), nm);
   }
 
@@ -384,14 +384,14 @@ int main(int argc, char* argv[])
     vil_save(diff_byte, "diff.png");
 
     double threshold = depth_scale / S;
-    score_vs_gt(depth, gt, threshold);
-    vcl_cout << "cost of estimated depth: " << eval_hessian_frob(depth, cost_volume, lambda) << "\n";
-    vcl_cout << "cost of gt depth: " << eval_hessian_frob(gt, cost_volume, lambda) << "\n";
+    super3d::score_vs_gt(depth, gt, threshold);
+    vcl_cout << "cost of estimated depth: " << super3d::eval_hessian_frob(depth, cost_volume, lambda) << "\n";
+    vcl_cout << "cost of gt depth: " << super3d::eval_hessian_frob(gt, cost_volume, lambda) << "\n";
   }
 
   if (ws) delete ws;
 
-  } catch (const config::cfg_exception &e)
+  } catch (const super3d::config::cfg_exception &e)
   {
     vcl_cout << "Error in config: " << e.what() << "\n";
   }
