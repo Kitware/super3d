@@ -267,7 +267,7 @@ int main(int argc, char* argv[])
 
         // apply DBW to ground truth super res image to predict frame i
         vil_image_view<double> pred;
-        if (cfg->is_set("gronund_truth"))
+        if (cfg->is_set("ground_truth"))
         {
           vil_image_view<double> gts;
           vil_convert_stretch_range_limited(gt, gts, 0.0, 255.0, 0.0, 1.0);

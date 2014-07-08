@@ -248,6 +248,7 @@ void dual_step_qg(
     vil_image_view<double> gradient_lu;
     vidtk::forward_gradient(l_u, gradient_lu);
 
+    /*
     if( srp.debug )
     {
       char buf[50];
@@ -259,6 +260,7 @@ void dual_step_qg(
       vil_convert_stretch_range_limited(weights[f], output, 0.0, 1.0);
       vil_save( output, buf );
     }
+    */
 
     for (unsigned int j = 0; j < nj; j++)
     {
@@ -308,6 +310,8 @@ void primal_step_A(
   vil_image_view<double> super_qa(srp.s_ni, srp.s_nj, u.nplanes());
   vil_image_view<double> super_qay(srp.s_ni, srp.s_nj, u.nplanes());
 
+  double scale = srp.tau;  //  * 0.5;
+
   for (unsigned int i = 0; i < qa.size(); i++)
   {
 
@@ -327,11 +331,11 @@ void primal_step_A(
     vidtk::backward_divergence(pl[i], work);
     buf.deep_copy( work );
 
-    vil_math_add_image_fraction(buf, srp.tau, super_qa, -srp.tau * sf_2);
+    vil_math_add_image_fraction(buf, scale, super_qa, -scale * sf_2);
     vil_math_image_sum(A0, buf, buf);
     vil_math_add_image_fraction( A0, -1.0, buf, 2.0);
 
-    vil_math_add_image_fraction(work, srp.tau, super_qay, -srp.tau * sf_2);
+    vil_math_add_image_fraction(work, scale, super_qay, -scale * sf_2);
     vil_math_image_sum(A1, work, work);
     vil_math_add_image_fraction( A1, -1.0, work, 2.0);
 
@@ -647,6 +651,30 @@ void super_resolve_robust(
       vil_convert_stretch_range_limited(u, outd, vcl_max(0.0,minv), vcl_min(1.0,maxv), 0.0, 255.0);
       vil_convert_cast(outd, output);
       vil_save(output, output_image.c_str());
+
+      if( srp.debug )
+      {
+        char buf[50];
+        for (unsigned int f = 0; f < warps.size(); f++)
+        {
+          sprintf(buf,"images/frame_warp_%03d.png",f);
+          vil_image_view<double> l_u;
+          warps[f].apply_A(u, l_u);
+          vil_convert_stretch_range_limited(l_u, output, 0.0, 1.0);
+          vil_save( output, buf );
+
+          if( srp.illumination_prior )
+          {
+            vil_convert_stretch_range_limited(As[2*f], output, 0.0, 1.0);
+            sprintf(buf, "images/A0-%03d.png", f);
+            vil_save( output, buf );
+
+            vil_convert_stretch_range_limited(As[2*f+1], output, 0.0, 1.0);
+            sprintf(buf, "images/A1-%03d.png", f);
+            vil_save( output, buf );
+          }
+        }
+      }
     }
 
     ssd = vil_math_ssd(last, u, double());
