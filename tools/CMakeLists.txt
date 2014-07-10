@@ -133,6 +133,12 @@ endif()
 super3d_add_executable(ply2pts ply2pts.cxx)
 
 #
+# Extract RPC models from NITF file
+#
+super3d_add_executable(extract_nitf_rpc extract_nitf_rpc.cxx)
+target_link_libraries(extract_nitf_rpc vpgl_file_formats)
+
+#
 # Depth from Flow
 #
 super3d_add_executable(depth_from_flow depth_from_flow.cxx)
