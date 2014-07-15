@@ -17,6 +17,8 @@
 #include <vil/vil_convert.h>
 #include <vil/algo/vil_greyscale_erode.h>
 #include <vil/vil_resample_bicub.txx>
+#include <video_transforms/warp_image.h>
+
 VIL_RESAMPLE_BICUB_INSTANTIATE( double , double );
 
 namespace super3d
@@ -454,7 +456,21 @@ void super_resolve_robust(
   vil_image_view<double> Yref;
   if( srp.illumination_prior )
   {
-    vil_resample_bicub( frames[srp.ref_frame], Yref, srp.s_ni, srp.s_nj );
+//    vil_resample_bicub( frames[srp.ref_frame], Yref, srp.s_ni, srp.s_nj );
+
+    vidtk::warp_image_parameters wip;
+    wip.set_fill_unmapped(true);
+    wip.set_unmapped_value(-1.0);
+    wip.set_interpolator(vidtk::warp_image_parameters::CUBIC);
+
+    vnl_double_3x3 Sinv;
+    Sinv.set_identity();
+    Sinv(0,0) = 1.0/srp.scale_factor;
+    Sinv(1,1) = 1.0/srp.scale_factor;
+
+    Yref.set_size(srp.s_ni, srp.s_nj, frames[srp.ref_frame].nplanes());
+    vidtk::warp_image(frames[srp.ref_frame], Yref, Sinv, wip);
+
     if( srp.debug )
     {
       vil_image_view<vxl_byte> output;
@@ -591,7 +607,7 @@ void super_resolve_robust(
 
           if( srp.illumination_prior )
           {
-            vil_convert_stretch_range_limited(As[2*f], output, 0.0, 1.0);
+            vil_convert_stretch_range_limited(As[2*f], output, -1.0, 1.0);
             sprintf(buf, "images/A0-%03d.png", f);
             vil_save( output, buf );
 
@@ -610,7 +626,7 @@ void super_resolve_robust(
             vil_save( output, buf );
 
             sprintf(buf, "images/qa_%03d.png", f );
-            vil_convert_stretch_range_limited(qa[f], output, 0.0, 1.0);
+            vil_convert_stretch_range_limited(qa[f], output, -0.5, 0.5);
             vil_save( output, buf );
           }
         }

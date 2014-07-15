@@ -460,14 +460,14 @@ int main(int argc, char* argv[])
     vil_convert_stretch_range_limited(super_u, output, 0.0, 1.0);
     vil_save(output, output_image.c_str());
 
-    if ( srp.debug )
+    if( srp.illumination_prior )
     {
       for (unsigned int i = 0; i < As.size(); i++)
       {
         char buf[50];
         vil_image_view<vxl_byte> output;
-        sprintf(buf, "images/A%d-%03d.png", i%2, i );
-        vil_convert_stretch_range_limited(As[i], output, 0.0, 1.0);
+        sprintf(buf, "A%d-%03d.png", i%2, i/2 );
+        vil_convert_stretch_range_limited(As[i], output, -1.0, 1.0);
         vil_save(output, buf);
       }
     }
