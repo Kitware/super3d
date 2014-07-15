@@ -438,6 +438,15 @@ int main(int argc, char* argv[])
       srp.erosion_radius = 3.0;
     }
 
+    if (cfg->is_set("frame_step"))
+    {
+      srp.frame_step = cfg->get_value<int>("frame_step");
+    }
+    else
+    {
+      srp.frame_step = 15;
+    }
+
     vcl_vector< vil_image_view<double> > As;
     super3d::super_resolve_robust(frames, warps, super_u, srp, iterations, As, output_image);
 

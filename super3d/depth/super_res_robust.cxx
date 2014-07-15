@@ -283,6 +283,7 @@ void primal_step_A(
     if( i == srp.ref_frame )
       continue;
 
+    unsigned int i2=i*2;
     vil_image_view<double> super_qa(qa[i].ni(), qa[i].nj(), qa[i].nplanes());
     vil_image_view<double> super_qay(qa[i].ni(), qa[i].nj(), qa[i].nplanes());
 
@@ -290,11 +291,12 @@ void primal_step_A(
     vil_math_image_product( super_qa, frames[i], super_qay );
 
     vil_image_view<double> work;
-    vidtk::backward_divergence(pl[i*2], work);
+    vidtk::backward_divergence(pl[i2], work);
     vil_math_add_image_fraction(work, scale, super_qa, scale * sf_2);
-    vil_image_view<double>& A0 = As[2*i];
-    vil_math_image_sum(A0, work, work);
-    vil_math_add_image_fraction( A0, -1.0, work, 2.0);
+    vil_image_view<double>& A0 = As[i2];
+    vil_math_image_sum(A0, work, A0);
+//    vil_math_image_sum(A0, work, work);
+//    vil_math_add_image_fraction( A0, -1.0, work, 2.0);
 
     // intensity scaling
 //    vidtk::backward_divergence(pl[i*2+1], work);
@@ -586,7 +588,7 @@ void super_resolve_robust(
     }
 
     vil_math_value_range(u, minv, maxv);
-    if (!(i % 15))
+    if (!(i % srp.frame_step))
     {
       vil_image_view<double> outd;
       vil_image_view<vxl_byte> output;
