@@ -438,6 +438,15 @@ int main(int argc, char* argv[])
       srp.erosion_radius = 3.0;
     }
 
+    if (cfg->is_set("median_radius"))
+    {
+      srp.median_radius = cfg->get_value<double>("median_radius");
+    }
+    else
+    {
+      srp.median_radius = 3.0;
+    }
+
     if (cfg->is_set("frame_step"))
     {
       srp.frame_step = cfg->get_value<int>("frame_step");

@@ -16,6 +16,7 @@
 #include <vil/vil_resample_bicub.h>
 #include <vil/vil_convert.h>
 #include <vil/algo/vil_greyscale_erode.h>
+#include <vil/algo/vil_median.h>
 #include <vil/vil_resample_bicub.txx>
 #include <video_transforms/warp_image.h>
 
@@ -165,6 +166,47 @@ void dual_step_qa(
     {
       low_res_frame = frames[f];
     }
+//    const vil_image_view<double>& asf = As[2*f];
+
+    /*
+    for (unsigned int j = 0; j < nj; j++)
+    {
+      for (unsigned int i = 0; i < ni; i++)
+      {
+        double val = srp.sigma_qa * sf_2 * weights[f](i,j);
+
+        double diff_average=0.0;
+        for (unsigned int k = 0; k < l_u.nplanes(); k++)
+        {
+//          double diff = l_u(i, j, k) - low_res_frame(i, j, k);
+          double diff = l_u(i, j, k) - frames[f](i, j, k);
+          if( srp.illumination_prior )
+          {
+            diff -= asf(i,j);
+          }
+
+          switch( srp.cost_function )
+          {
+          case super3d::super_res_params::HUBER_NORM:
+            break;
+          case super3d::super_res_params::TRUNCATED_QUADRATIC:
+            diff = rho_truncated_quadratic(diff, srp.alpha_a, srp.gamma_a);
+            break;
+          case super3d::super_res_params::GENERALIZED_HUBER:
+            diff = rho_generalized_huber(diff, srp.alpha_a, srp.beta_a,  srp.gamma_a);
+            break;
+          }
+          diff_average += diff;
+        }
+        diff_average /= (double) l_u.nplanes();
+
+        double &qfijk = qa[f](i, j);
+        qfijk = (qfijk +  diff_average * val)/denom;
+        qfijk = vcl_max(qfijk, -sf_2);
+        qfijk = vcl_min(qfijk, sf_2);
+      }
+    }
+    */
 
     for (unsigned int j = 0; j < nj; j++)
     {
@@ -173,9 +215,8 @@ void dual_step_qa(
         double val = srp.sigma_qa * sf_2 * weights[f](i,j);
         for (unsigned int k = 0; k < qa[f].nplanes(); k++)
         {
-          double &qfijk = qa[f](i, j, k);
-
           double diff = l_u(i, j, k) - low_res_frame(i, j, k);
+
           switch( srp.cost_function )
           {
           case super3d::super_res_params::HUBER_NORM:
@@ -188,6 +229,7 @@ void dual_step_qa(
             break;
           }
 
+          double &qfijk = qa[f](i, j, k);
           qfijk = (qfijk +  diff * val)/denom;
           qfijk = vcl_max(qfijk, -sf_2);
           qfijk = vcl_min(qfijk, sf_2);
@@ -288,7 +330,7 @@ void primal_step_A(
     vil_image_view<double> super_qay(qa[i].ni(), qa[i].nj(), qa[i].nplanes());
 
     vil_math_image_product( qa[i], weights[i], super_qa );
-    vil_math_image_product( super_qa, frames[i], super_qay );
+//    vil_math_image_product( super_qa, frames[i], super_qay );
 
     vil_image_view<double> work;
     vidtk::backward_divergence(pl[i2], work);
@@ -322,7 +364,7 @@ void primal_step_Y(
   vil_image_view<double> sum_super_qa(srp.s_ni, srp.s_nj, u.nplanes());
   sum_super_qa.fill(0.0);
 
-  vil_image_view<double> super_qa(srp.s_ni, srp.s_nj, u.nplanes());
+  vil_image_view<double> super_qa(srp.s_ni, srp.s_nj, 1);
 
   unsigned number_of_frames=0;
   unsigned start_frame=0;
@@ -368,8 +410,9 @@ void primal_step_Y(
   vidtk::backward_divergence(pr, work);
   vil_math_add_image_fraction(work, srp.tau, sum_super_qa, -srp.tau * sf_2);
 
-  vil_math_image_sum(u, work, work);
-  vil_math_add_image_fraction(u, -1.0, work, 2.0);
+  vil_math_image_sum(u, work, u);
+//  vil_math_image_sum(u, work, work);
+//  vil_math_add_image_fraction(u, -1.0, work, 2.0);
 }
 
 } // end anonymous namespace
@@ -455,7 +498,9 @@ void super_resolve_robust(
   vcl_vector<vil_image_view<double> > pl(frames.size()*2);
   vcl_vector<vil_image_view<double> > weights;
 
-  vil_image_view<double> Yref;
+  vil_image_view<double> Yref, Yref_median;
+  vcl_vector<vil_image_view<double> > frames_median;
+
   if( srp.illumination_prior )
   {
 //    vil_resample_bicub( frames[srp.ref_frame], Yref, srp.s_ni, srp.s_nj );
@@ -471,13 +516,38 @@ void super_resolve_robust(
     Sinv(1,1) = 1.0/srp.scale_factor;
 
     Yref.set_size(srp.s_ni, srp.s_nj, frames[srp.ref_frame].nplanes());
+//    vil_image_view<double> im_gray;
+//    if( frames[srp.ref_frame].nplanes() == 1 )
+//    {
+//      im_gray = frames[srp.ref_frame];
+//    }
+//    else
+//    {
+//      vil_convert_planes_to_grey( frames[srp.ref_frame], im_gray );
+//    }
+//    vidtk::warp_image(im_gray, Yref, Sinv, wip);
     vidtk::warp_image(frames[srp.ref_frame], Yref, Sinv, wip);
+
+    vil_structuring_element median_element;
+    median_element.set_to_disk( srp.median_radius * srp.scale_factor );
+    Yref_median.set_size( Yref.ni(), Yref.nj(), Yref.nplanes() );
+    for( unsigned i=0; i<Yref.nplanes(); i++ )
+    {
+      vil_image_view<double> Yref_plane = vil_plane( Yref, i );
+      vil_image_view<double> Yref_median_plane = vil_plane( Yref_median, i );
+      vil_median(Yref_plane, Yref_median_plane, median_element );
+//      vil_median(Yref, Yref_median, median_element );
+    }
 
     if( srp.debug )
     {
       vil_image_view<vxl_byte> output;
       vil_convert_stretch_range_limited(Yref, output, 0.0, 1.0);
       vil_save( output, "images/Yref.png" );
+
+      vil_convert_stretch_range_limited(Yref_median, output, 0.0, 1.0);
+      vil_save( output, "images/Yref_median.png" );
+
       vil_convert_stretch_range_limited(frames[srp.ref_frame], output, 0.0, 1.0);
       vil_save( output, "images/yref.png" );
     }
@@ -534,6 +604,38 @@ void super_resolve_robust(
       vil_image_view<double> A1( low_ni, low_nj, np );
       A1.fill(1.0);
       As.push_back( A1 );
+
+      vil_structuring_element median_element;
+      median_element.set_to_disk( srp.median_radius);
+
+//      vil_image_view<double> im_gray;
+//      if( frames[i].nplanes() == 1 )
+//      {
+//        im_gray = frames[i];
+//      }
+//      else
+//      {
+//        vil_convert_planes_to_grey( frames[i], im_gray );
+//      }
+//      vil_median( im_gray, frame_median, median_element );
+
+      vil_image_view<double> frame_median( frames[i].ni(), frames[i].nj(), frames[i].nplanes() );
+      for(unsigned int k=0; k<frames[i].nplanes(); k++)
+      {
+        vil_image_view<double> frame_plane = vil_plane( frames[i], k );
+        vil_image_view<double> frame_median_plane = vil_plane( frame_median, k );
+        vil_median( frame_plane, frame_median_plane, median_element );
+      }
+      frames_median.push_back( frame_median );
+
+      if( srp.debug )
+      {
+        char buf[50];
+        sprintf(buf, "images/frame_median_%03d.png", i);
+        vil_image_view<vxl_byte> output;
+        vil_convert_stretch_range_limited( frames_median[i], output, 0.0, 1.0);
+        vil_save( output, buf );
+      }
     }
   }
 
@@ -576,7 +678,8 @@ void super_resolve_robust(
       dual_step_pr(u, pr, srp);
       dual_step_pl(As, pl, srp);
       dual_step_qa(u, frames, qa, As, warps, weights, srp);
-      dual_step_qa(Yref, frames, hat_qa, As, warps, weights, srp);
+      dual_step_qa(Yref_median, frames_median, hat_qa, As, warps, weights, srp);
+//      dual_step_qa(Yref, frames, hat_qa, As, warps, weights, srp);
       primal_step_A(frames, hat_qa, pl, As, warps, weights, srp );
       primal_step_Y(u, qa, qg, pr, warps, weights, srp);
       break;

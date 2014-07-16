@@ -58,6 +58,7 @@ struct super_res_params {
 
   bool debug;
   double erosion_radius;
+  double median_radius;
   int frame_step;
   bool image_data_1, image_data_N, gradient_data, image_prior, illumination_prior;
 
