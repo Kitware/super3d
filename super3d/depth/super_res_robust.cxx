@@ -498,9 +498,11 @@ void super_resolve_robust(
   vcl_vector<vil_image_view<double> > pl(frames.size()*2);
   vcl_vector<vil_image_view<double> > weights;
 
-  vil_image_view<double> Yref, Yref_median;
+//  vil_image_view<double> Yref;
+  vil_image_view<double> Yref_median;
   vcl_vector<vil_image_view<double> > frames_median;
 
+  /*
   if( srp.illumination_prior )
   {
 //    vil_resample_bicub( frames[srp.ref_frame], Yref, srp.s_ni, srp.s_nj );
@@ -526,7 +528,7 @@ void super_resolve_robust(
 //      vil_convert_planes_to_grey( frames[srp.ref_frame], im_gray );
 //    }
 //    vidtk::warp_image(im_gray, Yref, Sinv, wip);
-    vidtk::warp_image(frames[srp.ref_frame], Yref, Sinv, wip);
+//    vidtk::warp_image(frames[srp.ref_frame], Yref, Sinv, wip);
 
     vil_structuring_element median_element;
     median_element.set_to_disk( srp.median_radius * srp.scale_factor );
@@ -538,6 +540,8 @@ void super_resolve_robust(
       vil_median(Yref_plane, Yref_median_plane, median_element );
 //      vil_median(Yref, Yref_median, median_element );
     }
+
+    vidtk::warp_image(frames[srp.ref_frame], Yref, Sinv, wip);
 
     if( srp.debug )
     {
@@ -552,6 +556,7 @@ void super_resolve_robust(
       vil_save( output, "images/yref.png" );
     }
   }
+  */
 
   for (unsigned int i = 0; i < frames.size(); i++)
   {
@@ -566,19 +571,6 @@ void super_resolve_robust(
     {
       qg[i].set_size(low_ni, low_nj, 2*np);
       qg[i].fill(0.0);
-    }
-
-    if( srp.illumination_prior )
-    {
-      hat_qa[i].set_size(low_ni, low_nj, np);
-      hat_qa[i].fill(0.0);
-
-      unsigned int j=2*i;
-      pl[j].set_size(low_ni, low_nj, 2*np);
-      pl[j].fill(0.0);
-      ++j;
-      pl[j].set_size(low_ni, low_nj, 2*np);
-      pl[j].fill(0.0);
     }
 
     vil_image_view<double> erode, wmap;
@@ -597,6 +589,16 @@ void super_resolve_robust(
 
     if( srp.illumination_prior )
     {
+      hat_qa[i].set_size(low_ni, low_nj, np);
+      hat_qa[i].fill(0.0);
+
+      unsigned int j=2*i;
+      pl[j].set_size(low_ni, low_nj, 2*np);
+      pl[j].fill(0.0);
+      ++j;
+      pl[j].set_size(low_ni, low_nj, 2*np);
+      pl[j].fill(0.0);
+
       vil_image_view<double> A0( low_ni, low_nj, np );
       A0.fill(0.0);
       As.push_back( A0 );
@@ -636,6 +638,29 @@ void super_resolve_robust(
         vil_convert_stretch_range_limited( frames_median[i], output, 0.0, 1.0);
         vil_save( output, buf );
       }
+    }
+  }
+
+  if( srp.illumination_prior )
+  {
+    vidtk::warp_image_parameters wip;
+    wip.set_fill_unmapped(true);
+    wip.set_unmapped_value(-1.0);
+    wip.set_interpolator(vidtk::warp_image_parameters::CUBIC);
+
+    vnl_double_3x3 Sinv;
+    Sinv.set_identity();
+    Sinv(0,0) = 1.0/srp.scale_factor;
+    Sinv(1,1) = 1.0/srp.scale_factor;
+
+    Yref_median.set_size(srp.s_ni, srp.s_nj, frames_median[srp.ref_frame].nplanes());
+    vidtk::warp_image(frames_median[srp.ref_frame], Yref_median, Sinv, wip);
+
+    if( srp.debug )
+    {
+      vil_image_view<vxl_byte> output;
+      vil_convert_stretch_range_limited(Yref_median, output, 0.0, 1.0);
+      vil_save( output, "images/Yref_median.png" );
     }
   }
 
