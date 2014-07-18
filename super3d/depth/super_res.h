@@ -53,6 +53,7 @@ struct super_res_params {
     IMAGEDATA_IMAGEPRIOR,
     GRADIENTDATA_IMAGEPRIOR,
     IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR,
+    MEDIANDATA_IMAGEPRIOR,
     IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR
   } tv_method;
 
@@ -60,7 +61,7 @@ struct super_res_params {
   double erosion_radius;
   double median_radius;
   int frame_step;
-  bool image_data_1, image_data_N, gradient_data, image_prior, illumination_prior;
+  bool image_data_1, image_data_N, gradient_data, image_prior, illumination_prior, median_residue;
 
   // 0:huber_norm; 1:truncated_quadratic; 2:generalized_huber
   enum COST_FUNCTION

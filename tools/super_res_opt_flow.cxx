@@ -88,8 +88,6 @@ void homogs_to_flows(const vcl_vector<vgl_h_matrix_2d<double> > &homogs,
 void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
                            vcl_vector<vil_image_view<double> > &frames,
                            int scale_factor, int margin);
-void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
-              double scale_factor, vidtk::warp_image_parameters::interp_type interp);
 void write_warped_frames(const vcl_vector<vil_image_view<double> > &frames,
                          const vcl_vector<vgl_h_matrix_2d<double> > &homogs,
                          int i0, int j0, int ni, int nj,
@@ -310,7 +308,7 @@ int main(int argc, char* argv[])
     }
 
     vil_image_view<double> upsamp;
-    upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::CUBIC);
+    super3d::upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::CUBIC);
     vil_image_view<unsigned short> output;
     vil_convert_stretch_range_limited(upsamp, output, 0.0, 1.0, 0, 65535);
     vil_save(output, "bicub.png");
@@ -537,25 +535,6 @@ void homogs_to_flows(const vcl_vector<vgl_h_matrix_2d<double> > &homogs,
   }
 
   vcl_cout << "Converted " << flows.size() << " Homogs to flows.\n";
-}
-
-//*****************************************************************************
-
-void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
-              double scale_factor, vidtk::warp_image_parameters::interp_type interp)
-{
-  vidtk::warp_image_parameters wip;
-  wip.set_fill_unmapped(true);
-  wip.set_unmapped_value(-1.0);
-  wip.set_interpolator(interp);
-
-  vnl_double_3x3 Sinv;
-  Sinv.set_identity();
-  Sinv(0,0) = 1.0/scale_factor;
-  Sinv(1,1) = 1.0/scale_factor;
-
-  dest.set_size(src.ni() * scale_factor, src.nj() * scale_factor, src.nplanes());
-  vidtk::warp_image(src, dest, Sinv, wip);
 }
 
 //*****************************************************************************

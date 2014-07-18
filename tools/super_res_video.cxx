@@ -54,7 +54,6 @@
 
 #include <vpgl/vpgl_perspective_camera.h>
 #include <vgl/vgl_intersection.h>
-#include <video_transforms/warp_image.h>
 
 /// Use the valid region of the flow destinations to crop the frames and translate the flow.
 void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
@@ -79,23 +78,6 @@ void difference_from_flow(const vil_image_view<double> &I0,
 void create_low_res(vcl_vector<vil_image_view<double> > &frames,
                     int scale,
                     super3d::config *cfg);
-
-void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
-              double scale_factor, vidtk::warp_image_parameters::interp_type interp)
-{
-  vidtk::warp_image_parameters wip;
-  wip.set_fill_unmapped(true);
-  wip.set_unmapped_value(-1.0);
-  wip.set_interpolator(interp);
-
-  vnl_double_3x3 Sinv;
-  Sinv.set_identity();
-  Sinv(0,0) = 1.0/scale_factor;
-  Sinv(1,1) = 1.0/scale_factor;
-
-  dest.set_size(src.ni() * scale_factor, src.nj() * scale_factor, src.nplanes());
-  vidtk::warp_image(src, dest, Sinv, wip);
-}
 
 //*****************************************************************************
 
@@ -245,7 +227,8 @@ int main(int argc, char* argv[])
     vcl_cout << "Computing flow from depth\n";
     vcl_vector<vil_image_view<double> > flows;
     super3d::compute_occluded_flows_from_depth(scaled_cams, ref_cam, depth, flows);
-    crop_frames_and_flows(flows, frames, scale_factor, 3);
+//    crop_frames_and_flows(flows, frames, scale_factor, 3);
+    crop_frames_and_flows(flows, frames, scale_factor, 0);
     vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
     create_warps_from_flows(flows, frames, weights, warps, scale_factor, cfg.get());
 
@@ -350,6 +333,10 @@ int main(int argc, char* argv[])
     else if ( tv_method_str.compare("IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR") == 0 )
     {
       srp.tv_method = super3d::super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR;
+    }
+    else if ( tv_method_str.compare("MEDIANDATA_IMAGEPRIOR") == 0 )
+    {
+      srp.tv_method = super3d::super_res_params::MEDIANDATA_IMAGEPRIOR;
     }
     else if ( tv_method_str.compare("IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR") == 0 )
     {
@@ -467,7 +454,7 @@ int main(int argc, char* argv[])
     else
     {
       vil_image_view<double> upsamp;
-      upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::CUBIC);
+      super3d::upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::CUBIC);
 
       vil_image_view<vxl_byte> output;
       vil_convert_stretch_range_limited(upsamp, output, 0.0, 1.0);
