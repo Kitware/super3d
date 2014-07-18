@@ -227,7 +227,6 @@ int main(int argc, char* argv[])
     vcl_cout << "Computing flow from depth\n";
     vcl_vector<vil_image_view<double> > flows;
     super3d::compute_occluded_flows_from_depth(scaled_cams, ref_cam, depth, flows);
-//    crop_frames_and_flows(flows, frames, scale_factor, 3);
     crop_frames_and_flows(flows, frames, scale_factor, 0);
     vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
     create_warps_from_flows(flows, frames, weights, warps, scale_factor, cfg.get());
@@ -314,7 +313,6 @@ int main(int argc, char* argv[])
     srp.tau = cfg->get_value<double>("tau");
     const unsigned int iterations = cfg->get_value<unsigned int>("iterations");
     vcl_string output_image = cfg->get_value<vcl_string>("output_image");
-//    super3d::super_resolve(frames, warps, super_u, srp, iterations, output_image);
 
     // additional parameters
     vcl_string tv_method_str = cfg->get_value<vcl_string>("tv_method");

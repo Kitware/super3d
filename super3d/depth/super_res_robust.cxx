@@ -168,47 +168,6 @@ void dual_step_qa(
     {
       low_res_frame = frames[f];
     }
-//    const vil_image_view<double>& asf = As[2*f];
-
-    /*
-    for (unsigned int j = 0; j < nj; j++)
-    {
-      for (unsigned int i = 0; i < ni; i++)
-      {
-        double val = srp.sigma_qa * sf_2 * weights[f](i,j);
-
-        double diff_average=0.0;
-        for (unsigned int k = 0; k < l_u.nplanes(); k++)
-        {
-//          double diff = l_u(i, j, k) - low_res_frame(i, j, k);
-          double diff = l_u(i, j, k) - frames[f](i, j, k);
-          if( srp.illumination_prior )
-          {
-            diff -= asf(i,j);
-          }
-
-          switch( srp.cost_function )
-          {
-          case super3d::super_res_params::HUBER_NORM:
-            break;
-          case super3d::super_res_params::TRUNCATED_QUADRATIC:
-            diff = rho_truncated_quadratic(diff, srp.alpha_a, srp.gamma_a);
-            break;
-          case super3d::super_res_params::GENERALIZED_HUBER:
-            diff = rho_generalized_huber(diff, srp.alpha_a, srp.beta_a,  srp.gamma_a);
-            break;
-          }
-          diff_average += diff;
-        }
-        diff_average /= (double) l_u.nplanes();
-
-        double &qfijk = qa[f](i, j);
-        qfijk = (qfijk +  diff_average * val)/denom;
-        qfijk = vcl_max(qfijk, -sf_2);
-        qfijk = vcl_min(qfijk, sf_2);
-      }
-    }
-    */
 
     for (unsigned int j = 0; j < nj; j++)
     {
@@ -677,7 +636,6 @@ void super_resolve_robust(
       dual_step_pl(As, pl, srp);
       dual_step_qa(u, frames, qa, As, warps, weights, srp);
       dual_step_qa(Yref_median, frames_median, hat_qa, As, warps, weights, srp);
-//      dual_step_qa(Yref, frames, hat_qa, As, warps, weights, srp);
       primal_step_A(frames, hat_qa, pl, As, warps, weights, srp );
       primal_step_Y(u, qa, qg, pr, warps, weights, srp);
       break;
