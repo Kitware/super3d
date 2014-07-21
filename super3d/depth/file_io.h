@@ -99,13 +99,6 @@ void load_cams(const char *camerafile,
                vcl_vector<int> &framelist,
                vcl_vector<vpgl_perspective_camera<double> > &cameras);
 
-//Load cameras from a file per camera
-//Assume cameras are in directory named %04d.krtd
-//void
-//load_krtd_cams(const vcl_string& directory,
-//               vcl_vector<int> &framelist,
-//               vcl_vector<vpgl_perspective_camera<double> > &cameras);
-
 /// Loads images from a file list of frames paths
 /// \param framefile file that lists frame number and frame paths
 /// \param directory the working direction from which the framefile appends its paths to

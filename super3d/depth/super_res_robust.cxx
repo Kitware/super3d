@@ -99,8 +99,8 @@ void dual_step_pl(const vcl_vector< vil_image_view<double> >&As,
 {
   if( srp.illumination_prior )
   {
-    // intensity scaling
-//    for(unsigned int i=0; i<As.size(); i++)
+    // TODO: the following line is for intensity scaling
+    // for(unsigned int i=0; i<As.size(); i++)
     for(unsigned int i=0; i<As.size(); i=i+2)
     {
       if( (int)(i/2) != srp.ref_frame )
@@ -159,9 +159,9 @@ void dual_step_qa(
     vil_image_view<double> low_res_frame;
     if( srp.illumination_prior )
     {
-      // intensity scaling
-//      vil_math_image_product( frames[f], As[2*f+1], low_res_frame);
-//      vil_math_image_sum( low_res_frame, As[2*f], low_res_frame);
+      // TODO: the following lines are for intensity scaling
+      // vil_math_image_product( frames[f], As[2*f+1], low_res_frame);
+      // vil_math_image_sum( low_res_frame, As[2*f], low_res_frame);
       vil_math_image_sum( frames[f], As[2*f], low_res_frame);
     }
     else
@@ -279,7 +279,7 @@ void primal_step_A(
     return;
 
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
-  const double scale = srp.tau;  //  * 0.5;
+  const double scale = srp.tau;
 
   for (unsigned int i = 0; i < qa.size(); i++)
   {
@@ -291,22 +291,22 @@ void primal_step_A(
     vil_image_view<double> super_qay(qa[i].ni(), qa[i].nj(), qa[i].nplanes());
 
     vil_math_image_product( qa[i], weights[i], super_qa );
-//    vil_math_image_product( super_qa, frames[i], super_qay );
+    // TODO: the following line is for intensity scaling
+    // vil_math_image_product( super_qa, frames[i], super_qay );
 
     vil_image_view<double> work;
     vidtk::backward_divergence(pl[i2], work);
     vil_math_add_image_fraction(work, scale, super_qa, scale * sf_2);
     vil_image_view<double>& A0 = As[i2];
     vil_math_image_sum(A0, work, A0);
-//    vil_math_image_sum(A0, work, work);
-//    vil_math_add_image_fraction( A0, -1.0, work, 2.0);
-
-    // intensity scaling
-//    vidtk::backward_divergence(pl[i*2+1], work);
-//    vil_math_add_image_fraction(work, scale, super_qay, scale * sf_2);
-//    vil_image_view<double>& A1 = As[2*i+1];
-//    vil_math_image_sum(A1, work, work);
-//    vil_math_add_image_fraction( A1, -1.0, work, 2.0);
+    // TODO: the following lines are for intensity scaling
+    // vil_math_image_sum(A0, work, work);
+    // vil_math_add_image_fraction( A0, -1.0, work, 2.0);
+    // vidtk::backward_divergence(pl[i*2+1], work);
+    // vil_math_add_image_fraction(work, scale, super_qay, scale * sf_2);
+    // vil_image_view<double>& A1 = As[2*i+1];
+    // vil_math_image_sum(A1, work, work);
+    // vil_math_add_image_fraction( A1, -1.0, work, 2.0);
   }
 }
 
@@ -372,8 +372,6 @@ void primal_step_Y(
   vil_math_add_image_fraction(work, srp.tau, sum_super_qa, -srp.tau * sf_2);
 
   vil_math_image_sum(u, work, u);
-//  vil_math_image_sum(u, work, work);
-//  vil_math_add_image_fraction(u, -1.0, work, 2.0);
 }
 
 } // end anonymous namespace
@@ -681,15 +679,15 @@ void super_resolve_robust(
             sprintf(buf, "images/A0-%03d.png", f);
             vil_save( output, buf );
 
-            // intensity scaling
-//            vil_convert_stretch_range_limited(As[2*f+1], output, 0.0, 1.0);
-//            sprintf(buf, "images/A1-%03d.png", f);
-//            vil_save( output, buf );
+            // TODO: the following lines are for intensity scaling
+            // vil_convert_stretch_range_limited(As[2*f+1], output, 0.0, 1.0);
+            // sprintf(buf, "images/A1-%03d.png", f);
+            // vil_save( output, buf );
 
             vil_image_view<double> low_res_frame;
-            // intensity scaling
-//            vil_math_image_product( frames[f], As[2*f+1], low_res_frame);
-//            vil_math_image_sum( low_res_frame, As[2*f], low_res_frame);
+            // TODO: the following lines are for intensity scaling
+            // vil_math_image_product( frames[f], As[2*f+1], low_res_frame);
+            // vil_math_image_sum( low_res_frame, As[2*f], low_res_frame);
             vil_math_image_sum( frames[f], As[2*f], low_res_frame);
             sprintf(buf, "images/lowres_%03d.png", f );
             vil_convert_stretch_range_limited(low_res_frame, output, 0.0, 1.0);

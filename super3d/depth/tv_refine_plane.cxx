@@ -70,30 +70,10 @@ refine_depth_planar(world_space *ws,
   vil_image_view<double> last_depth;
   last_depth.deep_copy(d);
 
-//  double normal_bandwidth = 0.4;
-//  double radius = 10.0;
-//  double depth_bandwidth = 0.05;
-//  double intensity_bandwidth = 0.05;
-
-  //g.fill(1.0);
   vil_image_view<double> bp(d.ni(), d.nj(), 3);
-  //vil_image_view<double> n_new(d.ni(), d.nj(), 3);
   for (unsigned int iter = 0; iter < max_iter; iter++)
   {
-    //vidtk::dual_rof_weighted_denoise(vil_plane<double>(n,0), g, vil_plane(n_new,0), 1, 1);
-    //vidtk::dual_rof_weighted_denoise(vil_plane<double>(n,1), g, vil_plane(n_new,1), 1, 1);
-    //vidtk::dual_rof_weighted_denoise(vil_plane<double>(n,2), g, vil_plane(n_new,2), 1, 1);
-    //n.deep_copy(n_new);
-
-    //compute_normals_eig(d, bp, n, ws, 1, 0.5);
-    //meanshift(n, d, ref, ws, radius, depth_bandwidth, normal_bandwidth, intensity_bandwidth);
-
     normals_rof(n, d, bp, ws, g, 100, 2, 1e2, 0.25, 0.01);
-
-    //vil_plane<double>(n,0).fill(0.0);
-    //vil_plane<double>(n,1).fill(0.0);
-    //vil_plane<double>(n,2).fill(0.1);
-
 
     double ssd;
     do
@@ -153,20 +133,12 @@ void refine_depth_planar(const vil_image_view<double> &cost_volume,
   vil_image_view<double> last_depth;
   last_depth.deep_copy(d);
 
-//  double normal_bandwidth = 0.4;
-//  double radius = 10.0;
-//  double depth_bandwidth = 0.05;
-//  double image_bandwidth = 0.05;
-
   double new_lambda = lambda/100.0;
   lambda = new_lambda;
   vil_image_view<double> bp(d.ni(), d.nj(), 3);
 
   for (unsigned int iter = 0; iter < max_iter; iter++)
   {
-    //compute_normals_tri(d, n, ws);
-    //compute_normals_eig(d, bp, n, ws, 1, 0.5);
-    //meanshift(n, d, ref, ws, radius, depth_bandwidth, normal_bandwidth, image_bandwidth);
     normals_rof(n, d, bp, ws, g, 1000, 1, 5e2, 0.25, 0.01);
 
     vcl_cout << "Lambda: " << lambda << "\n";

@@ -210,9 +210,6 @@ void Picker::OnLeftButtonDown()
     ids->SetNumberOfComponents(1);
     ids->InsertNextValue(picker->GetPointId());
 
-    //double *pt = Data->GetPoint(picker->GetPointId());
-    //std::cout << picker->GetPointId() << " " << pt[0] << " " << pt[1] << " " << pt[2] << "\n";
-    //PlaceArrow(pt);
     UpdateChart(picker->GetPointId());
   }
   // Forward events
@@ -284,7 +281,6 @@ void Picker::PlaceArrow(double *picked)
   selectedActor->SetUserMatrix(xform->GetMatrix());
   selectedActor->SetMapper(selectedMapper);
   selectedActor->GetProperty()->SetColor(1,0,0);
-  //selectedActor->GetProperty()->SetOpacity(0.3);
   this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(selectedActor);
 }
 

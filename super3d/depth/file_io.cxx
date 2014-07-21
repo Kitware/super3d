@@ -305,7 +305,7 @@ void load_from_frame_file(const char *framefile,
 }
 
 
-//Load camera from a file per camera
+/// Load camera from a file per camera
 vpgl_perspective_camera<double>
 load_cam(const vcl_string& filename)
 {
