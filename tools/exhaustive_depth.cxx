@@ -207,6 +207,7 @@ int main(int argc, char* argv[])
   unsigned int S = cfg->get_value<unsigned int>("num_slices");
   double theta0 = cfg->get_value<double>("theta_start");
   double theta_end = cfg->get_value<double>("theta_end");
+  double beta = cfg->get_value<double>("beta");
   double lambda = cfg->get_value<double>("lambda");
   double gw_alpha = cfg->get_value<double>("gw_alpha");
   double epsilon = cfg->get_value<double>("epsilon");
@@ -319,8 +320,6 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-  //refine_depth_planar(ws, depth, g, frames[ref_frame], 1, 0.25);
-  //refine_depth_planar(cost_volume, ws, depth, g, frames[ref_frame], beta, theta0, theta_end, lambda);
   super3d::save_depth(depth, "depth_map_normals.dat");
 
 #else
