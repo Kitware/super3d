@@ -20,7 +20,8 @@
 
 #include "super_res.h"
 #include "super_config.h"
-#include "flow_manip.h"
+#include "multiscale.h"
+#include "super_res_robust_function.h"
 
 VIL_RESAMPLE_BICUB_INSTANTIATE( double , double );
 
@@ -183,10 +184,10 @@ void dual_step_qa(
           case super3d::super_res_params::HUBER_NORM:
             break;
           case super3d::super_res_params::TRUNCATED_QUADRATIC:
-            diff = rho_truncated_quadratic(diff, srp.alpha_a, srp.gamma_a);
+            diff = super3d::rho_truncated_quadratic(diff, srp.alpha_a, srp.gamma_a);
             break;
           case super3d::super_res_params::GENERALIZED_HUBER:
-            diff = rho_generalized_huber(diff, srp.alpha_a, srp.beta_a,  srp.gamma_a);
+            diff = super3d::rho_generalized_huber(diff, srp.alpha_a, srp.beta_a,  srp.gamma_a);
             break;
           }
 
@@ -249,10 +250,10 @@ void dual_step_qg(
           case super3d::super_res_params::HUBER_NORM:
             break;
           case super3d::super_res_params::TRUNCATED_QUADRATIC:
-            diff = rho_truncated_quadratic(diff, srp.alpha_g, srp.gamma_g);
+            diff = super3d::rho_truncated_quadratic(diff, srp.alpha_g, srp.gamma_g);
             break;
           case super3d::super_res_params::GENERALIZED_HUBER:
-            diff = rho_generalized_huber(diff, srp.alpha_g, srp.beta_g, srp.gamma_g );
+            diff = super3d::rho_generalized_huber(diff, srp.alpha_g, srp.beta_g, srp.gamma_g );
             break;
           }
 
@@ -432,6 +433,7 @@ void super_resolve_robust(
     break;
   case super3d::super_res_params::GRADIENTDATA_IMAGEPRIOR:
     srp.image_data_1=true;
+    srp.image_data_N=false;
     srp.gradient_data=true;
     srp.image_prior=true;
     break;
@@ -711,58 +713,6 @@ void super_resolve_robust(
   {
     vil_math_image_sum( u, Y_baseline, u );
   }
-}
-
-//*****************************************************************************
-
-inline double rho_huber_norm( double x, double alpha )
-{
-  double absx = vcl_fabs(x);
-  if( absx <= alpha )
-    return x*x / 2.0 / alpha;
-  else
-    return absx - alpha/2.0;
-}
-
-inline double psi_huber_norm( double x, double alpha )
-{
-  if( vcl_fabs(x) <= alpha )
-    return 1.0;
-  else
-    return -1.0;
-}
-
-inline double rho_truncated_quadratic( double x, double alpha, double gamma )
-{
-  if( vcl_fabs(x) <= vcl_sqrt( alpha / gamma ) )
-    return gamma * x * x;
-  else
-    return 0.0;
-}
-
-inline double psi_truncated_quadratic( double x, double alpha, double gamma )
-{
-  if( vcl_fabs(x) <= vcl_sqrt( alpha / gamma ) )
-    return 2.0 * gamma * x;
-  else
-    return 0.0;
-}
-
-inline double rho_generalized_huber( double x, double alpha, double beta, double gamma )
-{
-  double t = vcl_sqrt( alpha/gamma );
-  if( vcl_fabs(x) <= t )
-    return gamma * x * x;
-  else
-    return beta * x + alpha - t * beta;
-}
-
-inline double psi_generalized_huber( double x, double alpha, double beta, double gamma )
-{
-  if( vcl_fabs(x) <= vcl_sqrt( alpha/gamma ) )
-    return 2.0 * gamma * x;
-  else
-    return beta;
 }
 
 //*****************************************************************************

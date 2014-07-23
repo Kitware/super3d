@@ -83,16 +83,6 @@ flow_destination_bounds(const vil_image_view<double> &flow);
 SUPER3D_DEPTH_EXPORT
 void translate_flow(vil_image_view<double> &flow, double dx, double dy);
 
-/// Rescale image src to image dest by a factor of scale_factor
-/// using interpolation method interp
-/// \param src The input/source image
-/// \param dest The rescale/output images
-/// \param scale_factor The rescale factor, e.g. 0.5, 2.0
-/// \param interp The interpolation method, e.g. bilinear, bicubic
-SUPER3D_DEPTH_EXPORT
-void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
-              double scale_factor, vidtk::warp_image_parameters::interp_type interp);
-
 } // end namespace super3d
 
 #endif

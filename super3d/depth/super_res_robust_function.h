@@ -12,15 +12,22 @@
 
 namespace super3d
 {
+/// The psi_ functions are the first order derivative of the robust function rho_
 
-inline double rho_huber_norm( double x, double alpha );
-inline double psi_huber_norm( double x );
+/// Huber norm is a robust function with quadratic form around 0 and L-1 elsewhere
+double rho_huber_norm( double x, double alpha );
+/// First order derivative of Huber norm
+double psi_huber_norm( double x );
 
-inline double rho_truncated_quadratic( double x, double alpha, double gamma );
-inline double psi_truncated_quadratic( double x, double alpha, double gamma );
+/// Truncated quadratic is a robust function with quadratic form around 0 and flat elsewhere
+double rho_truncated_quadratic( double x, double alpha, double gamma );
+/// First order derivative of Truncated quadratic function
+double psi_truncated_quadratic( double x, double alpha, double gamma );
 
-inline double rho_generalized_huber( double x, double alpha, double beta, double gamma );
-inline double psi_generalized_huber( double x, double alpha, double beta, double gamma );
+/// Generalized Huber is a robust function with quadratic form around 0 and constant slope elsewhere
+double rho_generalized_huber( double x, double alpha, double beta, double gamma );
+/// First order derivative of Generalized Huber
+double psi_generalized_huber( double x, double alpha, double beta, double gamma );
 
 class rho_truncated_quadratic_functor
 {
@@ -30,10 +37,7 @@ public:
 
   double operator() ( double x ) const
     {
-      if( vcl_fabs(x) <= vcl_sqrt( alpha_/gamma_ ) )
-        return( gamma_ * x * x );
-      else
-        return alpha_;
+      return super3d::rho_truncated_quadratic( x, alpha_, gamma_ );
     }
 private:
   double alpha_, gamma_;
@@ -47,10 +51,7 @@ public:
 
   double operator() ( double x ) const
     {
-      if( vcl_fabs(x) <= vcl_sqrt( alpha_/gamma_ ) )
-        return( 2.0 * gamma_ * x );
-      else
-        return 0.0;
+      return super3d::psi_truncated_quadratic( x, alpha_, gamma_ );
     }
 private:
   double alpha_, gamma_;
@@ -64,11 +65,7 @@ public:
 
   double operator() ( double x ) const
     {
-      const double t=vcl_sqrt( alpha_/gamma_ );
-      if( vcl_fabs(x) <= t )
-        return( gamma_ * x * x );
-      else
-        return beta_*x + alpha_ - t*beta_;
+      return super3d::rho_generalized_huber( x, alpha_, beta_, gamma_ );
     }
 private:
   double alpha_, beta_, gamma_;
@@ -82,10 +79,7 @@ public:
 
   double operator() ( double x ) const
     {
-      if( vcl_fabs(x) <= vcl_sqrt( alpha_/gamma_ ) )
-        return( 2.0 * gamma_ * x );
-      else
-        return beta_;
+      return super3d::psi_generalized_huber( x, alpha_, beta_, gamma_ );
     }
 private:
   double alpha_, beta_, gamma_;

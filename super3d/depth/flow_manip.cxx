@@ -190,21 +190,4 @@ void translate_flow(vil_image_view<double> &flow, double dx, double dy)
   }
 }
 
-void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
-              double scale_factor, vidtk::warp_image_parameters::interp_type interp)
-{
-  vidtk::warp_image_parameters wip;
-  wip.set_fill_unmapped(true);
-  wip.set_unmapped_value(-1.0);
-  wip.set_interpolator(interp);
-
-  vnl_double_3x3 Sinv;
-  Sinv.set_identity();
-  Sinv(0,0) = 1.0/scale_factor;
-  Sinv(1,1) = 1.0/scale_factor;
-
-  dest.set_size(src.ni() * scale_factor, src.nj() * scale_factor, src.nplanes());
-  vidtk::warp_image(src, dest, Sinv, wip);
-}
-
 } // end namespace super3d

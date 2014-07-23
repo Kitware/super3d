@@ -433,9 +433,9 @@ g_census compute_g_census(const vil_image_view<double> &grad, int u, int v, doub
   vnl_double_2 center(grad(u,v,0), grad(u,v,1));
   g_census census;
   census.ones = census.twos = census.fours = 0;
-  for (unsigned int j = (unsigned int) v - 3; j <= (unsigned int) v + 3; j++)
+  for (int j = v - 3; j <= v + 3; j++)
   {
-    for (unsigned int i = (unsigned int)(u - 4); i <= (unsigned int)(u + 4); i++)
+    for (int i = u - 4; i <= u + 4; i++)
     {
       if (i < 0 || i >= grad.ni() || j < 0 || j >= grad.nj()) {
         census.ones  = census.ones  << 1;

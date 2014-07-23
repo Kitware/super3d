@@ -40,6 +40,7 @@ set(cxx_files
   world_space.cxx
   weighted_dbw.cxx
   super_res.cxx
+  super_res_robust_function.cxx
   super_res_robust.cxx
   )
 

@@ -276,7 +276,7 @@ double eval_hessian_frob(const vil_image_view<double> &d,
                          double lambda)
 {
   double cost = 0;
-  for (unsigned int i = 0; i < d.ni(); i++)
+  for (unsigned int i = 1; i < d.ni(); i++)
   {
     for (unsigned int j = 1; j < d.nj(); j++)
     {
