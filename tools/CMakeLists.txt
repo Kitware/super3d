@@ -136,7 +136,7 @@ super3d_add_executable(ply2pts ply2pts.cxx)
 # Extract RPC models from NITF file
 #
 super3d_add_executable(extract_nitf_rpc extract_nitf_rpc.cxx)
-target_link_libraries(extract_nitf_rpc vpgl_file_formats)
+target_link_libraries(extract_nitf_rpc vpgl_file_formats vpgl_algo vidtk_vil_plugins)
 
 #
 # Depth from Flow
