@@ -46,17 +46,21 @@
 int main(int argc, char *argv[])
 {
 
-  double lat = std::atof(argv[1]);
-  double lng = std::atof(argv[2]);
-  double elv = std::atof(argv[3]);
+  vgl_box_3d<double> roi(std::atof(argv[1]),
+                         std::atof(argv[2]),
+                         std::atof(argv[3]),
+                         std::atof(argv[4]),
+                         std::atof(argv[5]),
+                         std::atof(argv[6]));
 
-  vgl_box_3d<double> roi(lat-0.01, lng-0.01, elv-50,
-                         lat+0.01, lng+0.01, elv+50);
+  double lat = roi.centroid_x();
+  double lng = roi.centroid_y();
+  double elv = roi.centroid_z();
 
   //load rational camera from image files
   std::vector<vpgl_nitf_rational_camera> nitf_cams;
   std::vector<boost::filesystem::path> nitf_paths;
-  for(int i=4; i<argc; ++i)
+  for(int i=7; i<argc; ++i)
   {
     vpgl_nitf_rational_camera *nitf_cam = new vpgl_nitf_rational_camera(argv[i]);
 
