@@ -30,6 +30,8 @@
 #include <sstream>
 #include <cstdlib>
 
+#include <boost/filesystem.hpp>
+
 #include <vgl/vgl_box_3d.h>
 #include <vil/vil_convert.h>
 #include <vil/vil_load.h>
@@ -52,7 +54,7 @@ int main(int argc, char *argv[])
 
   //load rational camera from image files
   std::vector<vpgl_nitf_rational_camera> nitf_cams;
-  std::vector<std::string> nitf_paths;
+  std::vector<boost::filesystem::path> nitf_paths;
   for(int i=4; i<argc; ++i)
   {
     vpgl_nitf_rational_camera *nitf_cam = new vpgl_nitf_rational_camera(argv[i]);
@@ -151,11 +153,12 @@ int main(int argc, char *argv[])
     }
     std::cout << "type "<< view->pixel_format()
               << " size " << view->ni() <<", "<< view->nj() <<std::endl;
+    std::string basename = nitf_paths[i].stem().string();
     std::stringstream ss;
-    ss << "crop_"<<i<<".tiff";
+    ss << basename << "_crop_"<<ni<<"x"<<nj<<"+"<<i0<<"+"<<j0;
     vil_image_view<vxl_byte> byte_img = vil_convert_stretch_range(vxl_byte(), view);
     std::cout << "saving "<< ss.str() << " size "<< byte_img.ni() <<", "<<byte_img.nj() <<std::endl;
-    vil_save(byte_img, ss.str().c_str());
+    vil_save(byte_img, (ss.str() + ".tiff").c_str());
 
 
     nitf_cam.project(lat, lng, elv, u, v);
@@ -173,6 +176,8 @@ int main(int argc, char *argv[])
     pcam.project(loc.x(), loc.y(), loc.z(), u, v);
     std::cout << "Proj test ("<<lat<<", "<<lng<<", "<<elv<<") --> ("<<u<<", "<<v<<")"<<std::endl;
 
+    std::ofstream ofs((ss.str() + ".krtd").c_str());
+    ofs << pcam << "\n0";
   }
 
   std::ofstream ofs("geo_transform.txt");
