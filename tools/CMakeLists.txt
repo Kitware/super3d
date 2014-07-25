@@ -135,8 +135,8 @@ super3d_add_executable(ply2pts ply2pts.cxx)
 #
 # Extract RPC models from NITF file
 #
-super3d_add_executable(extract_nitf_rpc extract_nitf_rpc.cxx)
-target_link_libraries(extract_nitf_rpc
+super3d_add_executable(extract_nitf_roi_krtd extract_nitf_roi_krtd.cxx)
+target_link_libraries(extract_nitf_roi_krtd
                       vpgl_file_formats vpgl_algo
                       vidtk_vil_plugins
                       super3d_depth)
