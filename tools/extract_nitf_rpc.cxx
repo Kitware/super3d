@@ -41,6 +41,7 @@
 
 #include <vil_plugins/vil_plugin_loader.h>
 
+#include <super3d/depth/multiscale.h>
 
 int main(int argc, char *argv[])
 {
@@ -175,6 +176,8 @@ int main(int argc, char *argv[])
     std::cout << "transformed point "<<loc<<std::endl;
     pcam.project(loc.x(), loc.y(), loc.z(), u, v);
     std::cout << "Proj test ("<<lat<<", "<<lng<<", "<<elv<<") --> ("<<u<<", "<<v<<")"<<std::endl;
+
+    pcam = super3d::crop_camera(pcam, i0, j0);
 
     std::ofstream ofs((ss.str() + ".krtd").c_str());
     ofs << pcam << "\n0";
