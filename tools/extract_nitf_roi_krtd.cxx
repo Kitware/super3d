@@ -46,6 +46,14 @@
 int main(int argc, char *argv[])
 {
 
+  if (argc < 8)
+  {
+    std::cerr<< "Usage:\n  "<< argv[0] << " "
+             << " min_lat min_lng min_elv  max_lat max_lng max_elv "
+             << " image1.ntf [image2.ntf ...]" << std::endl;
+    return -1;
+  }
+
   vgl_box_3d<double> roi(std::atof(argv[1]),
                          std::atof(argv[2]),
                          std::atof(argv[3]),
