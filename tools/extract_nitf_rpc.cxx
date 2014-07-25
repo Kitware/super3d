@@ -79,13 +79,14 @@ int main(int argc, char *argv[])
   /// with GDAL in a second pass (below).
   vidtk::load_vil_plugins();
 
+  vgl_h_matrix_3d<double> trans;
+  vpgl_lvcs lvcs_converter( roi.min_y(), roi.min_x(),
+                            (roi.min_z() + roi.max_z())/2.0,
+                            vpgl_lvcs::wgs84, vpgl_lvcs::DEG );
   for(unsigned int i=0; i<nitf_cams.size(); ++i)
   {
     const vpgl_nitf_rational_camera& nitf_cam = nitf_cams[i];
     double u,v;
-    nitf_cam.project(lat, lng, elv, u, v);
-    std::cout << "("<<lat<<", "<<lng<<", "<<elv<<") --> ("<<u<<", "<<v<<")"<<std::endl;
-
 
     std::cout << "loading pixels from "<< nitf_paths[i] <<std::endl;
     vil_image_resource_sptr im = vil_load_image_resource(nitf_paths[i].c_str());
@@ -157,18 +158,25 @@ int main(int argc, char *argv[])
     vil_save(byte_img, ss.str().c_str());
 
 
-    vpgl_perspective_camera<double> pcam;
-    vgl_h_matrix_3d<double> trans;
-    vpgl_perspective_camera_convert::convert_local(nitf_cam, roi, pcam, trans);
+    nitf_cam.project(lat, lng, elv, u, v);
+    std::cout << "RPC test ("<<lat<<", "<<lng<<", "<<elv<<") --> ("<<u<<", "<<v<<")"<<std::endl;
 
-    vgl_homg_point_3d<double> lla(lat, lng, elv);
-    vgl_homg_point_3d<double> loc = trans*lla;
-    loc.rescale_w();
+
+    vpgl_perspective_camera<double> pcam;
+    vpgl_perspective_camera_convert::convert_local(nitf_cam, roi, pcam, trans);
+    //vgl_homg_point_3d<double> lla(lat, lng, elv);
+    double lx, ly, lz;
+    lvcs_converter.global_to_local(lat, lng, elv, vpgl_lvcs::wgs84, lx, ly, lz);
+    vgl_homg_point_3d<double> lla(lx, ly, lz);
+    vgl_point_3d<double> loc(trans*lla);
+    std::cout << "transformed point "<<loc<<std::endl;
     pcam.project(loc.x(), loc.y(), loc.z(), u, v);
-    std::cout << "("<<lat<<", "<<lng<<", "<<elv<<") --> ("<<u<<", "<<v<<")"<<std::endl;
+    std::cout << "Proj test ("<<lat<<", "<<lng<<", "<<elv<<") --> ("<<u<<", "<<v<<")"<<std::endl;
 
   }
 
+  std::ofstream ofs("geo_transform.txt");
+  ofs << trans << '\n' << lvcs_converter;
 
   return 0;
 }
