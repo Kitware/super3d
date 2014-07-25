@@ -101,6 +101,9 @@ int main(int argc, char *argv[])
     std::cout << "loaded as format: "<< im->file_format()
               << " size "<< im->ni() <<" x "<<im->nj() <<std::endl;
 
+    // Compute the image ROI that contains the world ROI.
+    // Project each of the 8 corner points into the image and
+    // find the bounding box in the image that contains them
     unsigned int i1 = 0, j1 = 0;
     unsigned int i0 = im->ni(), j0 = im->nj();
     for( unsigned int x=0; x<2; ++x)
@@ -111,11 +114,7 @@ int main(int argc, char *argv[])
         {
           nitf_cam.project(x?roi.min_x():roi.max_x(),
                            y?roi.min_y():roi.max_y(),
-                          z?roi.min_z():roi.max_z(), u, v);
-          std::cout << (x?roi.min_x():roi.max_x()) << ", "
-                    << (y?roi.min_y():roi.max_y()) << ", "
-                    << (z?roi.min_z():roi.max_z()) << std::endl;
-          std::cout << "  proj: "<<u<<", "<<v<<std::endl;
+                           z?roi.min_z():roi.max_z(), u, v);
           if (u < i0)
           {
             i0 = (u<0) ? 0 : static_cast<unsigned>(u);
@@ -146,6 +145,7 @@ int main(int argc, char *argv[])
       continue;
     }
 
+    // Decode just the pixels in our ROI
     vil_image_view_base_sptr view = im->get_copy_view(i0, ni, j0, nj);
     if( !view )
     {
@@ -154,31 +154,39 @@ int main(int argc, char *argv[])
     }
     std::cout << "type "<< view->pixel_format()
               << " size " << view->ni() <<", "<< view->nj() <<std::endl;
+
+    // stretch the range to get a byte representation of the pixels
+    vil_image_view<vxl_byte> byte_img = vil_convert_stretch_range(vxl_byte(), view);
+
+    // write the cropped byte image out to a TIFF file
     std::string basename = nitf_paths[i].stem().string();
     std::stringstream ss;
     ss << basename << "_crop_"<<ni<<"x"<<nj<<"+"<<i0<<"+"<<j0;
-    vil_image_view<vxl_byte> byte_img = vil_convert_stretch_range(vxl_byte(), view);
-    std::cout << "saving "<< ss.str() << " size "<< byte_img.ni() <<", "<<byte_img.nj() <<std::endl;
+    std::cout << "saving "<< ss.str() << ".tiff" <<std::endl;
     vil_save(byte_img, (ss.str() + ".tiff").c_str());
 
+    // Estimate a perspective (KRT) camera to approximate the RPC within the ROI.
+    // Note 'trans' is estimated here but only depends on 'roi' and should be
+    // the same for all images.
+    vpgl_perspective_camera<double> pcam;
+    vpgl_perspective_camera_convert::convert_local(nitf_cam, roi, pcam, trans);
+
+    // Do a test projection to compare the KRT model with the RPC model
+    double lx, ly, lz;
+    lvcs_converter.global_to_local(lat, lng, elv, vpgl_lvcs::wgs84, lx, ly, lz);
+    vgl_homg_point_3d<double> lla(lx, ly, lz);
+    vgl_point_3d<double> loc(trans*lla);
+    pcam.project(loc.x(), loc.y(), loc.z(), u, v);
+    std::cout << "KRT test ("<<lat<<", "<<lng<<", "<<elv<<") --> ("<<u<<", "<<v<<")"<<std::endl;
 
     nitf_cam.project(lat, lng, elv, u, v);
     std::cout << "RPC test ("<<lat<<", "<<lng<<", "<<elv<<") --> ("<<u<<", "<<v<<")"<<std::endl;
 
 
-    vpgl_perspective_camera<double> pcam;
-    vpgl_perspective_camera_convert::convert_local(nitf_cam, roi, pcam, trans);
-    //vgl_homg_point_3d<double> lla(lat, lng, elv);
-    double lx, ly, lz;
-    lvcs_converter.global_to_local(lat, lng, elv, vpgl_lvcs::wgs84, lx, ly, lz);
-    vgl_homg_point_3d<double> lla(lx, ly, lz);
-    vgl_point_3d<double> loc(trans*lla);
-    std::cout << "transformed point "<<loc<<std::endl;
-    pcam.project(loc.x(), loc.y(), loc.z(), u, v);
-    std::cout << "Proj test ("<<lat<<", "<<lng<<", "<<elv<<") --> ("<<u<<", "<<v<<")"<<std::endl;
-
+    // crop camera to correspond to the image crop
     pcam = super3d::crop_camera(pcam, i0, j0);
 
+    // write out the KRTD file (pcam is KRT, D is just 0)
     std::ofstream ofs((ss.str() + ".krtd").c_str());
     ofs << pcam << "\n0\n";
   }
