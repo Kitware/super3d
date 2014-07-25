@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
     pcam = super3d::crop_camera(pcam, i0, j0);
 
     std::ofstream ofs((ss.str() + ".krtd").c_str());
-    ofs << pcam << "\n0";
+    ofs << pcam << "\n0\n";
   }
 
   std::ofstream ofs("geo_transform.txt");
