@@ -228,9 +228,9 @@ void hessian_frob(vil_image_view<double> &q,
   unsigned int ni = d.ni()-1, nj = d.nj()-1;
   double stepsilon1 = 1.0 + step*epsilon;
 
-  for (unsigned int j = 0; j <= nj; j++)
+  for (unsigned int j = 1; j < nj; j++)
   {
-    for (unsigned int i = 0; i <= ni; i++)
+    for (unsigned int i = 1; i < ni; i++)
     {
       double &xx = q(i,j,0), &xy = q(i,j,1), &yy = q(i,j,2);
       double dij = d(i,j);
@@ -276,9 +276,11 @@ double eval_hessian_frob(const vil_image_view<double> &d,
                          double lambda)
 {
   double cost = 0;
-  for (unsigned int i = 1; i < d.ni(); i++)
+  unsigned int ni = d.ni() - 1, nj = d.nj() - 1;
+
+  for (unsigned int i = 1; i < ni; i++)
   {
-    for (unsigned int j = 1; j < d.nj(); j++)
+    for (unsigned int j = 1; j < nj; j++)
     {
       double ixx = d(i-1,j) - 2.0*d(i,j) + d(i+1,j);
       double iyy = d(i,j-1) - 2.0*d(i,j) + d(i,j+1);
