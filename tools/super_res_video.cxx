@@ -55,6 +55,7 @@
 #include <vpgl/vpgl_perspective_camera.h>
 #include <vgl/vgl_intersection.h>
 
+
 /// Use the valid region of the flow destinations to crop the frames and translate the flow.
 void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
                              vcl_vector<vil_image_view<double> > &frames,
@@ -79,6 +80,8 @@ void create_low_res(vcl_vector<vil_image_view<double> > &frames,
                     int scale,
                     super3d::config *cfg);
 
+void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_image_view<double> > &flows);
+
 //*****************************************************************************
 
 int main(int argc, char* argv[])
@@ -88,7 +91,6 @@ int main(int argc, char* argv[])
     boost::scoped_ptr<super3d::config> cfg(new super3d::config);
     cfg->read_config(argv[1]);
     vcl_vector<vil_image_view<double> > frames;
-    vcl_vector<vpgl_perspective_camera<double> >  cameras;
     vcl_vector<vcl_string> filenames;
 
     super3d::super_res_params srp;
@@ -97,139 +99,177 @@ int main(int argc, char* argv[])
     else
       srp.debug = false;
 
-    vcl_string camera_file = cfg->get_value<vcl_string>("camera_file");
     vcl_string frame_file = cfg->get_value<vcl_string>("frame_list");
     vcl_string dir = cfg->get_value<vcl_string>("directory");
-    vcl_cout << "Using frame file: " << frame_file << " to find images and "
-             << camera_file  << " to find cameras.\n";
     vcl_vector<int> frameindex;
-    super3d::load_from_frame_file(frame_file.c_str(), camera_file.c_str(), dir,
-                                  filenames, frameindex, frames, cameras, cfg->get_value<bool>("use_color"));
 
     const unsigned int ref_frame = cfg->get_value<unsigned int>("ref_frame");
     const double scale_factor = cfg->get_value<double>("scale_factor");
-    double camera_scale;
 
     vil_image_view<double> gt;
 
-    //This executable can create its own low-res images to compare against the high res
-    //images defined in the config or read from specific images
-    if (cfg->get_value<bool>("create_low_res"))
-    {
-      gt.deep_copy(frames[ref_frame]);
-      create_low_res(frames, scale_factor, cfg.get());
-      camera_scale = scale_factor;
-    }
-    else
-    {
-      camera_scale = cfg->get_value<double>("camera_scale");
-      if (cfg->is_set("ground_truth"))
-      {
-        vcl_string ground_truth = cfg->get_value<vcl_string>("ground_truth");
-        vil_image_view<vxl_byte> gt_byte;
-        gt_byte = vil_load(ground_truth.c_str());
-        vil_convert_planes_to_grey(gt_byte, gt);
-      }
-    }
+    vil_image_view<double> ref_image;
+    int i0 = 0;
+    int j0 = 0;
+    int ni, nj;
+
+    vcl_vector<vil_image_view<double> > weights;
+    vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
 
     const double normalizer = 1.0/255.0;
-    vcl_vector<vpgl_perspective_camera<double> > scaled_cams;
-    for (unsigned int i = 0; i < frames.size(); i++)
+
+    if (cfg->is_set("flow_file"))
     {
-      vil_math_scale_values(frames[i], normalizer);
-      scaled_cams.push_back(super3d::scale_camera(cameras[i], scale_factor / camera_scale));
-    }
+      super3d::load_from_frame_file(frame_file.c_str(), dir, filenames,
+                                    frameindex, frames,
+                                    cfg->get_value<bool>("use_color"),
+                                    cfg->get_value<bool>("use_rgb12"));
 
-    //Should check that this depth map is the correct dimensions
-    vil_image_view<double> depth;
-    vcl_string depthfile = cfg->get_value<vcl_string>("high_res_depth");
-    depth = vil_load(depthfile.c_str());
-    int dni = depth.ni(), dnj = depth.nj();
-    if (cfg->get_value<bool>("upsample_depth"))
-    {
-      dni *= scale_factor;
-      dnj *= scale_factor;
-      vil_image_view<double> temp;
-      vil_resample_bilin(depth, temp, dni, dnj);
-      depth = temp;
-    }
+      for (unsigned int i = 0; i < frames.size(); i++)
+      {
+        vil_math_scale_values(frames[i], normalizer);
+      }
 
-    vcl_cout << depth.ni() << " " << depth.nj() << "\n";
-    double min, max;
-    vil_math_value_range(depth, min, max);
-    vcl_cout << min << " " << max << "\n";
-
-    int i0, ni, j0, nj;
-    vil_image_view<double> ref_image;
-
-    //Crop regions are defined in the coordinates of the LOW RES reference frame
-    vpgl_perspective_camera<double> ref_cam = scaled_cams[ref_frame];
-    if (cfg->is_set("crop_window"))
-    {
-      vcl_istringstream cwstream(cfg->get_value<vcl_string>("crop_window"));
-      cwstream >> i0 >> ni >> j0 >> nj;
-      vcl_cout << frames[ref_frame].ni() << " " << frames[ref_frame].nj() << "\n";
-      ref_image.deep_copy(vil_crop(frames[ref_frame], i0, ni, j0, nj));
-      i0 = (int)(i0*scale_factor/camera_scale);
-      j0 = (int)(j0*scale_factor/camera_scale);
-      ni = (int)(ni*scale_factor/camera_scale);
-      nj = (int)(nj*scale_factor/camera_scale);
-      vcl_cout << "Crop window: " << i0 << " " << ni << " " << j0 << " " << nj << "\n";
-      if (cfg->is_set("ground_truth"))
-        gt = vil_crop(gt, i0, ni, j0, nj);
-
-      if (cfg->is_set("crop_depth") && cfg->get_value<bool>("crop_depth"))
-        depth = vil_crop(depth, i0, ni, j0, nj);
-      ref_cam = super3d::crop_camera(ref_cam, i0, j0);
-    }
-    else
-    {
-      i0 = j0 = 0;
       ni = frames[ref_frame].ni();
       nj = frames[ref_frame].nj();
       ref_image.deep_copy(frames[ref_frame]);
-    }
 
-    vcl_vector<vil_image_view<double> > weights(cameras.size());
-
-    if (cfg->get_value<bool>("use_normal_weighting"))
-    {
-      vil_image_view<double> location_map, normal_map, ref_angle_map;
-      super3d::depth_map_to_normal_map_inv_len(ref_cam, depth, normal_map);
-      super3d::depth_map_to_location_map(ref_cam, depth, location_map);
-      super3d::viewing_angle_map(ref_cam.camera_center(), location_map, normal_map, ref_angle_map);
-
-      if( srp.debug )
+      vcl_vector<vil_image_view<double> > flows;
+      load_flow( cfg->get_value<vcl_string>("flow_file").c_str(), dir, flows);
+      weights.resize(flows.size());
+      for (unsigned int i = 0; i < flows.size(); i++)
       {
-        vil_image_view<double> rotated;
-        vil_image_view<vxl_byte> byte_normals;
-        super3d::rotate_normal_map(normal_map, ref_cam.get_rotation(), rotated);
-        super3d::byte_normal_map(rotated, byte_normals);
-        vil_save(byte_normals, "images/normal_map.png");
+        weights[i].set_size(flows[i].ni(), flows[i].nj());
+        weights[i].fill(1.0);
       }
 
-      for (unsigned int i = 0; i < cameras.size(); i++)
-      {
-        super3d::viewing_angle_map(cameras[i].camera_center(), location_map, normal_map, weights[i]);
-        vil_math_image_ratio(weights[i], ref_angle_map, weights[i]);
-        vil_clamp_below(weights[i], 0.0);
-      }
+      create_warps_from_flows(flows, frames, weights, warps, scale_factor, cfg.get());
     }
     else
     {
-      for (unsigned int i = 0; i < cameras.size(); i++)
-      {
-        weights[i].set_size(dni, dnj);
-        weights[i].fill(1.0);
-      }
-    }
+      vcl_vector<vpgl_perspective_camera<double> >  cameras;
+      double camera_scale;
+      vcl_string camera_file = cfg->get_value<vcl_string>("camera_file");
+      vcl_cout << "Using frame file: " << frame_file << " to find images and "
+               << camera_file  << " to find cameras.\n";
 
-    vcl_cout << "Computing flow from depth\n";
-    vcl_vector<vil_image_view<double> > flows;
-    super3d::compute_occluded_flows_from_depth(scaled_cams, ref_cam, depth, flows);
-    crop_frames_and_flows(flows, frames, scale_factor, 0);
-    vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
-    create_warps_from_flows(flows, frames, weights, warps, scale_factor, cfg.get());
+      super3d::load_from_frame_file(frame_file.c_str(),
+                                    camera_file.c_str(), dir, filenames,
+                                    frameindex, frames, cameras,
+                                    cfg->get_value<bool>("use_color"));
+
+      //This executable can create its own low-res images to compare against the high res
+      //images defined in the config or read from specific images
+      if (cfg->get_value<bool>("create_low_res"))
+      {
+        gt.deep_copy(frames[ref_frame]);
+        create_low_res(frames, scale_factor, cfg.get());
+        camera_scale = scale_factor;
+      }
+      else
+      {
+        camera_scale = cfg->get_value<double>("camera_scale");
+        if (cfg->is_set("ground_truth"))
+        {
+          vcl_string ground_truth = cfg->get_value<vcl_string>("ground_truth");
+          vil_image_view<vxl_byte> gt_byte;
+          gt_byte = vil_load(ground_truth.c_str());
+          vil_convert_planes_to_grey(gt_byte, gt);
+        }
+      }
+
+      vcl_vector<vpgl_perspective_camera<double> > scaled_cams;
+      for (unsigned int i = 0; i < frames.size(); i++)
+      {
+        vil_math_scale_values(frames[i], normalizer);
+        scaled_cams.push_back(super3d::scale_camera(cameras[i], scale_factor / camera_scale));
+      }
+
+      vil_image_view<double> depth;
+      vcl_string depthfile = cfg->get_value<vcl_string>("high_res_depth");
+      depth = vil_load(depthfile.c_str());
+      int dni = depth.ni(), dnj = depth.nj();
+      if (cfg->get_value<bool>("upsample_depth"))
+      {
+        dni *= scale_factor;
+        dnj *= scale_factor;
+        vil_image_view<double> temp;
+        vil_resample_bilin(depth, temp, dni, dnj);
+        depth = temp;
+      }
+
+      vcl_cout << depth.ni() << " " << depth.nj() << "\n";
+      double min, max;
+      vil_math_value_range(depth, min, max);
+      vcl_cout << min << " " << max << "\n";
+
+      //Crop regions are defined in the coordinates of the LOW RES reference frame
+      vpgl_perspective_camera<double> ref_cam = scaled_cams[ref_frame];
+      if (cfg->is_set("crop_window"))
+      {
+        vcl_istringstream cwstream(cfg->get_value<vcl_string>("crop_window"));
+        cwstream >> i0 >> ni >> j0 >> nj;
+        vcl_cout << frames[ref_frame].ni() << " " << frames[ref_frame].nj() << "\n";
+        ref_image.deep_copy(vil_crop(frames[ref_frame], i0, ni, j0, nj));
+        i0 = (int)(i0*scale_factor/camera_scale);
+        j0 = (int)(j0*scale_factor/camera_scale);
+        ni = (int)(ni*scale_factor/camera_scale);
+        nj = (int)(nj*scale_factor/camera_scale);
+        vcl_cout << "Crop window: " << i0 << " " << ni << " " << j0 << " " << nj << "\n";
+        if (cfg->is_set("ground_truth"))
+          gt = vil_crop(gt, i0, ni, j0, nj);
+
+        if (cfg->is_set("crop_depth") && cfg->get_value<bool>("crop_depth"))
+          depth = vil_crop(depth, i0, ni, j0, nj);
+        ref_cam = super3d::crop_camera(ref_cam, i0, j0);
+      }
+      else
+      {
+        ni = frames[ref_frame].ni();
+        nj = frames[ref_frame].nj();
+        ref_image.deep_copy(frames[ref_frame]);
+      }
+
+      weights.resize(cameras.size());
+
+      if (cfg->get_value<bool>("use_normal_weighting"))
+      {
+        vil_image_view<double> location_map, normal_map, ref_angle_map;
+        super3d::depth_map_to_normal_map_inv_len(ref_cam, depth, normal_map);
+        super3d::depth_map_to_location_map(ref_cam, depth, location_map);
+        super3d::viewing_angle_map(ref_cam.camera_center(), location_map, normal_map, ref_angle_map);
+
+        if( srp.debug )
+        {
+          vil_image_view<double> rotated;
+          vil_image_view<vxl_byte> byte_normals;
+          super3d::rotate_normal_map(normal_map, ref_cam.get_rotation(), rotated);
+          super3d::byte_normal_map(rotated, byte_normals);
+          vil_save(byte_normals, "images/normal_map.png");
+        }
+
+        for (unsigned int i = 0; i < cameras.size(); i++)
+        {
+          super3d::viewing_angle_map(cameras[i].camera_center(), location_map, normal_map, weights[i]);
+          vil_math_image_ratio(weights[i], ref_angle_map, weights[i]);
+          vil_clamp_below(weights[i], 0.0);
+        }
+      }
+      else
+      {
+        for (unsigned int i = 0; i < cameras.size(); i++)
+        {
+          weights[i].set_size(dni, dnj);
+          weights[i].fill(1.0);
+        }
+      }
+
+      vcl_cout << "Computing flow from depth\n";
+      vcl_vector<vil_image_view<double> > flows;
+      super3d::compute_occluded_flows_from_depth(scaled_cams, ref_cam, depth, flows);
+      crop_frames_and_flows(flows, frames, scale_factor, 0);
+      create_warps_from_flows(flows, frames, weights, warps, scale_factor, cfg.get());
+    }
 
     if ( srp.debug )
     {
@@ -587,6 +627,22 @@ void create_low_res(vcl_vector<vil_image_view<double> > &frames,
       vidtk::down_sample(temp, frames[i], scale);
     }
   }
+}
+
+//*****************************************************************************
+
+void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_image_view<double> > &flows)
+{
+  vcl_ifstream infile(flow_list);
+  vcl_string flowname;
+
+  while (infile >> flowname)
+  {
+    vil_image_view<double> flowimg;
+    super3d::read_flow_file(flowimg, (dir + flowname).c_str());
+    flows.push_back(flowimg);
+  }
+  vcl_cout << "Read " << flows.size() << " flows.\n";
 }
 
 //*****************************************************************************
