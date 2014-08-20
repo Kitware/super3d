@@ -1,6 +1,6 @@
 
 # Super3D include directory
-set(Super3D_INCLUDE_DIR "@Super3D_SOURCE_DIR@/super3d")
+set(Super3D_INCLUDE_DIR "@Super3D_SOURCE_DIR@" "@Super3D_BINARY_DIR@")
 set(Super3D_LIBRARY_DIR "@Super3D_BINARY_DIR@/lib")
 set(Super3D_CMAKE_DIR   "@Super3D_SOURCE_DIR@/CMake")
 
