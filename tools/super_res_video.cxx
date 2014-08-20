@@ -136,6 +136,12 @@ int main(int argc, char* argv[])
 
       vcl_vector<vil_image_view<double> > flows;
       load_flow( cfg->get_value<vcl_string>("flow_file").c_str(), dir, flows);
+
+      while( flows.size() > frames.size() )
+      {
+        flows.pop_back();
+      }
+
       weights.resize(flows.size());
       for (unsigned int i = 0; i < flows.size(); i++)
       {
