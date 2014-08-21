@@ -265,15 +265,6 @@ void load_from_frame_file(const char *framefile,
   {
     framelist.push_back(frame);
     filenames.push_back(imagename);
-//  }
-//  framestream.close();
-//  while (framestream.good())
-//  {
-//    framestream >> frame;
-//    vcl_string imagename;
-//    framestream >> imagename;
-//    framelist.push_back(frame);
-//    filenames.push_back(imagename);
 
     vcl_cout << "Reading: " << imagename;
     vil_image_resource_sptr img_rsc = vil_load_image_resource((directory + imagename).c_str());
