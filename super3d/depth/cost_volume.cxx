@@ -91,12 +91,10 @@ compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
   int ni = ws->ni(), nj = ws->nj();
   vil_image_view<double> warp_ref(ni, nj, 1), warp(ni, nj, 1);
   vil_image_view<double> warp_ref_grad(ni, nj, 2), warp_grad(ni, nj, 2);
-  double denom = 1.0 / (frames.size() - 1.0);
 
   vbl_array_2d<vxl_uint_64> warp_ref_census;
   //vbl_array_2d<g_census> warp_ref_g_census;
 
-  const double g_census_thresh = 1e-4;
   vil_image_view<int> counts(ni, nj, 1);
 
   //Depths

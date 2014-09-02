@@ -125,10 +125,10 @@ meanshift(vil_image_view<double> &normal_map,
   zeros.fill(0.0);
 
   vcl_cout << "Filtering with h = " << h << "\n";
-  for (int i = 0; i < ni; i++)
+  for (unsigned int i = 0; i < ni; i++)
   {
     //vcl_cout << i << " ";
-    for (int j = 0; j < nj; j++)
+    for (unsigned int j = 0; j < nj; j++)
     {
       vnl_vector<double> mean(D), last(D);
       for (unsigned int dim = 0; dim < D; dim++) mean(dim) = x(i,j,dim);
@@ -192,7 +192,6 @@ meanshift(vil_image_view<double> &normal_map,
     }
   }
 
-  const double mag = 10.0;
   for (unsigned int i = 0; i < filtered.ni(); i++)
   {
     for (unsigned int j = 0; j < filtered.nj(); j++)

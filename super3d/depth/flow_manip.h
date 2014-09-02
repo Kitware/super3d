@@ -36,7 +36,7 @@
 #include <vil/vil_image_view.h>
 #include <vpgl/vpgl_perspective_camera.h>
 #include <vgl/vgl_box_2d.h>
-
+#include <video_transforms/warp_image.h>
 
 namespace super3d
 {

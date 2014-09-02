@@ -94,6 +94,12 @@ void load_from_frame_file(const char *framefile,
                           vcl_vector<vpgl_perspective_camera<double> > &cameras,
                           bool color = false);
 
+//Load cameras from a single camera file with a framelist
+SUPER3D_DEPTH_EXPORT
+void load_cams(const char *camerafile,
+               vcl_vector<int> &framelist,
+               vcl_vector<vpgl_perspective_camera<double> > &cameras);
+
 /// Loads images from a file list of frames paths
 /// \param framefile file that lists frame number and frame paths
 /// \param directory the working direction from which the framefile appends its paths to

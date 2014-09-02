@@ -320,8 +320,6 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-  //refine_depth_planar(ws, depth, g, frames[ref_frame], 1, 0.25);
-  //refine_depth_planar(cost_volume, ws, depth, g, frames[ref_frame], beta, theta0, theta_end, lambda);
   super3d::save_depth(depth, "depth_map_normals.dat");
 
 #else

@@ -39,7 +39,6 @@
 
 #include <super3d/imesh/algo/imesh_project.h>
 
-
 namespace super3d
 {
 

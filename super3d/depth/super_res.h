@@ -30,12 +30,12 @@
 #define SUPER_RES_H_
 
 #include "depth_config.h"
+#include "super_res_robust_function.h"
 
 #include <vil/vil_image_view.h>
 #include <vcl_vector.h>
 
 #include <video_transforms/adjoint_image_op.h>
-
 
 namespace super3d
 {
@@ -45,8 +45,47 @@ struct super_res_params {
   unsigned int s_ni, s_nj, l_ni, l_nj;
   double scale_factor;
   unsigned int ref_frame;
-};
 
+  // illumination robust optimization parameters
+  enum TV_METHOD
+  {
+    SUPER3D_BASELINE=0,
+    IMAGEDATA_IMAGEPRIOR,
+    GRADIENTDATA_IMAGEPRIOR,
+    IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR,
+    MEDIANDATA_IMAGEPRIOR,
+    IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR
+  } tv_method;
+
+  bool debug;
+  double erosion_radius;
+  double median_radius;
+  int frame_step;
+  bool image_data_1, image_data_N, gradient_data, image_prior, illumination_prior, median_residue;
+
+  // 0:huber_norm; 1:truncated_quadratic; 2:generalized_huber
+  enum COST_FUNCTION
+  {
+    HUBER_NORM=0,
+    TRUNCATED_QUADRATIC,
+    GENERALIZED_HUBER
+  } cost_function;
+
+  // image data term (lambda, alpha, beta, gamma)
+  double alpha_a, gamma_a, beta_a;
+
+  // gradient data term (lambda, alpha, beta, gamma)
+  double lambda_g, alpha_g, gamma_g, beta_g;
+
+  // image prior term (lambda, alpha, beta, gamma)
+  double lambda_r, alpha_r, gamma_r, beta_r;
+
+  // illumination prior term (lambda, alpha, beta, gamma)
+  double lambda_l, alpha_l, gamma_l, beta_l;
+
+  // dual space
+  double sigma_pr, sigma_pl, sigma_qa, sigma_qg, sigma_A, sigma_Y;
+};
 
 SUPER3D_DEPTH_EXPORT
 void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
@@ -56,6 +95,15 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
                    unsigned int iterations,
                    const vcl_string &output_image = "");
 
+SUPER3D_DEPTH_EXPORT
+void super_resolve_robust(
+  const vcl_vector<vil_image_view<double> > &frames,
+  const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+  vil_image_view<double> &Y,
+  super_res_params srp,
+  unsigned int iterations,
+  vcl_vector< vil_image_view<double> > &As,
+  const vcl_string &output_image = "");
 
 SUPER3D_DEPTH_EXPORT
 void compare_to_original(const vil_image_view<double> &ref_img,

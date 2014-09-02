@@ -54,10 +54,6 @@
 
 #include <vpgl/vpgl_perspective_camera.h>
 #include <vgl/vgl_intersection.h>
-#include <video_transforms/warp_image.h>
-
-//#define DEBUG
-
 
 /// Use the valid region of the flow destinations to crop the frames and translate the flow.
 void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
@@ -83,34 +79,23 @@ void create_low_res(vcl_vector<vil_image_view<double> > &frames,
                     int scale,
                     super3d::config *cfg);
 
-void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
-              double scale_factor, vidtk::warp_image_parameters::interp_type interp)
-{
-  vidtk::warp_image_parameters wip;
-  wip.set_fill_unmapped(true);
-  wip.set_unmapped_value(-1.0);
-  wip.set_interpolator(interp);
-
-  vnl_double_3x3 Sinv;
-  Sinv.set_identity();
-  Sinv(0,0) = 1.0/scale_factor;
-  Sinv(1,1) = 1.0/scale_factor;
-
-  dest.set_size(src.ni() * scale_factor, src.nj() * scale_factor, src.nplanes());
-  vidtk::warp_image(src, dest, Sinv, wip);
-}
-
 //*****************************************************************************
 
 int main(int argc, char* argv[])
 {
-  try  {
+  try
+  {
     boost::scoped_ptr<super3d::config> cfg(new super3d::config);
     cfg->read_config(argv[1]);
     vcl_vector<vil_image_view<double> > frames;
     vcl_vector<vpgl_perspective_camera<double> >  cameras;
     vcl_vector<vcl_string> filenames;
 
+    super3d::super_res_params srp;
+    if (cfg->is_set("debug"))
+      srp.debug = cfg->get_value<bool>("debug");
+    else
+      srp.debug = false;
 
     vcl_string camera_file = cfg->get_value<vcl_string>("camera_file");
     vcl_string frame_file = cfg->get_value<vcl_string>("frame_list");
@@ -214,13 +199,14 @@ int main(int argc, char* argv[])
       super3d::depth_map_to_location_map(ref_cam, depth, location_map);
       super3d::viewing_angle_map(ref_cam.camera_center(), location_map, normal_map, ref_angle_map);
 
-#ifdef DEBUG
-      vil_image_view<double> rotated;
-      vil_image_view<vxl_byte> byte_normals;
-      rotate_normal_map(normal_map, ref_cam.get_rotation(), rotated);
-      byte_normal_map(rotated, byte_normals);
-      vil_save(byte_normals, "images/normal_map.png");
-#endif
+      if( srp.debug )
+      {
+        vil_image_view<double> rotated;
+        vil_image_view<vxl_byte> byte_normals;
+        super3d::rotate_normal_map(normal_map, ref_cam.get_rotation(), rotated);
+        super3d::byte_normal_map(rotated, byte_normals);
+        vil_save(byte_normals, "images/normal_map.png");
+      }
 
       for (unsigned int i = 0; i < cameras.size(); i++)
       {
@@ -241,64 +227,85 @@ int main(int argc, char* argv[])
     vcl_cout << "Computing flow from depth\n";
     vcl_vector<vil_image_view<double> > flows;
     super3d::compute_occluded_flows_from_depth(scaled_cams, ref_cam, depth, flows);
-    crop_frames_and_flows(flows, frames, scale_factor, 3);
+    crop_frames_and_flows(flows, frames, scale_factor, 0);
     vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
     create_warps_from_flows(flows, frames, weights, warps, scale_factor, cfg.get());
 
- #ifdef DEBUG
-    for (unsigned int i = 0; i < warps.size(); i++)
+    if ( srp.debug )
     {
-      // test if the DBW operator for image i is adjoint
-      vcl_cout << "is adjoint "<<i<<" "<<warps[i].is_adjoint()<<vcl_endl;
 
-      char buf[50];
-      vil_image_view<vxl_byte> output;
+      for (unsigned int i = 0; i < warps.size(); i++)
+      {
+        // test if the DBW operator for image i is adjoint
+        vcl_cout << "is adjoint "<<i<<" "<<warps[i].is_adjoint()<<vcl_endl;
 
-      // apply DBW to ground truth super res image to predict frame i
-      vil_image_view<double> gts, pred;
-      vil_convert_stretch_range_limited(gt, gts, 0.0, 255.0, 0.0, 1.0);
-      warps[i].apply_A(gts, pred);
-      vil_convert_stretch_range_limited(pred, output, 0.0, 1.0);
-      sprintf(buf, "images/predicted-%03d.png", i);
-      vil_save(output, buf);
+        char buf[50];
+        vil_image_view<vxl_byte> output;
 
-      // write out the alpha weight map
-      vil_image_view<double> map = warps[i].weight_map();
-      vil_convert_stretch_range_limited(map, output, 0.0, 2.0);
-      sprintf(buf, "images/weight-%03d.png", i);
-      vil_save(output, buf);
+        // cropped frames
+        sprintf(buf, "images/frames-%03d.png", i);
+        vil_convert_stretch_range_limited(frames[i], output, 0.0, 1.0);
+        vil_save(output, buf);
 
-      // apply DBW alpha map weighting to frame i
-      vil_image_view<double> wframe;
-      vil_math_image_product(frames[i], map, wframe);
-      vil_convert_stretch_range_limited(wframe, output, 0.0, 1.0);
-      sprintf(buf, "images/weighted-frame-%03d.png", i);
-      vil_save(output, buf);
+        // apply DBW to ground truth super res image to predict frame i
+        vil_image_view<double> pred;
+        if (cfg->is_set("ground_truth"))
+        {
+          vil_image_view<double> gts;
+          vil_convert_stretch_range_limited(gt, gts, 0.0, 255.0, 0.0, 1.0);
+          warps[i].apply_A(gts, pred);
+          vil_convert_stretch_range_limited(pred, output, 0.0, 1.0);
+          sprintf(buf, "images/predicted-%03d.png", i);
+          vil_save(output, buf);
+        }
 
-      // write weighted difference between prediction and data
-      vil_math_image_difference(wframe, pred, pred);
-      vil_convert_stretch_range_limited(pred, output, -1.0, 1.0);
-      sprintf(buf, "images/predition-error%03d.png", i);
-      vil_save(output, buf);
+        // write out the alpha weight map
+        vil_image_view<double> map = warps[i].weight_map();
+        vil_convert_stretch_range_limited(map, output, 0.0, 2.0);
+        sprintf(buf, "images/weight-%03d.png", i);
+        vil_save(output, buf);
 
-      // write out the viewing angle based weights
-      vil_convert_stretch_range_limited(weights[i], output, 0.0, 2.0);
-      sprintf(buf, "images/angle-weight-%03d.png", i);
-      vil_save(output, buf);
+        // apply DBW alpha map weighting to frame i
+        vil_image_view<double> wframe;
+        vil_math_image_product(frames[i], map, wframe);
+        vil_convert_stretch_range_limited(wframe, output, 0.0, 1.0);
+        sprintf(buf, "images/weighted-frame-%03d.png", i);
+        vil_save(output, buf);
+
+        // write weighted difference between prediction and data
+        if (cfg->is_set("gronund_truth"))
+        {
+          vil_math_image_difference(wframe, pred, pred);
+          vil_convert_stretch_range_limited(pred, output, -1.0, 1.0);
+          sprintf(buf, "images/predition-error%03d.png", i);
+          vil_save(output, buf);
+        }
+
+        // write out the viewing angle based weights
+        vil_convert_stretch_range_limited(weights[i], output, 0.0, 2.0);
+        sprintf(buf, "images/angle-weight-%03d.png", i);
+        vil_save(output, buf);
+
+        // apply DBW inverse to frames
+        vil_image_view<double> register_frames;
+        warps[i].apply_At(frames[i], register_frames);
+        vil_convert_stretch_range_limited(register_frames, output, 0.0, 1.0);
+        sprintf(buf, "images/register-frames-%03d.png", i);
+        vil_save(output, buf);
+      }
     }
-#endif
 
     vcl_cout << "Computing super resolution\n";
 
     //Initilize super resolution parameters
     vil_image_view<double> super_u;
-    super3d::super_res_params srp;
     srp.scale_factor = scale_factor;
     srp.ref_frame = ref_frame;
     srp.s_ni = warps[ref_frame].src_ni();
     srp.s_nj = warps[ref_frame].src_nj();
     srp.l_ni = warps[ref_frame].dst_ni();
     srp.l_nj = warps[ref_frame].dst_nj();
+
     srp.lambda = cfg->get_value<double>("lambda");
     srp.epsilon_data = cfg->get_value<double>("epsilon_data");
     srp.epsilon_reg = cfg->get_value<double>("epsilon_reg");
@@ -306,7 +313,136 @@ int main(int argc, char* argv[])
     srp.tau = cfg->get_value<double>("tau");
     const unsigned int iterations = cfg->get_value<unsigned int>("iterations");
     vcl_string output_image = cfg->get_value<vcl_string>("output_image");
-    super3d::super_resolve(frames, warps, super_u, srp, iterations, output_image);
+
+    // additional parameters
+    vcl_string tv_method_str = cfg->get_value<vcl_string>("tv_method");
+    if( tv_method_str.compare("SUPER3D_BASELINE") == 0 )
+    {
+      srp.tv_method = super3d::super_res_params::SUPER3D_BASELINE;
+    }
+    else if ( tv_method_str.compare("IMAGEDATA_IMAGEPRIOR") == 0 )
+    {
+      srp.tv_method = super3d::super_res_params::IMAGEDATA_IMAGEPRIOR;
+    }
+    else if ( tv_method_str.compare("GRADIENTDATA_IMAGEPRIOR") == 0 )
+    {
+      srp.tv_method = super3d::super_res_params::GRADIENTDATA_IMAGEPRIOR;
+    }
+    else if ( tv_method_str.compare("IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR") == 0 )
+    {
+      srp.tv_method = super3d::super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR;
+    }
+    else if ( tv_method_str.compare("MEDIANDATA_IMAGEPRIOR") == 0 )
+    {
+      srp.tv_method = super3d::super_res_params::MEDIANDATA_IMAGEPRIOR;
+    }
+    else if ( tv_method_str.compare("IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR") == 0 )
+    {
+      srp.tv_method = super3d::super_res_params::IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR;
+    }
+    else
+    {
+      vcl_cerr << "unknown tv method\n";
+      return(-1);
+    }
+    vcl_cout << "tv method : " << tv_method_str << vcl_endl;
+
+    vcl_string str = cfg->get_value<vcl_string>("cost_function");
+    if( str.compare("HUBER_NORM") == 0 )
+    {
+      srp.cost_function = super3d::super_res_params::HUBER_NORM;
+    }
+    else if( str.compare("TRUNCATED_QUADRATIC") == 0 )
+    {
+      srp.cost_function = super3d::super_res_params::TRUNCATED_QUADRATIC;
+    }
+    else if( str.compare("GENERALIZED_HUBER") == 0 )
+    {
+      srp.cost_function = super3d::super_res_params::GENERALIZED_HUBER;
+    }
+    else
+    {
+      vcl_cerr << "unknown cost function\n";
+      return(-1);
+    }
+    vcl_cout << "cost function : " << str << vcl_endl;
+
+    if (cfg->is_set("alpha_a"))
+      srp.alpha_a = cfg->get_value<double>("alpha_a");
+    if (cfg->is_set("gamma_a"))
+      srp.gamma_a = cfg->get_value<double>("gamma_a");
+    if (cfg->is_set("beta_a"))
+      srp.beta_a = cfg->get_value<double>("beta_a");
+
+    if (cfg->is_set("lambda_g"))
+      srp.lambda_g = cfg->get_value<double>("lambda_g");
+    if (cfg->is_set("alpha_g"))
+      srp.alpha_g = cfg->get_value<double>("alpha_g");
+    if (cfg->is_set("gamma_g"))
+      srp.gamma_g = cfg->get_value<double>("gamma_g");
+    if (cfg->is_set("beta_g"))
+      srp.beta_g = cfg->get_value<double>("beta_g");
+
+    if (cfg->is_set("lambda_r"))
+      srp.lambda_r = cfg->get_value<double>("lambda_r");
+    if (cfg->is_set("alpha_r"))
+      srp.alpha_r = cfg->get_value<double>("alpha_r");
+    if (cfg->is_set("gamma_r"))
+      srp.gamma_r = cfg->get_value<double>("gamma_r");
+    if (cfg->is_set("beta_r"))
+      srp.beta_r = cfg->get_value<double>("beta_r");
+
+    if (cfg->is_set("lambda_l"))
+      srp.lambda_l = cfg->get_value<double>("lambda_l");
+    if (cfg->is_set("alpha_l"))
+      srp.alpha_l = cfg->get_value<double>("alpha_l");
+    if (cfg->is_set("gamma_l"))
+      srp.gamma_l = cfg->get_value<double>("gamma_l");
+    if (cfg->is_set("beta_l"))
+      srp.beta_l = cfg->get_value<double>("beta_l");
+
+    if (cfg->is_set("sigma_pr"))
+      srp.sigma_pr = cfg->get_value<double>("sigma_pr");
+    if (cfg->is_set("sigma_pl"))
+      srp.sigma_pl = cfg->get_value<double>("sigma_pl");
+    if (cfg->is_set("sigma_qa"))
+      srp.sigma_qa = cfg->get_value<double>("sigma_qa");
+    if (cfg->is_set("sigma_qg"))
+      srp.sigma_qg = cfg->get_value<double>("sigma_qg");
+    if (cfg->is_set("sigma_A"))
+      srp.sigma_A = cfg->get_value<double>("sigma_A");
+    if (cfg->is_set("sigma_Y"))
+      srp.sigma_Y = cfg->get_value<double>("sigma_Y");
+
+    if (cfg->is_set("erosion_radius"))
+    {
+      srp.erosion_radius = cfg->get_value<double>("erosion_radius");
+    }
+    else
+    {
+      srp.erosion_radius = 3.0;
+    }
+
+    if (cfg->is_set("median_radius"))
+    {
+      srp.median_radius = cfg->get_value<double>("median_radius");
+    }
+    else
+    {
+      srp.median_radius = 3.0;
+    }
+
+    if (cfg->is_set("frame_step"))
+    {
+      srp.frame_step = cfg->get_value<int>("frame_step");
+    }
+    else
+    {
+      srp.frame_step = 15;
+    }
+
+    vcl_vector< vil_image_view<double> > As;
+    super3d::super_resolve_robust(frames, warps, super_u, srp, iterations, As, output_image);
 
     if (cfg->is_set("ground_truth"))
     {
@@ -316,7 +452,7 @@ int main(int argc, char* argv[])
     else
     {
       vil_image_view<double> upsamp;
-      upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::CUBIC);
+      super3d::upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::CUBIC);
 
       vil_image_view<vxl_byte> output;
       vil_convert_stretch_range_limited(upsamp, output, 0.0, 1.0);
@@ -326,6 +462,18 @@ int main(int argc, char* argv[])
     vil_image_view<vxl_byte> output;
     vil_convert_stretch_range_limited(super_u, output, 0.0, 1.0);
     vil_save(output, output_image.c_str());
+
+    if( srp.illumination_prior )
+    {
+      for (unsigned int i = 0; i < As.size(); i++)
+      {
+        char buf[50];
+        vil_image_view<vxl_byte> output;
+        sprintf(buf, "A%d-%03d.png", i%2, i/2 );
+        vil_convert_stretch_range_limited(As[i], output, -1.0, 1.0);
+        vil_save(output, buf);
+      }
+    }
   }
   catch (const super3d::config::cfg_exception &e)  {
     vcl_cout << "Error in config: " << e.what() << "\n";

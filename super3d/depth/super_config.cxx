@@ -234,7 +234,7 @@ void config::read_config(const char *file)
 void config::read_argument_updates(int argc, char *argv[])
 {
   //format is: "variable=value"
-  for (unsigned int i = 2; i < argc; i++)
+  for (int i = 2; i < argc; i++)
   {
     vcl_string str(argv[i]);
     size_t eq = str.find_first_of("=");

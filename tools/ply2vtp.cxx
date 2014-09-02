@@ -84,9 +84,6 @@ int main(int argc, char *argv[])
   vnl_double_3 plane[3];
   ClipFromPlane(polydata, plane, 1);
 
-  vnl_double_3 plane_pt = plane[0];
-  vnl_double_3 plane_n = vnl_cross_3d(plane[1] - plane[0], plane[2] - plane[0]).normalize();
-
   vcl_string filename(argv[1]);
   filename[filename.size()-3] = 'v';
   filename[filename.size()-2] = 't';
@@ -127,11 +124,6 @@ int main(int argc, char *argv[])
 
     triangles.push_back(t);
   }
-
-  //for (unsigned int i = 0; i < 2; i++)  {
-  //  vcl_cout << i << " ";
-  //  MeshMedianFilter(verts, plane_pt, plane_n);
-  //}
 
   WriteMesh(verts, triangles, filename.c_str());
 
@@ -212,7 +204,7 @@ void MeshMedianFilter(vcl_vector<Vertex> &verts, const vcl_vector<Triangle *> &t
   {
     vcl_set<Triangle *> neighbors;
     Triangle *t = tris[i];
-    //vcl_cout << verts[t->a].tris.size() << " " << verts[t->b].tris.size() << " " << verts[t->c].tris.size() << "\n";
+
     neighbors.insert(verts[t->a].tris.begin(), verts[t->a].tris.end());
     neighbors.insert(verts[t->b].tris.begin(), verts[t->b].tris.end());
     neighbors.insert(verts[t->c].tris.begin(), verts[t->c].tris.end());
@@ -345,7 +337,6 @@ void ClipFromPlane(vtkSmartPointer<vtkPolyData> &polydata, vnl_double_3 *plane, 
     vnl_double_3 normal = vnl_cross_3d(br-ar, cr-ar).normalize();
 
     double error = 0.0;
-    int side = 0;
     for (unsigned int i = 0; i < n; i++)
     {
       vnl_double_3 pt;

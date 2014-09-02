@@ -35,7 +35,7 @@
 #include <vil/algo/vil_gauss_filter.h>
 
 #include <vpgl/vpgl_perspective_camera.h>
-
+#include <video_transforms/warp_image.h>
 
 namespace super3d
 {
@@ -79,6 +79,16 @@ SUPER3D_DEPTH_EXPORT
 vnl_vector_fixed<double,3>
 scale_point(const vnl_vector_fixed<double,3>& p,
                  double scale = 0.5);
+
+/// Rescale image src to image dest by a factor of scale_factor
+/// using interpolation method interp
+/// \param src The input/source image
+/// \param dest The rescale/output images
+/// \param scale_factor The rescale factor, e.g. 0.5, 2.0
+/// \param interp The interpolation method, e.g. bilinear, bicubic
+SUPER3D_DEPTH_EXPORT
+void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
+              double scale_factor, vidtk::warp_image_parameters::interp_type interp);
 
 } // end namespace super3d
 

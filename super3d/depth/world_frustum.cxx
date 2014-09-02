@@ -81,7 +81,7 @@ world_frustum::warp_cams(const vcl_vector<vpgl_perspective_camera<double> > &cam
   for (unsigned int i = 0; i < newcams.size(); i++)
   {
     newcams[i] = cameras[i];
-    if (i == ref_frame)
+    if (i == (unsigned int) ref_frame)
     {
       vgl_rotation_3d<double> identity;
       identity.set_identity();
