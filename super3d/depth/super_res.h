@@ -29,6 +29,9 @@
 #ifndef SUPER_RES_H_
 #define SUPER_RES_H_
 
+#include <boost/scoped_ptr.hpp>
+
+#include "super_config.h"
 #include "depth_config.h"
 #include "super_res_robust_function.h"
 
@@ -110,6 +113,10 @@ void compare_to_original(const vil_image_view<double> &ref_img,
                          const vil_image_view<double> &super,
                          const vil_image_view<double> &original,
                          unsigned int scale_factor);
+
+SUPER3D_DEPTH_EXPORT
+void read_super_res_params( const boost::scoped_ptr<config>& cfg,
+                            super_res_params &srp);
 
 } // end namespace super3d
 
