@@ -104,7 +104,7 @@ void dual_step_pl(const vcl_vector< vil_image_view<double> >&As,
     // for(unsigned int i=0; i<As.size(); i++)
     for(unsigned int i=0; i<As.size(); i=i+2)
     {
-      if( (int)(i/2) != srp.ref_frame )
+      if( (i/2) != srp.ref_frame )
       {
         dual_step_grad_prior(As[i], pl[i], srp.lambda_l, srp.sigma_pl, srp.alpha_l, srp.gamma_l, srp.cost_function);
       }
@@ -387,7 +387,8 @@ void super_resolve_robust(
   super_res_params srp,
   unsigned int iterations,
   vcl_vector< vil_image_view<double> > &As,
-  const vcl_string &output_image)
+  const vcl_string &output_image,
+  super_res_monitor *srm)
 {
 
   if (frames.empty())
@@ -707,12 +708,30 @@ void super_resolve_robust(
     ssd = vil_math_ssd(last, u, double());
     vcl_cout << " SSD: " << ssd << " " << minv << " " << maxv << "\n";
     vcl_swap(last, u);
+
+    if (srm)
+    {
+      if (*srm->interrupted_)
+      {
+        return;
+      }
+
+      if (srm->callback_ && !(i % srm->interval_))
+      {
+        super_res_monitor::update_data data;
+        data.current_result.deep_copy(u);
+        data.num_iterations = i;
+        srm->callback_(data);
+      }
+    }
+
   } while (++i < iterations);
 
   if( srp.median_residue )
   {
     vil_math_image_sum( u, Y_baseline, u );
   }
+
 }
 
 //*****************************************************************************

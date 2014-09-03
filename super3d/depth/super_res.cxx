@@ -151,7 +151,8 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
                    vil_image_view<double> &u,
                    const super_res_params &srp,
                    unsigned int iterations,
-                   const vcl_string &output_image)
+                   const vcl_string &output_image,
+                   super_res_monitor *srm)
 {
   if (frames.empty())
     return;
@@ -216,6 +217,22 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
     ssd = vil_math_ssd(last, u, double());
     vcl_cout << " SSD: " << ssd << " " << minv << " " << maxv << "\n";
     vcl_swap(last, u);
+
+    if (srm)
+    {
+      if (*srm->interrupted_)
+      {
+        return;
+      }
+
+      if (srm->callback_ && !(i % srm->interval_))
+      {
+        super_res_monitor::update_data data;
+        data.current_result.deep_copy(u);
+        data.num_iterations = i;
+        srm->callback_(data);
+      }
+    }
   } while (++i < iterations);
 }
 
