@@ -94,6 +94,8 @@ public:
   template<class T>
   T get_value(const vcl_string &varname) const;
   bool is_set(const vcl_string &varname) const;
+  template<class T>
+  bool set_if(const vcl_string &varname, T &var) const;
 
 private:
 

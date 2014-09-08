@@ -95,6 +95,30 @@ struct super_res_params {
   double sigma_pr, sigma_pl, sigma_qa, sigma_qg, sigma_A, sigma_Y;
 };
 
+class super_res_monitor;
+
+SUPER3D_DEPTH_EXPORT
+void super_resolve(
+  const vcl_vector<vil_image_view<double> > &frames,
+  const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+  vil_image_view<double> &u,
+  const super_res_params &srp,
+  unsigned int iterations,
+  const vcl_string &output_image = "",
+  super_res_monitor *srm = NULL);
+
+SUPER3D_DEPTH_EXPORT
+void super_resolve_robust(
+  const vcl_vector<vil_image_view<double> > &frames,
+  const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+  vil_image_view<double> &Y,
+  super_res_params srp,
+  unsigned int iterations,
+  vcl_vector< vil_image_view<double> > &As,
+  const vcl_string &output_image = "",
+  super_res_monitor *srm = NULL);
+
+
 class SUPER3D_DEPTH_EXPORT super_res_monitor
 {
 public:
@@ -138,26 +162,7 @@ private:
   boost::shared_ptr<bool const> interrupted_;
 };
 
-SUPER3D_DEPTH_EXPORT
-void super_resolve(
-  const vcl_vector<vil_image_view<double> > &frames,
-  const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
-  vil_image_view<double> &u,
-  const super_res_params &srp,
-  unsigned int iterations,
-  const vcl_string &output_image = "",
-  super_res_monitor *srm = NULL);
 
-SUPER3D_DEPTH_EXPORT
-void super_resolve_robust(
-  const vcl_vector<vil_image_view<double> > &frames,
-  const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
-  vil_image_view<double> &Y,
-  super_res_params srp,
-  unsigned int iterations,
-  vcl_vector< vil_image_view<double> > &As,
-  const vcl_string &output_image = "",
-  super_res_monitor *srm = NULL);
 
 SUPER3D_DEPTH_EXPORT
 void compare_to_original(const vil_image_view<double> &ref_img,

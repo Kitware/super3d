@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
     double u,v;
 
     std::cout << "loading pixels from "<< nitf_paths[i] <<std::endl;
-    vil_image_resource_sptr im = vil_load_image_resource(nitf_paths[i].c_str());
+    vil_image_resource_sptr im = vil_load_image_resource(nitf_paths[i].string().c_str());
     if(!im)
     {
       vcl_cerr << "Unable to load image" << vcl_endl;

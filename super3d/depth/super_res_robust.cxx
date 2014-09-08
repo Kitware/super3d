@@ -610,7 +610,7 @@ void super_resolve_robust(
   do
   {
     vcl_cout << "Iteration: " << i;
-    double minv, maxv;
+
     switch( srp.tv_method )
     {
     case super3d::super_res_params::IMAGEDATA_IMAGEPRIOR:
@@ -647,68 +647,6 @@ void super_resolve_robust(
       return;
     }
 
-    vil_math_value_range(u, minv, maxv);
-    if (!(i % srp.frame_step))
-    {
-      vil_image_view<double> outd;
-      vil_image_view<vxl_byte> output;
-      if( srp.median_residue )
-      {
-        vil_image_view<double> Yall(u.ni(), u.nj(), u.nplanes());
-        vil_math_image_sum( Y_baseline, u, Yall );
-        vil_convert_stretch_range_limited(Yall, outd, vcl_max(0.0,minv), vcl_min(1.0,maxv), 0.0, 255.0);
-      }
-      else
-      {
-        vil_convert_stretch_range_limited(u, outd, vcl_max(0.0,minv), vcl_min(1.0,maxv), 0.0, 255.0);
-      }
-      vil_convert_cast(outd, output);
-      vil_save(output, output_image.c_str());
-
-      if( srp.debug )
-      {
-        char buf[50];
-        for (unsigned int f = 0; f < warps.size(); f++)
-        {
-          sprintf(buf,"images/frame_warp_%03d.png",f);
-          vil_image_view<double> l_u;
-          warps[f].apply_A(u, l_u);
-          vil_convert_stretch_range_limited(l_u, output, 0.0, 1.0);
-          vil_save( output, buf );
-
-          if( srp.illumination_prior )
-          {
-            vil_convert_stretch_range_limited(As[2*f], output, -1.0, 1.0);
-            sprintf(buf, "images/A0-%03d.png", f);
-            vil_save( output, buf );
-
-            // TODO: the following lines are for intensity scaling
-            // vil_convert_stretch_range_limited(As[2*f+1], output, 0.0, 1.0);
-            // sprintf(buf, "images/A1-%03d.png", f);
-            // vil_save( output, buf );
-
-            vil_image_view<double> low_res_frame;
-            // TODO: the following lines are for intensity scaling
-            // vil_math_image_product( frames[f], As[2*f+1], low_res_frame);
-            // vil_math_image_sum( low_res_frame, As[2*f], low_res_frame);
-            vil_math_image_sum( frames[f], As[2*f], low_res_frame);
-            sprintf(buf, "images/lowres_%03d.png", f );
-            vil_convert_stretch_range_limited(low_res_frame, output, 0.0, 1.0);
-            vil_save( output, buf );
-
-            sprintf(buf, "images/qa_%03d.png", f );
-            vil_convert_stretch_range_limited(qa[f], output, -0.5, 0.5);
-            vil_save( output, buf );
-          }
-
-        }
-      }
-    }
-
-    ssd = vil_math_ssd(last, u, double());
-    vcl_cout << " SSD: " << ssd << " " << minv << " " << maxv << "\n";
-    vcl_swap(last, u);
-
     if (srm)
     {
       if (*srm->interrupted_)
@@ -719,10 +657,80 @@ void super_resolve_robust(
       if (srm->callback_ && !(i % srm->interval_))
       {
         super_res_monitor::update_data data;
-        data.current_result.deep_copy(u);
+        
+        if( srp.median_residue )
+          vil_math_image_sum( u, Y_baseline, data.current_result );
+        else
+          data.current_result.deep_copy(u);
+
         data.num_iterations = i;
         srm->callback_(data);
       }
+    }
+    else
+    {
+      double minv, maxv;
+      vil_math_value_range(u, minv, maxv);
+      if (!(i % srp.frame_step))
+      {
+        vil_image_view<double> outd;
+        vil_image_view<vxl_byte> output;
+        if( srp.median_residue )
+        {
+          vil_image_view<double> Yall(u.ni(), u.nj(), u.nplanes());
+          vil_math_image_sum( Y_baseline, u, Yall );
+          vil_convert_stretch_range_limited(Yall, outd, vcl_max(0.0,minv), vcl_min(1.0,maxv), 0.0, 255.0);
+        }
+        else
+        {
+          vil_convert_stretch_range_limited(u, outd, vcl_max(0.0,minv), vcl_min(1.0,maxv), 0.0, 255.0);
+        }
+        vil_convert_cast(outd, output);
+        vil_save(output, output_image.c_str());
+
+        if( srp.debug )
+        {
+          char buf[50];
+          for (unsigned int f = 0; f < warps.size(); f++)
+          {
+            sprintf(buf,"images/frame_warp_%03d.png",f);
+            vil_image_view<double> l_u;
+            warps[f].apply_A(u, l_u);
+            vil_convert_stretch_range_limited(l_u, output, 0.0, 1.0);
+            vil_save( output, buf );
+
+            if( srp.illumination_prior )
+            {
+              vil_convert_stretch_range_limited(As[2*f], output, -1.0, 1.0);
+              sprintf(buf, "images/A0-%03d.png", f);
+              vil_save( output, buf );
+
+              // TODO: the following lines are for intensity scaling
+              // vil_convert_stretch_range_limited(As[2*f+1], output, 0.0, 1.0);
+              // sprintf(buf, "images/A1-%03d.png", f);
+              // vil_save( output, buf );
+
+              vil_image_view<double> low_res_frame;
+              // TODO: the following lines are for intensity scaling
+              // vil_math_image_product( frames[f], As[2*f+1], low_res_frame);
+              // vil_math_image_sum( low_res_frame, As[2*f], low_res_frame);
+              vil_math_image_sum( frames[f], As[2*f], low_res_frame);
+              sprintf(buf, "images/lowres_%03d.png", f );
+              vil_convert_stretch_range_limited(low_res_frame, output, 0.0, 1.0);
+              vil_save( output, buf );
+
+              sprintf(buf, "images/qa_%03d.png", f );
+              vil_convert_stretch_range_limited(qa[f], output, -0.5, 0.5);
+              vil_save( output, buf );
+            }
+
+          }
+        }
+      }
+
+      ssd = vil_math_ssd(last, u, double());
+      vcl_cout << " SSD: " << ssd << " " << minv << " " << maxv << "\n";
+      vcl_swap(last, u);
     }
 
   } while (++i < iterations);
@@ -731,7 +739,6 @@ void super_resolve_robust(
   {
     vil_math_image_sum( u, Y_baseline, u );
   }
-
 }
 
 //*****************************************************************************

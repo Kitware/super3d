@@ -116,6 +116,21 @@ T config::get_value(const vcl_string &str) const
   return t->var;
 }
 
+template<class T>
+bool config::set_if(const vcl_string &str, T &var) const
+{
+  maptype::const_iterator itr = varmap.find(str);
+  if (itr == varmap.end())
+    return false;
+
+  cfg_type<T> * t = dynamic_cast<cfg_type<T> *>(itr->second);
+  if (!t)
+    throw cfg_exception("var '" + str + "' type mismatch");
+
+  var = t->var;
+  return true;
+}
+
 vcl_string int_to_str(int v)
 {
   vcl_stringstream stream;
@@ -266,6 +281,12 @@ template SUPER3D_DEPTH_EXPORT int config::get_value<int>(const vcl_string &str) 
 template SUPER3D_DEPTH_EXPORT unsigned int config::get_value<unsigned int>(const vcl_string &str) const;
 template SUPER3D_DEPTH_EXPORT vcl_string config::get_value<vcl_string>(const vcl_string &str) const;
 template SUPER3D_DEPTH_EXPORT bool config::get_value<bool>(const vcl_string &str) const;
+
+template SUPER3D_DEPTH_EXPORT bool config::set_if<double>(const vcl_string &str, double &) const;
+template SUPER3D_DEPTH_EXPORT bool config::set_if<int>(const vcl_string &str, int &) const;
+template SUPER3D_DEPTH_EXPORT bool config::set_if<unsigned int>(const vcl_string &str, unsigned int &) const;
+template SUPER3D_DEPTH_EXPORT bool config::set_if<vcl_string>(const vcl_string &str, vcl_string &) const;
+template SUPER3D_DEPTH_EXPORT bool config::set_if<bool>(const vcl_string &str, bool &) const;
 
 template class SUPER3D_DEPTH_EXPORT config::cfg_type<double>;
 template class SUPER3D_DEPTH_EXPORT config::cfg_type<int>;
