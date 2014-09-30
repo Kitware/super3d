@@ -150,6 +150,9 @@ void huber(vil_image_view<double> &q,
     }
   }
 
+  q(ni,nj,0) = q(ni-1,nj,0);
+  q(ni,nj,1) = q(ni,nj-1,1);
+
   double theta_inv = 1.0 / theta, denom = (1.0 + (step / theta));
   for (int j = 0; j < d.nj(); j++)
   {

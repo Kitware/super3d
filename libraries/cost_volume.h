@@ -99,9 +99,9 @@ read_cost_volume_at(FILE *file,
                     unsigned int j,
                     vnl_vector<double> &values);
 
-void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam, unsigned int i0,
-                         unsigned int ni, unsigned int j0, unsigned int nj,
-                         const vcl_string &landmark_file, double &min_depth, double &max_depth);
+void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam, int i0,
+                         int ni, int j0, int nj, const vcl_string &landmark_file,
+                         double &min_depth, double &max_depth);
 
 
 #endif

@@ -270,7 +270,6 @@ void load_from_frame_file(const char *framefile,
   std::ifstream framestream(framefile);
   int frame, index = 0;
 
-  vcl_cout << "Reading frames: ";
   while (framestream.good())
   {
     framestream >> frame;
@@ -279,7 +278,7 @@ void load_from_frame_file(const char *framefile,
     framelist.push_back(frame);
     filenames.push_back(imagename);
 
-    vcl_cout << frame << " ";
+    vcl_cout << "Reading frame: " << (directory + imagename) << "\n";
     vil_image_resource_sptr img_rsc = vil_load_image_resource((directory + imagename).c_str());
     if (img_rsc != NULL)
     {
@@ -288,7 +287,7 @@ void load_from_frame_file(const char *framefile,
       {
         vil_image_view<unsigned short> img = img_rsc->get_view();
         vil_convert_cast(img, flt);
-        vil_math_scale_values(flt, 1.0 / 4096.0);
+        vil_math_scale_values(flt, 255.0 / 4095.0);
 
         if (img.nplanes() == 3 && !color)
         {

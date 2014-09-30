@@ -28,6 +28,7 @@
 
 
 #include "cost_volume.h"
+#include "depth_map.h"
 
 #include <vcl_cstdio.h>
 #include <vcl_fstream.h>
@@ -569,8 +570,8 @@ read_cost_volume_at(FILE *file,
 
 //*****************************************************************************
 
-void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam, unsigned int i0,
-                         unsigned int ni, unsigned int j0, unsigned int nj,
+void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam, int i0,
+                         int ni, int j0, int nj,
                          const vcl_string &landmark_file, double &min_depth, double &max_depth)
 {
   vcl_ifstream infile(landmark_file.c_str());
@@ -596,7 +597,18 @@ void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam, unsigne
                  ref_cam.get_camera_center().y(),
                  ref_cam.get_camera_center().z());
 
+  double cx = ref_cam.get_calibration().principal_point().x();
+  double cy = ref_cam.get_calibration().principal_point().y();
+  vcl_cout << ref_cam.get_calibration().principal_point() << "\n";
+
+  vil_image_view<vxl_byte> test(2560, 1080);
+  test.fill(0);
+
+  vcl_vector<double> depths;
+  vcl_vector<vnl_double_3> points;
+
   vgl_box_2d<double> box(i0, i0+ni, j0, j0+nj);
+  vcl_cout << box << "\n";
   for (unsigned int i = 0; i < numverts; i++)
   {
     double x, y, z;
@@ -607,15 +619,24 @@ void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam, unsigne
 
     double u, v;
     ref_cam.project(x, y, z, u, v);
+    //vcl_cout << u << " " << v << " " << res(2) << "\n";
     if (box.contains(u, v))
     {
-      double dist = res(2);
-      if (min_depth > dist)
-        min_depth = dist;
-      if (max_depth < dist)
-       max_depth = dist;
+      test(u,v,0) = 255;
+      depths.push_back(res(2));
+      points.push_back(vnl_double_3(x, y, z));
     }
   }
+  vil_save(test, "blorep.png");
+  vcl_sort(depths.begin(), depths.end());
+
+  write_points_to_vtp(points, "pointsincrop.vtp");
+
+  int index = 0.05 * depths.size();
+  vcl_cout << index << "\n";
+  min_depth = depths[index];
+  max_depth = depths[depths.size() - index - 1];
+
 
   double diff = max_depth - min_depth;
   double offset = diff * 0.5;

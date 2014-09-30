@@ -116,7 +116,6 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-
   if (cfg->is_set("exposure_file"))
   {
     vcl_vector<vcl_pair<double, double> > exposures;
@@ -168,8 +167,6 @@ int main(int argc, char* argv[])
       ni = (int)(ni*camera_scale);
       nj = (int)(nj*camera_scale);
       vcl_cout << "Crop window: " << i0 << " " << ni << " " << j0 << " " << nj << "\n";
-      frames[ref_frame] = vil_crop(frames[ref_frame], i0, ni, j0, nj);
-      cameras[ref_frame] = crop_camera(cameras[ref_frame], i0, j0);
     }
     else
     {
@@ -190,6 +187,9 @@ int main(int argc, char* argv[])
       depth_min = cfg->get_value<double>("depth_min");
       depth_max = cfg->get_value<double>("depth_max");
     }
+
+    frames[ref_frame] = vil_crop(frames[ref_frame], i0, ni, j0, nj);
+    cameras[ref_frame] = crop_camera(cameras[ref_frame], i0, j0);
 
     ws = new world_frustum(cameras[ref_frame], depth_min, depth_max, ni, nj);
   }
@@ -331,14 +331,22 @@ int main(int argc, char* argv[])
   vcl_cout << "writing mesh"<<vcl_endl;
 #ifdef HAVE_VTK
   //vtp depth writer uses 0..1 depth scaling
-  vil_image_view<vxl_byte> b_texture;
-  if (cfg->is_set("directory"))
-    b_texture = vil_load((cfg->get_value<vcl_string>("directory") + filenames[ref_frame]).c_str());
-  else
-    b_texture = vil_load(filenames[ref_frame].c_str());
-
   vil_image_view<double> d_texture;
-  vil_convert_cast<vxl_byte, double>(b_texture, d_texture);
+
+  if (cfg->get_value<bool>("use_rgb12"))
+  {
+    vil_image_resource_sptr img_rsc = vil_load_image_resource((dir + filenames[ref_frame]).c_str());
+    vil_image_view<unsigned short> us_texture = img_rsc->get_view();
+    vil_convert_cast(us_texture, d_texture);
+    vil_math_scale_values(d_texture, 255.0 / 4095.0);
+  }
+  else
+  {
+    vil_image_view<vxl_byte> b_texture;
+    b_texture = vil_load((dir + filenames[ref_frame]).c_str());
+    vil_convert_cast<vxl_byte, double>(b_texture, d_texture);
+  }
+
   vcl_string output_file_name = cfg->get_value<vcl_string>("output_file");
   save_depth_to_vtp(output_file_name.c_str(), depth, d_texture, ref_cam, ws);
 #endif

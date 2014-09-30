@@ -171,7 +171,10 @@ void save_depth_to_vtp(const char *filename,
                        const vil_image_view<double> &ref,
                        const vpgl_perspective_camera<double> &cam,
                        world_space *ws);
-#endif
 
+
+
+#endif
+void write_points_to_vtp(vcl_vector<vnl_double_3> &points, const char *filename);
 
 #endif // depth_map_h_

@@ -29,7 +29,7 @@
 #include "super_res.h"
 #include "super_config.h"
 #include <video_transforms/adjoint_image_derivs.h>
-
+#include <video_transforms/warp_image.h>
 
 #include <vil/algo/vil_gauss_filter.h>
 #include <vil/vil_save.h>
@@ -220,8 +220,6 @@ void save_image(const vil_image_view<double> &img, const char *filename)
 
 //*****************************************************************************
 
-#include <video_transforms/warp_image.h>
-
 void upsamplep(const vil_image_view<double> &src, vil_image_view<double> &dest,
               double scale_factor, vidtk::warp_image_parameters::interp_type interp)
 {
@@ -239,6 +237,7 @@ void upsamplep(const vil_image_view<double> &src, vil_image_view<double> &dest,
   vidtk::warp_image(src, dest, Sinv, wip);
 }
 
+//*****************************************************************************
 
 void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
                    const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
