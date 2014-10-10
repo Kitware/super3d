@@ -91,7 +91,7 @@ void world_space::warp_image_to_depth(const vil_image_view<double> &in,
   vil_image_view<vxl_byte> to_save;
   vil_convert_cast<double, vxl_byte>(outwrite, to_save);
   char buf[60];
-  sprintf(buf, "images/slice%2f_frame%d_%d.png", depth_slice, f, wip.interpolator_);
+  sprintf(buf, "images/slice%2f_frame%d_%d.png", wpts[0][2], f, wip.interpolator_);
   vil_save(to_save, buf);
 #endif
 }

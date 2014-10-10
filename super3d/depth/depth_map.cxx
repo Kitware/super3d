@@ -588,7 +588,7 @@ void save_depth_to_vtp(const char *filename,
   //normals->SetNumberOfComponents(3);
 
   colors->SetName("colors");
-  colors->SetNumberOfComponents(3);
+  colors->SetNumberOfComponents(ref.nplanes());
 
   vtkIdType tri[3];
   vtkIdType width = depth.ni(), height = depth.nj();
@@ -605,10 +605,16 @@ void save_depth_to_vtp(const char *filename,
 
       double u, v;
       cam.project(pt3d[0], pt3d[1], pt3d[2], u, v);
-      colors->InsertNextTuple3((unsigned char)vil_bilin_interp_safe(ref, u, v, 0),
-                               (unsigned char)vil_bilin_interp_safe(ref, u, v, 1),
-                               (unsigned char)vil_bilin_interp_safe(ref, u, v, 2));
-
+      if (ref.nplanes() == 1)
+      {
+        colors->InsertNextValue((unsigned char)vil_bilin_interp_safe(ref, u, v, 0));
+      }
+      else
+      {
+        colors->InsertNextTuple3((unsigned char)vil_bilin_interp_safe(ref, u, v, 0),
+                                 (unsigned char)vil_bilin_interp_safe(ref, u, v, 1),
+                                 (unsigned char)vil_bilin_interp_safe(ref, u, v, 2));
+      }
       //normals->InsertNextTuple3(normal_map(i,j,0), normal_map(i,j,1), normal_map(i,j,2));
 
       if (i != 0 && j != 0)
@@ -630,6 +636,29 @@ void save_depth_to_vtp(const char *filename,
   polydata->SetPolys(cells);
   //polydata->GetPointData()->SetNormals(normals);
   polydata->GetPointData()->AddArray(colors);
+
+  vtkSmartPointer<vtkXMLPolyDataWriter> writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
+  writer->SetInputData(polydata);
+  writer->SetFileName(filename);
+  writer->Update();
+}
+
+//*****************************************************************************
+
+void write_points_to_vtp(vcl_vector<vnl_double_3> &points, const char *filename)
+{
+  vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkCellArray> verts = vtkSmartPointer<vtkCellArray>::New();
+
+  for (vtkIdType i = 0; i < points.size(); i++)
+  {
+    pts->InsertNextPoint(points[i].data_block());
+    verts->InsertNextCell(1, &i);
+  }
+
+  vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+  polydata->SetPoints(pts);
+  polydata->SetVerts(verts);
 
   vtkSmartPointer<vtkXMLPolyDataWriter> writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
   writer->SetInputData(polydata);

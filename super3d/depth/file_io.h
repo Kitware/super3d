@@ -29,7 +29,6 @@
 #ifndef file_io_h_
 #define file_io_h_
 
-#include "depth_config.h"
 
 #include <vcl_string.h>
 #include <vcl_vector.h>
@@ -41,62 +40,46 @@
 #include <vul/vul_sequence_filename_map.h>
 
 
-namespace super3d
-{
-
 /// Load a camera file with sequence of cameras in ASCII format: i K R t
 /// where i is the frame number, K is the calibration matrix,
 /// R is the rotation matrix, and t is the translation vector
 /// \returns A vector of perspective cameras
-SUPER3D_DEPTH_EXPORT
 vcl_vector<vpgl_perspective_camera<double> >
 load_cams(const vcl_string& filename, vul_sequence_filename_map frame_seq);
 
-SUPER3D_DEPTH_EXPORT
 vpgl_perspective_camera<double>
 load_cam(const vcl_string& filename);
 
 /// Find all frames matching the format string and extract the frame number.
 /// \returns A vector of image views
-SUPER3D_DEPTH_EXPORT
 vcl_vector<vil_image_view<double> >
 load_frames(vul_sequence_filename_map frame_seq, vcl_vector<vcl_string> &filenames, bool color = false);
 
 /// Load an exposure file with parameters for linear exposure compensation
 /// Uses a file sequence
 /// \returns A vector of (scale, offest) pair
-SUPER3D_DEPTH_EXPORT
 vcl_vector<vcl_pair<double,double> >
 load_exposure(const std::string& filename, vul_sequence_filename_map frame_seq);
 
 /// Load an exposure file with parameters for linear exposure compensation
 /// Uses a list of frames
 /// \returns A vector of (scale, offest) pair
-SUPER3D_DEPTH_EXPORT
 vcl_vector<vcl_pair<double,double> >
 load_exposure(const std::string& filename, const vcl_vector<int> &framelist);
 
-/// Loads images and cameras from a file list of frames paths and camera file
-/// \param framefile file that lists frame number and frame paths
-/// \param camerafile file containing perspective camera matrices indexed the same as framefile
-/// \param directory the working direction from which the framefile appends its paths to
-/// \param filenames vector of frame files that were read
-/// \param framelist vector of indices of the read frames
-/// \param frames images that were read and converted to greyscale
-/// \param cameras loaded perspective cameras
-SUPER3D_DEPTH_EXPORT
-void load_from_frame_file(const char *framefile,
-                          const char *camerafile,
-                          const vcl_string &directory,
-                          vcl_vector<vcl_string> &filenames,
-                          vcl_vector<int> &frameindex,
-                          vcl_vector<vil_image_view<double> > &frames,
-                          vcl_vector<vpgl_perspective_camera<double> > &cameras,
-                          bool color = false);
-
 //Load cameras from a single camera file with a framelist
-SUPER3D_DEPTH_EXPORT
 void load_cams(const char *camerafile,
+               vcl_vector<int> &framelist,
+               vcl_vector<vpgl_perspective_camera<double> > &cameras);
+
+//Load camera from a file per camera
+vpgl_perspective_camera<double>
+load_cam(const vcl_string& filename);
+
+//Load cameras from a file per camera
+//Assume cameras are in directory named %04d.krtd
+void
+load_krtd_cams(const vcl_string& directory,
                vcl_vector<int> &framelist,
                vcl_vector<vpgl_perspective_camera<double> > &cameras);
 
@@ -106,7 +89,6 @@ void load_cams(const char *camerafile,
 /// \param filenames vector of frame files that were read
 /// \param framelist vector of indices of the read frames
 /// \param frames images that were read and converted to greyscale
-SUPER3D_DEPTH_EXPORT
 void load_from_frame_file(const char *framefile,
                           const vcl_string &directory,
                           vcl_vector<vcl_string> &filenames,
@@ -116,9 +98,6 @@ void load_from_frame_file(const char *framefile,
                           bool rgb12 = false);
 
 /// read a flow file into 2-band image
-SUPER3D_DEPTH_EXPORT
 bool read_flow_file(vil_image_view<double> &flowimg, const char* filename);
-
-}  // end namespace super3d
 
 #endif // file_io_h_

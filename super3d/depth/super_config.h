@@ -86,8 +86,6 @@ public:
     vcl_string name;
   };
 
-  static config *inst();
-
   void read_config(const char *file);
   void read_argument_updates(int argc, char *argv[]);
 

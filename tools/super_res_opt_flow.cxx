@@ -120,8 +120,12 @@ int main(int argc, char* argv[])
     vcl_vector<vpgl_perspective_camera<double> >  cameras;
     vcl_vector<vcl_string> filenames;
     vcl_vector<int> frameindex;
+
     vcl_string frame_file = cfg->get_value<vcl_string>("frame_list");
-    vcl_string dir = cfg->get_value<vcl_string>("directory");
+    vcl_string dir("");
+    if (cfg->is_set("directory"))
+      dir = cfg->get_value<vcl_string>("directory");
+
     vcl_cout << "Using frame file: " << frame_file << " to find images and flows.\n";
 
     const unsigned int ref_frame = cfg->get_value<unsigned int>("ref_frame");

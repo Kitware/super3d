@@ -30,23 +30,12 @@
 #ifndef COST_VOLUME_H_
 #define COST_VOLUME_H_
 
-#include "depth_config.h"
-
 #include <vcl_vector.h>
 #include <vil/vil_image_view.h>
 #include <vpgl/vpgl_perspective_camera.h>
 
 #include "world_space.h"
 
-
-namespace super3d
-{
-
-SUPER3D_DEPTH_EXPORT
-void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
-                         const vcl_string &landmark_file, double &min_depth, double &max_depth);
-
-SUPER3D_DEPTH_EXPORT
 void
 compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
                           const vcl_vector<vpgl_perspective_camera<double> > &cameras,
@@ -58,7 +47,6 @@ compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
                           double gradient_weight,
                           double census_weight);
 
-SUPER3D_DEPTH_EXPORT
 void
 compute_cost_volume_warp(const vcl_vector<vil_image_view<double> > &frames,
                          const vcl_vector<vpgl_perspective_camera<double> > &cameras,
@@ -68,7 +56,6 @@ compute_cost_volume_warp(const vcl_vector<vil_image_view<double> > &frames,
                          double depth_max,
                          vil_image_view<double> &cost_volume);
 
-SUPER3D_DEPTH_EXPORT
 void
 compute_cost_volume_bp(const vcl_vector<vil_image_view<double> > &frames,
                        const vcl_vector<vpgl_perspective_camera<double> > &cameras,
@@ -80,7 +67,6 @@ compute_cost_volume_bp(const vcl_vector<vil_image_view<double> > &frames,
 
 
 //disparity increases along negative x
-SUPER3D_DEPTH_EXPORT
 void compute_cost_volume_rectified(const vcl_vector<vil_image_view<double> > &frames,
                                   unsigned int ref_frame,
                                   unsigned int S,
@@ -88,33 +74,24 @@ void compute_cost_volume_rectified(const vcl_vector<vil_image_view<double> > &fr
                                   double idepth_max,
                                   vil_image_view<double> &cost_volume);
 
-SUPER3D_DEPTH_EXPORT
 vxl_uint_64 compute_census(const vil_image_view<double> &ref, int u, int v);
 
-SUPER3D_DEPTH_EXPORT
 unsigned int hamming_distance(vxl_uint_64 l, vxl_uint_64 r);
 
 struct g_census {
-  vxl_uint_64 ones, twos, fours;
+  vxl_uint_64 ori, mag;
 };
 
-SUPER3D_DEPTH_EXPORT
-g_census compute_g_census(const vil_image_view<double> &grad, int u, int v, double thresh);
+g_census compute_g_census(const vil_image_view<double> &grad, int u, int v);
 
-SUPER3D_DEPTH_EXPORT
-unsigned int hamming_distance(const g_census &l, const g_census &r);
-
-SUPER3D_DEPTH_EXPORT
 void save_cost_volume(const vil_image_view<double> &cost_volume,
                       const vil_image_view<double> &g_weight,
                       const char *file_name);
 
-SUPER3D_DEPTH_EXPORT
 void load_cost_volume(vil_image_view<double> &cost_volume,
                       vil_image_view<double> &g_weight,
                       const char *file_name);
 
-SUPER3D_DEPTH_EXPORT
 void
 read_cost_volume_at(FILE *file,
                     unsigned int *dims,
@@ -122,6 +99,9 @@ read_cost_volume_at(FILE *file,
                     unsigned int j,
                     vnl_vector<double> &values);
 
-} // end namespace suepr3d
+void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam, int i0,
+                         int ni, int j0, int nj, const vcl_string &landmark_file,
+                         double &min_depth, double &max_depth);
+
 
 #endif
