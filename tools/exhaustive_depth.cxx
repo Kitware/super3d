@@ -174,12 +174,14 @@ int main(int argc, char* argv[])
       ni = frames[ref_frame].ni();
       nj = frames[ref_frame].nj();
     }
+
     frames[ref_frame] = vil_crop(frames[ref_frame], i0, ni, j0, nj);
     cameras[ref_frame] = super3d::crop_camera(cameras[ref_frame], i0, j0);
+
     if (cfg->is_set("landmarks_path"))
     {
       vcl_cout << "Computing depth range from " << cfg->get_value<vcl_string>("landmarks_path") << "\n";
-      super3d::compute_depth_range(cameras[ref_frame], i0, ni, j0, nj, cfg->get_value<vcl_string>("landmarks_path"), depth_min, depth_max);
+      super3d::compute_depth_range(cameras[ref_frame], 0, ni, 0, nj, cfg->get_value<vcl_string>("landmarks_path"), depth_min, depth_max);
       vcl_cout << "Max estimated depth: " << depth_max << "\n";
       vcl_cout << "Min estimated depth: " << depth_min << "\n";
     }
