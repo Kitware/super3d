@@ -390,12 +390,11 @@ void super_resolve_robust(
   const vcl_string &output_image,
   super_res_monitor *srm)
 {
-
   if (frames.empty())
     return;
 
   if( srp.tv_method == super3d::super_res_params::SUPER3D_BASELINE )
-    return super_resolve( frames, warps, Y, srp, iterations, output_image );
+    return super_resolve( frames, warps, Y, srp, iterations, output_image, srm );
 
   unsigned int np = frames[0].nplanes();
   for (unsigned int i = 1; i < frames.size(); i++)
@@ -662,7 +661,6 @@ void super_resolve_robust(
           vil_math_image_sum( u, Y_baseline, data.current_result );
         else
           data.current_result.deep_copy(u);
-
         data.num_iterations = i;
         srm->callback_(data);
       }
@@ -739,6 +737,150 @@ void super_resolve_robust(
   {
     vil_math_image_sum( u, Y_baseline, u );
   }
+}
+
+void read_super_res_params( const boost::scoped_ptr<config>& cfg,
+                            super_res_params &srp)
+{
+    if (cfg->is_set("debug"))
+      srp.debug = cfg->get_value<bool>("debug");
+    else
+      srp.debug = false;
+
+    //Initilize super resolution parameters
+    srp.lambda = cfg->get_value<double>("lambda");
+    srp.epsilon_data = cfg->get_value<double>("epsilon_data");
+    srp.epsilon_reg = cfg->get_value<double>("epsilon_reg");
+    srp.sigma = cfg->get_value<double>("sigma");
+    srp.tau = cfg->get_value<double>("tau");
+
+    // additional parameters
+    vcl_string tv_method_str = cfg->get_value<vcl_string>("tv_method");
+    if( tv_method_str.compare("SUPER3D_BASELINE") == 0 )
+    {
+      srp.tv_method = super3d::super_res_params::SUPER3D_BASELINE;
+    }
+    else if ( tv_method_str.compare("IMAGEDATA_IMAGEPRIOR") == 0 )
+    {
+      srp.tv_method = super3d::super_res_params::IMAGEDATA_IMAGEPRIOR;
+    }
+    else if ( tv_method_str.compare("GRADIENTDATA_IMAGEPRIOR") == 0 )
+    {
+      srp.tv_method = super3d::super_res_params::GRADIENTDATA_IMAGEPRIOR;
+    }
+    else if ( tv_method_str.compare("IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR") == 0 )
+    {
+      srp.tv_method = super3d::super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR;
+    }
+    else if ( tv_method_str.compare("MEDIANDATA_IMAGEPRIOR") == 0 )
+    {
+      srp.tv_method = super3d::super_res_params::MEDIANDATA_IMAGEPRIOR;
+    }
+    else if ( tv_method_str.compare("IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR") == 0 )
+    {
+      srp.tv_method = super3d::super_res_params::IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR;
+    }
+    else
+    {
+      vcl_cerr << "unknown tv method\n";
+      return;
+    }
+    vcl_cout << "tv method : " << tv_method_str << vcl_endl;
+
+    vcl_string str = cfg->get_value<vcl_string>("cost_function");
+    if( str.compare("HUBER_NORM") == 0 )
+    {
+      srp.cost_function = super3d::super_res_params::HUBER_NORM;
+    }
+    else if( str.compare("TRUNCATED_QUADRATIC") == 0 )
+    {
+      srp.cost_function = super3d::super_res_params::TRUNCATED_QUADRATIC;
+    }
+    else if( str.compare("GENERALIZED_HUBER") == 0 )
+    {
+      srp.cost_function = super3d::super_res_params::GENERALIZED_HUBER;
+    }
+    else
+    {
+      vcl_cerr << "unknown cost function\n";
+      return;
+    }
+    vcl_cout << "cost function : " << str << vcl_endl;
+
+    if (cfg->is_set("alpha_a"))
+      srp.alpha_a = cfg->get_value<double>("alpha_a");
+    if (cfg->is_set("gamma_a"))
+      srp.gamma_a = cfg->get_value<double>("gamma_a");
+    if (cfg->is_set("beta_a"))
+      srp.beta_a = cfg->get_value<double>("beta_a");
+
+    if (cfg->is_set("lambda_g"))
+      srp.lambda_g = cfg->get_value<double>("lambda_g");
+    if (cfg->is_set("alpha_g"))
+      srp.alpha_g = cfg->get_value<double>("alpha_g");
+    if (cfg->is_set("gamma_g"))
+      srp.gamma_g = cfg->get_value<double>("gamma_g");
+    if (cfg->is_set("beta_g"))
+      srp.beta_g = cfg->get_value<double>("beta_g");
+
+    if (cfg->is_set("lambda_r"))
+      srp.lambda_r = cfg->get_value<double>("lambda_r");
+    if (cfg->is_set("alpha_r"))
+      srp.alpha_r = cfg->get_value<double>("alpha_r");
+    if (cfg->is_set("gamma_r"))
+      srp.gamma_r = cfg->get_value<double>("gamma_r");
+    if (cfg->is_set("beta_r"))
+      srp.beta_r = cfg->get_value<double>("beta_r");
+
+    if (cfg->is_set("lambda_l"))
+      srp.lambda_l = cfg->get_value<double>("lambda_l");
+    if (cfg->is_set("alpha_l"))
+      srp.alpha_l = cfg->get_value<double>("alpha_l");
+    if (cfg->is_set("gamma_l"))
+      srp.gamma_l = cfg->get_value<double>("gamma_l");
+    if (cfg->is_set("beta_l"))
+      srp.beta_l = cfg->get_value<double>("beta_l");
+
+    if (cfg->is_set("sigma_pr"))
+      srp.sigma_pr = cfg->get_value<double>("sigma_pr");
+    if (cfg->is_set("sigma_pl"))
+      srp.sigma_pl = cfg->get_value<double>("sigma_pl");
+    if (cfg->is_set("sigma_qa"))
+      srp.sigma_qa = cfg->get_value<double>("sigma_qa");
+    if (cfg->is_set("sigma_qg"))
+      srp.sigma_qg = cfg->get_value<double>("sigma_qg");
+    if (cfg->is_set("sigma_A"))
+      srp.sigma_A = cfg->get_value<double>("sigma_A");
+    if (cfg->is_set("sigma_Y"))
+      srp.sigma_Y = cfg->get_value<double>("sigma_Y");
+
+    if (cfg->is_set("erosion_radius"))
+    {
+      srp.erosion_radius = cfg->get_value<double>("erosion_radius");
+    }
+    else
+    {
+      srp.erosion_radius = 3.0;
+    }
+
+    if (cfg->is_set("median_radius"))
+    {
+      srp.median_radius = cfg->get_value<double>("median_radius");
+    }
+    else
+    {
+      srp.median_radius = 3.0;
+    }
+
+    if (cfg->is_set("frame_step"))
+    {
+      srp.frame_step = cfg->get_value<int>("frame_step");
+    }
+    else
+    {
+      srp.frame_step = 15;
+    }
+
 }
 
 //*****************************************************************************
