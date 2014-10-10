@@ -593,17 +593,6 @@ void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam, int i0,
   min_depth = vcl_numeric_limits<double>::infinity();
   max_depth = -vcl_numeric_limits<double>::infinity();
 
-  vnl_double_3 c(ref_cam.get_camera_center().x(),
-                 ref_cam.get_camera_center().y(),
-                 ref_cam.get_camera_center().z());
-
-  double cx = ref_cam.get_calibration().principal_point().x();
-  double cy = ref_cam.get_calibration().principal_point().y();
-  vcl_cout << ref_cam.get_calibration().principal_point() << "\n";
-
-  vil_image_view<vxl_byte> test(2560, 1080);
-  test.fill(0);
-
   vcl_vector<double> depths;
   vcl_vector<vnl_double_3> points;
 
@@ -619,23 +608,21 @@ void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam, int i0,
 
     double u, v;
     ref_cam.project(x, y, z, u, v);
-    //vcl_cout << u << " " << v << " " << res(2) << "\n";
+
     if (box.contains(u, v))
     {
-      test(u,v,0) = 255;
       depths.push_back(res(2));
       points.push_back(vnl_double_3(x, y, z));
     }
   }
-  vil_save(test, "blorep.png");
+
   vcl_sort(depths.begin(), depths.end());
 
-  write_points_to_vtp(points, "pointsincrop.vtp");
+  //write_points_to_vtp(points, "pointsincrop.vtp");
 
   int index = 0.05 * depths.size();
-  vcl_cout << index << "\n";
-  min_depth = depths[index];
-  max_depth = depths[depths.size() - index - 1];
+  min_depth = depths[0];
+  max_depth = depths[depths.size() - 1];
 
 
   double diff = max_depth - min_depth;

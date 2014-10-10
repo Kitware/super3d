@@ -346,7 +346,7 @@ int main(int argc, char* argv[])
     else
     {
       vil_image_view<double> upsamp;
-      upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::CUBIC);
+      upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::LINEAR);
 
       vil_image_view<vxl_byte> output;
       vil_convert_stretch_range_limited(upsamp, output, 0.0, 1.0);
