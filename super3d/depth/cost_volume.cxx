@@ -570,7 +570,7 @@ read_cost_volume_at(FILE *file,
 
 //*****************************************************************************
 
-void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
+bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
                          int i0, int ni, int j0, int nj,
                          const vcl_string &landmark_file, double &min_depth, double &max_depth)
 {
@@ -594,7 +594,7 @@ void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
   max_depth = -vcl_numeric_limits<double>::infinity();
 
   vcl_vector<double> depths;
-  vcl_vector<vnl_double_3> points;
+  //vcl_vector<vnl_double_3> points;
 
   vgl_box_2d<double> box(i0, i0+ni, j0, j0+nj);
   vcl_cout << box << "\n";
@@ -616,6 +616,10 @@ void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
     }
   }
 
+  //vcl_cout << "Points in region: " << points.size() << "\n";
+  if (depths.size() < 3)
+    return false;
+
   vcl_sort(depths.begin(), depths.end());
 
   //write_points_to_vtp(points, "pointsincrop.vtp");
@@ -631,4 +635,5 @@ void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
   min_depth -= offset;
 
   infile.close();
+  return true;
 }

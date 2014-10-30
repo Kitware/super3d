@@ -42,7 +42,7 @@ namespace super3d
 {
 
 SUPER3D_DEPTH_EXPORT
-void compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
+bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
                          int i0, int ni, int j0, int nj, const vcl_string &landmark_file,
                          double &min_depth, double &max_depth);
 
