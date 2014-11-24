@@ -272,11 +272,7 @@ void Picker::PlaceArrow(double *picked)
   arrow->SetTipRadius(.2);
   arrow->Update();
 
-#if VTK_MAJOR_VERSION <= 5
   selectedMapper->SetInputConnection(arrow->GetOutputPort());
-#else
-//  selectedMapper->SetInput(arrow);
-#endif
 
   selectedActor->SetUserMatrix(xform->GetMatrix());
   selectedActor->SetMapper(selectedMapper);
