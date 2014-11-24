@@ -393,7 +393,8 @@ void super_resolve_robust(
   if (frames.empty())
     return;
 
-  if( srp.tv_method == super3d::super_res_params::SUPER3D_BASELINE )
+  if( srp.tv_method == super3d::super_res_params::SUPER3D_BASELINE ||
+      srp.tv_method == super3d::super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR )
     return super_resolve( frames, warps, Y, srp, iterations, output_image, srm );
 
   unsigned int np = frames[0].nplanes();
