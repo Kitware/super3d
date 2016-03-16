@@ -45,7 +45,7 @@ target_link_libraries(downsampler
 super3d_add_executable(super_res_video super_res_video.cxx)
 target_link_libraries(super_res_video
   super3d_depth super3d_image imesh_algo
-  vil vpgl vnl vul vil_algo
+  vil vpgl vnl vul vil_algo ${Boost_SYSTEM_LIBRARY}
   )
 
 #
@@ -54,7 +54,7 @@ target_link_libraries(super_res_video
 super3d_add_executable(super_res_opt_flow super_res_opt_flow.cxx)
 target_link_libraries(super_res_opt_flow
   super3d_depth super3d_image imesh_algo
-  vil vpgl vgl vnl vul vil_algo
+  vil vpgl vgl vnl vul vil_algo ${Boost_SYSTEM_LIBRARY}
   )
 
 if (viscl_FOUND)
@@ -71,7 +71,7 @@ endif()
 super3d_add_executable(super_res_image super_res_image.cxx)
 target_link_libraries(super_res_image
   super3d_depth super3d_image imesh_algo
-  vil vpgl vnl vul vil_algo
+  vil vpgl vnl vul vil_algo ${Boost_SYSTEM_LIBRARY}
   )
 
 #
@@ -184,6 +184,7 @@ super3d_add_executable(exhaustive_stereo exhaustive_stereo.cxx)
 target_link_libraries(exhaustive_stereo
   super3d_depth super3d_image imesh_algo
   vil vpgl vnl vul vil_algo
+  ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY}
   )
 
 #
