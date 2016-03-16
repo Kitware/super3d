@@ -137,9 +137,10 @@ super3d_add_executable(ply2pts ply2pts.cxx)
 #
 super3d_add_executable(extract_nitf_roi_krtd extract_nitf_roi_krtd.cxx)
 target_link_libraries(extract_nitf_roi_krtd
+                      super3d_depth
                       vpgl_file_formats vpgl_algo
-                      vidtk_vil_plugins
-                      super3d_depth)
+                      #vidtk_vil_plugins
+                      ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
 
 #
 # Depth from Flow

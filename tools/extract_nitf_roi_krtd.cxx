@@ -39,7 +39,7 @@
 #include <vpgl/file_formats/vpgl_nitf_rational_camera.h>
 #include <vpgl/algo/vpgl_camera_convert.h>
 
-#include <vil_plugins/vil_plugin_loader.h>
+//#include <vil_plugins/vil_plugin_loader.h>
 
 #include <super3d/depth/multiscale.h>
 
@@ -92,7 +92,10 @@ int main(int argc, char *argv[])
   /// Therefore, we read the camera parameters first with nitf2 (above),
   /// then load the GDAL plugin (here), and then read the pixels
   /// with GDAL in a second pass (below).
-  vidtk::load_vil_plugins();
+  ///
+  /// NOTE: this is disabled for now until the plugin loader is relocated out
+  //        of vidtk
+  //vidtk::load_vil_plugins();
 
   vgl_h_matrix_3d<double> trans;
   vpgl_lvcs lvcs_converter( roi.min_y(), roi.min_x(),
