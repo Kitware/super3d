@@ -33,9 +33,9 @@
 #include <super3d/depth/flow_manip.h>
 #include <super3d/depth/depth_map.h>
 
-#include <video_transforms/adjoint_flow_warp.h>
-#include <video_transforms/adjoint_resample.h>
-#include <video_transforms/adjoint_dbw.h>
+#include <super3d/image/adjoint_flow_warp.h>
+#include <super3d/image/adjoint_resample.h>
+#include <super3d/image/adjoint_dbw.h>
 
 #include <vcl_iostream.h>
 #include <boost/bind.hpp>
@@ -54,9 +54,9 @@
 #include <vgl/vgl_homg_point_2d.h>
 #include <vgl/vgl_intersection.h>
 
-#include <video_transforms/warp_image.h>
-#include <video_transforms/warp_and_average.h>
-#include <tracking/refine_homography.h>
+#include <super3d/image/warp_image.h>
+#include <super3d/image/warp_and_average.h>
+#include <super3d/image/refine_homography.h>
 
 #include <boost/scoped_ptr.hpp>
 

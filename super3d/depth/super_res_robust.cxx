@@ -5,7 +5,7 @@
  */
 
 #include <stdio.h>
-#include <video_transforms/adjoint_image_derivs.h>
+#include <super3d/image/adjoint_image_derivs.h>
 
 #include <vil/algo/vil_gauss_filter.h>
 #include <vil/vil_save.h>
@@ -16,7 +16,7 @@
 #include <vil/algo/vil_greyscale_erode.h>
 #include <vil/algo/vil_median.h>
 #include <vil/vil_resample_bicub.txx>
-#include <video_transforms/warp_image.h>
+#include <super3d/image/warp_image.h>
 
 #include "super_res.h"
 #include "super_config.h"

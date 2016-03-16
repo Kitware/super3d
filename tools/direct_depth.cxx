@@ -32,7 +32,7 @@
 #include <super3d/depth/depth_map.h>
 #include <super3d/depth/multiscale.h>
 
-#include <video_transforms/gaussian_pyramid_builder.h>
+#include <super3d/image/gaussian_pyramid_builder.h>
 
 // VXL includes
 #include <vil/vil_image_view.h>

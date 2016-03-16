@@ -47,7 +47,7 @@ set(cxx_files
 super3d_install_headers(${header_files} SUBDIR depth)
 super3d_add_library(super3d_depth ${header_files} ${cxx_files})
 target_link_libraries(super3d_depth
-  vil vidtk_video_transforms vidtk_tracking imesh imesh_algo vpgl vnl vul
+  super3d_image vil imesh imesh_algo vpgl vnl vul
   vil_algo vgl_algo vbl
   )
 

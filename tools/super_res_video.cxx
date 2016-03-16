@@ -35,8 +35,8 @@
 #include <super3d/depth/normal_map.h>
 #include <super3d/depth/weighted_dbw.h>
 
-#include <video_transforms/adjoint_flow_warp.h>
-#include <video_transforms/adjoint_resample.h>
+#include <super3d/image/adjoint_flow_warp.h>
+#include <super3d/image/adjoint_resample.h>
 
 #include <vcl_iostream.h>
 #include <boost/bind.hpp>

@@ -29,8 +29,8 @@
 #include "weighted_dbw.h"
 #include "super_config.h"
 
-#include <video_transforms/adjoint_flow_warp.h>
-#include <video_transforms/adjoint_resample.h>
+#include <super3d/image/adjoint_flow_warp.h>
+#include <super3d/image/adjoint_resample.h>
 
 #include <boost/bind.hpp>
 

@@ -30,8 +30,8 @@
 #include <super3d/depth/super_res.h>
 #include <super3d/depth/resample.h>
 
-#include <video_transforms/adjoint_dbw.h>
-#include <video_transforms/adjoint_flow_warp.h>
+#include <super3d/image/adjoint_dbw.h>
+#include <super3d/image/adjoint_flow_warp.h>
 #include <cstdio>
 
 #include <boost/bind.hpp>

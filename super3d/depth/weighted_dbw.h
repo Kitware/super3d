@@ -33,7 +33,7 @@
 
 #include <vil/vil_image_view.h>
 #include <vcl_vector.h>
-#include <video_transforms/adjoint_dbw.h>
+#include <super3d/image/adjoint_dbw.h>
 
 
 namespace super3d

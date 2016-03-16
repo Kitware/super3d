@@ -32,7 +32,7 @@
 #include <vcl_cstdio.h>
 #include <vcl_fstream.h>
 
-#include <video_transforms/warp_image.h>
+#include <super3d/image/warp_image.h>
 #include <vil/vil_bilin_interp.h>
 #include <vil/algo/vil_sobel_3x3.h>
 #include <vnl/vnl_double_3.h>

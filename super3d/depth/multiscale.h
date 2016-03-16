@@ -35,7 +35,7 @@
 #include <vil/algo/vil_gauss_filter.h>
 
 #include <vpgl/vpgl_perspective_camera.h>
-#include <video_transforms/warp_image.h>
+#include <super3d/image/warp_image.h>
 
 namespace super3d
 {

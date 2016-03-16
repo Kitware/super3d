@@ -54,7 +54,7 @@
 #include <vcl_fstream.h>
 #include <vcl_sstream.h>
 
-#include <video_transforms/warp_image.h>
+#include <super3d/image/warp_image.h>
 
 #include <rrel/rrel_estimation_problem.h>
 #include <rrel/rrel_tukey_obj.h>

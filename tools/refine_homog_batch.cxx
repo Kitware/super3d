@@ -48,8 +48,8 @@
 #include <vcl_utility.h>
 #include <vcl_iomanip.h>
 
-#include <video_transforms/warp_image.h>
-#include <tracking/refine_homography.h>
+#include <super3d/image/warp_image.h>
+#include <super3d/image/refine_homography.h>
 
 
 

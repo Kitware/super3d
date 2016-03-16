@@ -40,7 +40,7 @@
 
 #include <vnl/vnl_double_3.h>
 #include <vnl/vnl_double_2.h>
-#include <video_transforms/dual_rof_denoise.h>
+#include <super3d/image/dual_rof_denoise.h>
 
 #include "tv_utils.h"
 #include "super_config.h"

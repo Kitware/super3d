@@ -41,7 +41,7 @@
 
 #include <vil/vil_math.h>
 
-#include <video_transforms/dual_rof_denoise.h>
+#include <super3d/image/dual_rof_denoise.h>
 
 /// compute the depth refinement using multiple images.
 /// \note The size of vectors \a I1, \a H, and \a e should be the same.

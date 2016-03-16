@@ -8,8 +8,8 @@ include_directories("${Super3D_BINARY_DIR}")
 #
 super3d_add_executable(exhaustive_depth exhaustive_depth.cxx)
 target_link_libraries(exhaustive_depth
-  super3d_depth imesh_algo bp
-  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  super3d_depth super3d_image imesh_algo
+  vil vpgl vnl vul vil_algo
   ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY}
   )
 if (viscl_FOUND)
@@ -25,8 +25,8 @@ endif()
 #
 super3d_add_executable(cam_and_homog_picker cam_and_homog_picker.cxx)
 target_link_libraries(cam_and_homog_picker
-  super3d_depth imesh_algo
-  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  super3d_depth super3d_image imesh_algo
+  vil vpgl vnl vul vil_algo
   ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY}
   )
 
@@ -35,8 +35,8 @@ target_link_libraries(cam_and_homog_picker
 #
 super3d_add_executable(downsampler downsampler.cxx)
 target_link_libraries(downsampler
-  super3d_depth imesh_algo
-  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  super3d_depth super3d_image imesh_algo
+  vil vpgl vnl vul vil_algo
   )
 
 #
@@ -44,8 +44,8 @@ target_link_libraries(downsampler
 #
 super3d_add_executable(super_res_video super_res_video.cxx)
 target_link_libraries(super_res_video
-  super3d_depth imesh_algo
-  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  super3d_depth super3d_image imesh_algo
+  vil vpgl vnl vul vil_algo
   )
 
 #
@@ -53,8 +53,8 @@ target_link_libraries(super_res_video
 #
 super3d_add_executable(super_res_opt_flow super_res_opt_flow.cxx)
 target_link_libraries(super_res_opt_flow
-  super3d_depth imesh_algo
-  vil vidtk_video_transforms vidtk_tracking vpgl vgl vnl vul vil_algo
+  super3d_depth super3d_image imesh_algo
+  vil vpgl vgl vnl vul vil_algo
   )
 
 if (viscl_FOUND)
@@ -70,8 +70,8 @@ endif()
 #
 super3d_add_executable(super_res_image super_res_image.cxx)
 target_link_libraries(super_res_image
-  super3d_depth imesh_algo
-  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  super3d_depth super3d_image imesh_algo
+  vil vpgl vnl vul vil_algo
   )
 
 #
@@ -87,7 +87,7 @@ target_link_libraries(bundler2vpgl
 #
 super3d_add_executable(refine_homog_batch refine_homog_batch.cxx)
 target_link_libraries(refine_homog_batch
-  vnl vil vil_algo vul vgl vgl_algo vidtk_video_transforms vidtk_tracking rrel
+  super3d_image vnl vil vil_algo vul vgl vgl_algo rrel
   )
 
 #
@@ -96,7 +96,7 @@ target_link_libraries(refine_homog_batch
 if (Super3D_ENABLE_REFINE_HOMOG)
   super3d_add_executable(refine_homog refine_homog_gui.cxx refine_homog.h refine_homog.cxx)
   target_link_libraries(refine_homog
-    vnl vil vil_algo vul vgl vgl_algo vgui vidtk_video_transforms rrel
+    super3d_image vnl vil vil_algo vul vgl vgl_algo vgui rrel
     )
 endif()
 
@@ -146,8 +146,8 @@ target_link_libraries(extract_nitf_roi_krtd
 #
 super3d_add_executable(depth_from_flow depth_from_flow.cxx)
 target_link_libraries(depth_from_flow
-  super3d_depth imesh_algo
-  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  super3d_depth super3d_image imesh_algo
+  vil vpgl vnl vul vil_algo
   )
 
 #
@@ -155,8 +155,8 @@ target_link_libraries(depth_from_flow
 #
 super3d_add_executable(direct_depth direct_depth.cxx tv_refine.cxx tv_refine.h)
 target_link_libraries(direct_depth
-  super3d_depth imesh imesh_algo
-  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  super3d_depth super3d_image imesh imesh_algo
+  vil vpgl vnl vul vil_algo
   )
 
 #
@@ -182,8 +182,8 @@ target_link_libraries(mean_shift vil vil_algo vul vnl)
 #
 super3d_add_executable(exhaustive_stereo exhaustive_stereo.cxx)
 target_link_libraries(exhaustive_stereo
-  super3d_depth imesh_algo bp
-  vil vidtk_video_transforms vidtk_tracking vpgl vnl vul vil_algo
+  super3d_depth super3d_image imesh_algo
+  vil vpgl vnl vul vil_algo
   )
 
 #

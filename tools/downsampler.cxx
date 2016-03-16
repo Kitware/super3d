@@ -35,8 +35,8 @@
 #include <vil/vil_convert.h>
 #include <vil/vil_save.h>
 
-#include <video_transforms/adjoint_dbw.h>
-#include <video_transforms/adjoint_resample.h>
+#include <super3d/image/adjoint_dbw.h>
+#include <super3d/image/adjoint_resample.h>
 
 #include <super3d/depth/file_io.h>
 

@@ -49,7 +49,7 @@
 #include <vnl/vnl_matrix_fixed.h>
 
 
-#include <tracking/dense_optical_flow.h>
+#include <super3d/image/dense_optical_flow.h>
 #include <vpgl/vpgl_proj_camera.h>
 
 #include <super3d/depth/file_io.h>

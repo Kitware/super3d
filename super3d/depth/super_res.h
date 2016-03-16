@@ -38,7 +38,7 @@
 #include <vil/vil_image_view.h>
 #include <vcl_vector.h>
 
-#include <video_transforms/adjoint_image_op.h>
+#include <super3d/image/adjoint_image_op.h>
 
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
