@@ -42,7 +42,7 @@
 // won't conflict.
 namespace {
 
-using namespace vidtk;
+using namespace super3d;
 
 template <typename T>
 struct traits

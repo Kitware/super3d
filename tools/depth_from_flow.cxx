@@ -152,9 +152,9 @@ int main(int argc, char *argv[])
       char buf[30];
       sprintf(buf, "flow%d.png", i);
 
-      // vidtk::dense_optical_flow<float>(reproj, frames[i], flow, 4, 5, 2, 5, 1, 10);
+      // super3d::dense_optical_flow<float>(reproj, frames[i], flow, 4, 5, 2, 5, 1, 10);
 
-      vidtk::dense_optical_flow<double> dof;
+      super3d::dense_optical_flow<double> dof;
       dof.set_num_pyramid_levels(4);
       dof.set_num_warps(5);
       dof.set_num_outer_iterations(2);

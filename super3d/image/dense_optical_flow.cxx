@@ -51,7 +51,7 @@
 VIL_RESAMPLE_BICUB_INSTANTIATE( double , double );
 
 
-namespace vidtk
+namespace super3d
 {
 
 

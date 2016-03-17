@@ -40,7 +40,7 @@
 #include <string>
 #include <vil/vil_image_view.h>
 
-namespace vidtk
+namespace super3d
 {
 
 /// Read the Middlebury .flo file format into a vil_image_view<float>

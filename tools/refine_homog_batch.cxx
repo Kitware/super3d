@@ -153,20 +153,20 @@ int main(int argc, char* argv[])
     vil_image_view<double> moving = vil_convert_cast<>(double(), image_sptr);
 
     vnl_double_3x3 H = Hs[i];
-    vidtk::refine_homography(ref, moving, H, 10, 100, 15);
+    super3d::refine_homography(ref, moving, H, 10, 100, 15);
 
     vil_image_view<vxl_byte> out;
 
     vil_image_view<double> warped(ref.ni(), ref.nj());
     vnl_double_3x3 Hinv = vnl_inverse<double>(H);
-    vidtk::warp_image(moving, warped, Hinv);
+    super3d::warp_image(moving, warped, Hinv);
     sprintf(buf, "refined/img%03d.png", i);
     vil_convert_cast(warped, out);
     vil_save(out, buf);
 
     vil_image_view<double> original_warped(ref.ni(), ref.nj());
     vnl_double_3x3 original_Hinv = vnl_inverse<double>(Hs[i]);
-    vidtk::warp_image(moving, original_warped, original_Hinv);
+    super3d::warp_image(moving, original_warped, original_Hinv);
     sprintf(buf, "klt/img%03d.png", i);
     vil_convert_cast(original_warped, out);
     vil_save(out, buf);

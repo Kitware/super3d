@@ -32,7 +32,7 @@
 
 #include <vil/vil_math.h>
 
-namespace vidtk
+namespace super3d
 {
 
 template < typename PixType >

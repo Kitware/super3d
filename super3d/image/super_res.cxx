@@ -34,7 +34,7 @@
 
 #include <vil/vil_math.h>
 
-namespace vidtk
+namespace super3d
 {
 
 //Super resolution based on the paper:
@@ -75,7 +75,7 @@ void dual_step_p(const vil_image_view<double> &u_bar,
 
 /// Gradient ascent and projection on the dual variables q
 void dual_step_q(const std::vector<vil_image_view<double> > &frames,
-                 const std::vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                 const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
                  const std::vector<vil_image_view<double> > &weights,
                  const vil_image_view<double> &u_bar,
                  std::vector<vil_image_view<double> > &q,
@@ -251,4 +251,4 @@ void super_resolution_monitor::get_update(update_data &update)
 }
 
 
-} // end namespace vidtk
+} // end namespace super3d

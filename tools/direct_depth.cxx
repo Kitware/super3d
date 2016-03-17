@@ -64,7 +64,7 @@ void compute_plane_parallax(const vpgl_proj_camera<double>& src_camera,
                             vnl_vector_fixed<double,3>& e);
 void compute_gaussian_pyramid(vil_image_view<double> &frame,
                               vcl_pair<double, double> *exposure,
-                              const vidtk::gaussian_pyramid_builder &gpb,
+                              const super3d::gaussian_pyramid_builder &gpb,
                               vcl_vector<vil_image_view<double> > &pyramid);
 
 
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
 
   vcl_cout << "Making image pyramids"<<vcl_endl;
   unsigned levels = 4;
-  vidtk::gaussian_pyramid_builder gpb(levels+1, 2, 1.0);
+  super3d::gaussian_pyramid_builder gpb(levels+1, 2, 1.0);
 
   vcl_vector<vil_image_view<double> > pyr_ref;
   compute_gaussian_pyramid(frames[ref_frame], exposure_file.set() ? &exposures[ref_frame] : NULL, gpb, pyr_ref);
@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
 
 void compute_gaussian_pyramid(vil_image_view<double> &frame,
                               vcl_pair<double, double> *exposure,
-                              const vidtk::gaussian_pyramid_builder &gpb,
+                              const super3d::gaussian_pyramid_builder &gpb,
                               vcl_vector<vil_image_view<double> > &pyramid)
 {
   // scale and offset used to map the range [0,255] to [-1,1]

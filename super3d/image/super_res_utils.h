@@ -36,7 +36,7 @@
 #include <vgl/algo/vgl_h_matrix_2d.h>
 #include <super3d/image/adjoint_image_op.h>
 
-namespace vidtk
+namespace super3d
 {
 
 /// Computes an optical flow field from a homography at a crop region
@@ -100,6 +100,6 @@ void create_warps_from_flows(const std::vector<vil_image_view<double> > &flows,
                              const bool down_scaling,
                              const bool bicubic_warping);
 
-} // end namespace vidtk
+} // end namespace super3d
 
 #endif // super_res_utils_h_

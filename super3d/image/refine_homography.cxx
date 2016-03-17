@@ -47,7 +47,7 @@
 #include <iostream>
 #include <limits>
 
-namespace vidtk
+namespace super3d
 {
 
 void refine_homography(const vil_image_view<double> &fixed, const vil_image_view<double> &moving,
@@ -486,4 +486,4 @@ void estimate_homog_lm(const std::vector<edgel_match> &corresp,
   H = T_fixed_inv * H * T_moving;
 }
 
-} // end namespace vidtk
+} // end namespace super3d

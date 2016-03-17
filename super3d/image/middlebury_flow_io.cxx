@@ -56,7 +56,7 @@
 #include <fstream>
 
 
-namespace vidtk
+namespace super3d
 {
 
 struct flow_exception : public std::exception

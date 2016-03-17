@@ -40,7 +40,7 @@
 // won't conflict.
 namespace {
 
-using namespace vidtk;
+using namespace super3d;
 
 /// test the reading and writing Middlebury flow files
 void

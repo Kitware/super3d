@@ -45,7 +45,7 @@
 /// http://cvpr.in.tum.de/old/pub/pub/DagstuhlOpticalFlowChapter.pdf
 
 
-namespace vidtk
+namespace super3d
 {
 
 /// Class for managing dense optical flow computation.

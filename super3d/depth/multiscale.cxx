@@ -107,9 +107,9 @@ scale_point(const vnl_vector_fixed<double,3>& p,
 /// Upsample image (src) to image (dest) by a factor of (scale_factor) using
 /// interpolation method of (interp)
 void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
-              double scale_factor, vidtk::warp_image_parameters::interp_type interp)
+              double scale_factor, super3d::warp_image_parameters::interp_type interp)
 {
-  vidtk::warp_image_parameters wip;
+  super3d::warp_image_parameters wip;
   wip.set_fill_unmapped(true);
   wip.set_unmapped_value(-1.0);
   wip.set_interpolator(interp);
@@ -120,7 +120,7 @@ void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
   Sinv(1,1) = 1.0/scale_factor;
 
   dest.set_size(src.ni() * scale_factor, src.nj() * scale_factor, src.nplanes());
-  vidtk::warp_image(src, dest, Sinv, wip);
+  super3d::warp_image(src, dest, Sinv, wip);
 }
 
 } // end namespace super3d

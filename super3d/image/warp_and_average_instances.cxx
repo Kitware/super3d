@@ -32,14 +32,14 @@
 
 #define INSTANTIATE( PIXTYPE ) \
 \
-template bool vidtk::warp_and_average(const std::vector<vil_image_view<PIXTYPE> > &src_frames, \
+template bool super3d::warp_and_average(const std::vector<vil_image_view<PIXTYPE> > &src_frames, \
                                       vil_image_view<PIXTYPE> &dest, \
                                       const std::vector<vgl_h_matrix_2d<double> > &homogs, \
                                       unsigned int ref_frame, unsigned int i0, unsigned int j0, \
                                       unsigned int ni, unsigned int nj, \
                                       const warp_image_parameters &wip, double scale_factor); \
 \
-template void vidtk::warp_and_average(const std::vector<vil_image_view<PIXTYPE> > &src_frames, \
+template void super3d::warp_and_average(const std::vector<vil_image_view<PIXTYPE> > &src_frames, \
                                       vil_image_view<PIXTYPE> &dest, \
                                       const std::vector<vgl_h_matrix_2d<double> > &homogs, \
                                       unsigned int ref_frame, const warp_image_parameters &wip, \

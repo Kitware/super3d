@@ -65,7 +65,7 @@ void compute_plane_parallax(const vpgl_proj_camera<double>& src_camera,
                             vnl_vector_fixed<double,3>& e);
 void compute_gaussian_pyramid(vil_image_view<double> &frame,
                               vcl_pair<double, double> *exposure,
-                              const vidtk::gaussian_pyramid_builder &gpb,
+                              const super3d::gaussian_pyramid_builder &gpb,
                               vcl_vector<vil_image_view<double> > &pyramid);
 
 
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
 
   vcl_cout << "Making image pyramids"<<vcl_endl;
   unsigned int levels = config::inst()->get_value<unsigned int>("levels");
-  vidtk::gaussian_pyramid_builder gpb(levels+1, 2, 1.0);
+  super3d::gaussian_pyramid_builder gpb(levels+1, 2, 1.0);
 
   vcl_vector<vil_image_view<double> > pyr_ref;
   gpb.build_pyramid(frames[ref_frame], pyr_ref);
@@ -274,7 +274,7 @@ refine_depths(const vil_image_view<double>& I0,
      apply_bcc_to_depth_all(bcc, lambda, theta, depth);
 
 
-      //vidtk::dual_rof_denoise(depth,new_depth,inner_iterations,theta);
+      //super3d::dual_rof_denoise(depth,new_depth,inner_iterations,theta);
 
       //vil_median(new_depth,depth,se);
     }

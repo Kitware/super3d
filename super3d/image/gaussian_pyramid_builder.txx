@@ -37,7 +37,7 @@
 /// \file
 /// Build a Gaussian pyramid
 
-namespace vidtk
+namespace super3d
 {
 
 /// Compute a Gaussian pyramid according to the constructed parameters

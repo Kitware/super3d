@@ -37,7 +37,7 @@
 
 #include <vector>
 
-namespace vidtk
+namespace super3d
 {
 
 /// Refines the planar homography that warps from moving -> fixed images
@@ -151,6 +151,6 @@ void estimate_homog_lm(const std::vector<edgel_match> &corresp,
                        const std::vector<edgel> &e_moving,
                        vnl_double_3x3 &H);
 
-} // end namespace vidtk
+} // end namespace super3d
 
 #endif // refine_homography_h_

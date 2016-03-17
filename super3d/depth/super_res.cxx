@@ -62,7 +62,7 @@ void dual_step_grad_huber(const vil_image_view<double> &primal,
 {
   const double denom = 1.0 + (sigma * epsilon) / lambda;
   vil_image_view<double> work;
-  vidtk::forward_gradient(primal, work);
+  super3d::forward_gradient(primal, work);
   vil_math_add_image_fraction(dual, 1.0/denom, work, sigma/denom);
 
   for (unsigned int j = 0; j < dual.nj(); j++)
@@ -102,7 +102,7 @@ void dual_step_b(const vcl_vector<vil_image_view<double> > &a0,
 //*****************************************************************************
 
 void dual_step_q(const vcl_vector<vil_image_view<double> > &frames,
-                 const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                 const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
                  const vcl_vector<vil_image_view<double> > &weights,
                  const vil_image_view<double> &u_bar,
                  const vcl_vector<vil_image_view<double> > &a0,
@@ -141,7 +141,7 @@ void dual_step_q(const vcl_vector<vil_image_view<double> > &frames,
 //*****************************************************************************
 
 void dual_step_q(const vcl_vector<vil_image_view<double> > &frames,
-                 const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                 const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
                  const vcl_vector<vil_image_view<double> > &weights,
                  const vil_image_view<double> &u_bar,
                  vcl_vector<vil_image_view<double> > &q,
@@ -176,7 +176,7 @@ void dual_step_q(const vcl_vector<vil_image_view<double> > &frames,
 }
 
 void primal_step_u(const vcl_vector<vil_image_view<double> > &q,
-                   const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                   const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
                    const vil_image_view<double> &p,
                    vil_image_view<double> &u,
                    vil_image_view<double> &u_bar,
@@ -194,7 +194,7 @@ void primal_step_u(const vcl_vector<vil_image_view<double> > &q,
   }
 
   vil_image_view<double> work;
-  vidtk::backward_divergence(p, work);
+  super3d::backward_divergence(p, work);
   vil_math_add_image_fraction(work, srp.tau, sum_super_q, -srp.tau * sf_2);
   vil_math_image_sum(u, work, work);
   u_bar.deep_copy(work);
@@ -205,7 +205,7 @@ void primal_step_u(const vcl_vector<vil_image_view<double> > &q,
 //*****************************************************************************
 
 void primal_step_a(const vcl_vector<vil_image_view<double> > &q,
-                   const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                   const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
                    const vil_image_view<double> &u,
                    const vcl_vector<vil_image_view<double> > &b0,
                    vcl_vector<vil_image_view<double> > &a0,
@@ -223,13 +223,13 @@ void primal_step_a(const vcl_vector<vil_image_view<double> > &q,
     // apply transpose linear operator to upsample, blur, and warp
     warps[i].apply_At(q[i], super_q);
 
-    vidtk::backward_divergence(b0[i], work);
+    super3d::backward_divergence(b0[i], work);
     vil_math_add_image_fraction(work, srp.tau, super_q, -srp.tau * sf_2);
     vil_math_image_sum(a0[i], work, a0[i]);
 
     //elementwise product
     //vil_math_image_product(super_q, u, super_q);
-    //vidtk::backward_divergence(b1[i], work);
+    //super3d::backward_divergence(b1[i], work);
     //vil_math_add_image_fraction(work, srp.tau, super_q, -srp.tau * sf_2);
     //vil_math_image_sum(a1[i], work, a1[i]);
   }
@@ -251,9 +251,9 @@ void save_image(const vil_image_view<double> &img, const char *filename)
 //*****************************************************************************
 
 void upsamplep(const vil_image_view<double> &src, vil_image_view<double> &dest,
-              double scale_factor, vidtk::warp_image_parameters::interp_type interp)
+              double scale_factor, super3d::warp_image_parameters::interp_type interp)
 {
-  vidtk::warp_image_parameters wip;
+  super3d::warp_image_parameters wip;
   wip.set_fill_unmapped(true);
   wip.set_unmapped_value(-1.0);
   wip.set_interpolator(interp);
@@ -264,7 +264,7 @@ void upsamplep(const vil_image_view<double> &src, vil_image_view<double> &dest,
   Sinv(1,1) = 1.0/scale_factor;
 
   dest.set_size(src.ni() * scale_factor, src.nj() * scale_factor, src.nplanes());
-  vidtk::warp_image(src, dest, Sinv, wip);
+  super3d::warp_image(src, dest, Sinv, wip);
 }
 
 } // end anonymous namespace
@@ -272,7 +272,7 @@ void upsamplep(const vil_image_view<double> &src, vil_image_view<double> &dest,
 //*****************************************************************************
 
 void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
-                   const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                   const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
                    vil_image_view<double> &u,
                    const super_res_params &srp,
                    unsigned int iterations,

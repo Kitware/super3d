@@ -275,11 +275,11 @@ int main(int argc, char* argv[])
 
   vil_image_view<double> warped(I_f.ni(), I_f.nj());
   vnl_double_3x3 Hinv = vnl_inverse<double>(H);
-  vidtk::warp_image(I_m, warped, Hinv);
+  super3d::warp_image(I_m, warped, Hinv);
 
   vil_image_view<double> original_warped(I_f.ni(), I_f.nj());
   vnl_double_3x3 original_Hinv = vnl_inverse<double>(original_H);
-  vidtk::warp_image(I_m, original_warped, original_Hinv);
+  super3d::warp_image(I_m, original_warped, original_Hinv);
 
   matches_tableau_new matches_tab(matches, e_fixed, e_moving, H);
   vgui_image_tableau_new imagef_tab(I_f);

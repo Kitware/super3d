@@ -120,8 +120,8 @@ refine_depths(const vil_image_view<double>& I0,
      apply_bcc_to_depth_all(bcc, mask, lambda, theta, depth);
      //apply_bcc_to_depth_lst_sqr_two(bcc,lambda*theta,depth);
 
-      //vidtk::dual_rof_denoise(depth,new_depth,inner_iterations,theta);
-      vidtk::dual_rof_weighted_denoise(depth, weights, new_depth, inner_iterations, theta);
+      //super3d::dual_rof_denoise(depth,new_depth,inner_iterations,theta);
+      super3d::dual_rof_weighted_denoise(depth, weights, new_depth, inner_iterations, theta);
       vil_median(new_depth,depth,se);
     }
     std::cout << "  ssd "<<vil_math_ssd(depth,last_depth,double())<<std::endl;

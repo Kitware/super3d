@@ -42,7 +42,7 @@
 // won't conflict.
 namespace {
 
-using namespace vidtk;
+using namespace super3d;
 
 void
 test_image_derivs_adjoint()

@@ -44,7 +44,7 @@
 namespace
 {
 
-using namespace vidtk;
+using namespace super3d;
 
 void test_refine_homog(const vil_image_view<double> &img,
                        vnl_double_3x3 &H)

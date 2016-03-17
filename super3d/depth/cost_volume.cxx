@@ -222,7 +222,7 @@ compute_cost_volume_warp(const vcl_vector<vil_image_view<double> > &frames,
   vnl_matrix_fixed<double, 3, 3> Kref_v = svd.pinverse();
 
   vil_image_view<double> warped(frames[ref_frame].ni(), frames[ref_frame].nj(),1);
-  vidtk::warp_image_parameters wip;
+  super3d::warp_image_parameters wip;
   wip.set_fill_unmapped(true);
   wip.set_unmapped_value(-1.0);
 
@@ -248,7 +248,7 @@ compute_cost_volume_warp(const vcl_vector<vil_image_view<double> > &frames,
       vnl_double_3x3 H = R_relative.as_matrix();
       H.set_column(2, H.get_column(2) + idepth * vnl_double_3(t_relative.x(), t_relative.y(), t_relative.z()));
       H = cameras[f].get_calibration().get_matrix() * H * Kref_v;
-      vidtk::warp_image(frames[f], warped, vgl_h_matrix_2d<double>(H), wip );
+      super3d::warp_image(frames[f], warped, vgl_h_matrix_2d<double>(H), wip );
 
       #if 0
       vil_image_view<double> outwrite;

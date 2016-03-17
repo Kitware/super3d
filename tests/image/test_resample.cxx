@@ -44,7 +44,7 @@
 namespace
 {
 
-using namespace vidtk;
+using namespace super3d;
 
 void
 test_resampler()

@@ -36,7 +36,7 @@
 #include <vil/vil_math.h>
 #include <cstdlib>
 
-namespace vidtk
+namespace super3d
 {
 
 /// fill an image with random values between min_v and max_v
@@ -99,6 +99,6 @@ double dot_product(const vil_image_view<T>& img1,
   return sum;
 }
 
-} // end namespace vidtk
+} // end namespace super3d
 
 #endif //adjoint_image_utils_h_

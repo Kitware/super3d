@@ -66,7 +66,7 @@ bool is_identity( vgl_h_matrix_2d<double> const& H )
 }
 
 
-namespace vidtk
+namespace super3d
 {
 
 // Helper routine.  Defined in .cxx
@@ -394,4 +394,4 @@ safe_cast(U const& value)
   return T(value);
 }
 
-} // end namespace vidtk
+} // end namespace super3d

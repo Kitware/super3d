@@ -102,7 +102,7 @@ class super_res_monitor;
 SUPER3D_DEPTH_EXPORT
 void super_resolve(
   const vcl_vector<vil_image_view<double> > &frames,
-  const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+  const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
   vil_image_view<double> &u,
   const super_res_params &srp,
   unsigned int iterations,
@@ -112,7 +112,7 @@ void super_resolve(
 SUPER3D_DEPTH_EXPORT
 void super_resolve_robust(
   const vcl_vector<vil_image_view<double> > &frames,
-  const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+  const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
   vil_image_view<double> &Y,
   super_res_params srp,
   unsigned int iterations,
@@ -142,7 +142,7 @@ private:
 
   friend void super_resolve_robust(
     const vcl_vector<vil_image_view<double> > &frames,
-    const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+    const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
     vil_image_view<double> &Y,
     super_res_params srp,
     unsigned int iterations,
@@ -152,7 +152,7 @@ private:
 
   friend void super_resolve(
     const vcl_vector<vil_image_view<double> > &frames,
-    const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+    const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
     vil_image_view<double> &u,
     const super_res_params &srp,
     unsigned int iterations,

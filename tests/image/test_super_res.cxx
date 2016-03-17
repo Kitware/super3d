@@ -47,7 +47,7 @@
 namespace
 {
 
-using namespace vidtk;
+using namespace super3d;
 
 bool callback_called = false;
 

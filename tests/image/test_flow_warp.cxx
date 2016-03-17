@@ -48,7 +48,7 @@
 namespace
 {
 
-using namespace vidtk;
+using namespace super3d;
 
 void
 test_flow_warp_bilin()

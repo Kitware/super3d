@@ -34,7 +34,7 @@
 #include <vil/vil_math.h>
 
 
-namespace vidtk
+namespace super3d
 {
 
 /// Apply the primary followed by adjoint operators
@@ -202,4 +202,4 @@ template class adjoint_image_op<float>;
 template class adjoint_multi_image_op<double>;
 template class adjoint_multi_image_op<float>;
 
-} // end namespace vidtk
+} // end namespace super3d

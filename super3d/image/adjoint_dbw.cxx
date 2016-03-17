@@ -38,7 +38,7 @@
 
 #include <vil/algo/vil_gauss_filter.h>
 
-namespace vidtk
+namespace super3d
 {
 
 /// Helper class to contain a set of 2 image operators that run in sequence.
@@ -159,4 +159,4 @@ create_dbw_from_flow(const vil_image_view<double> &flow,
 }
 
 
-} // end namespace vidtk
+} // end namespace super3d

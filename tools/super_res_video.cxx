@@ -67,7 +67,7 @@ void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
 void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
                              const vcl_vector<vil_image_view<double> > &weights,
                              const vcl_vector<vil_image_view<double> > &frames,
-                             vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                             vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
                              int scale_factor,
                              super3d::config *cfg);
 
@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
     int ni, nj;
 
     vcl_vector<vil_image_view<double> > weights;
-    vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
+    vcl_vector<super3d::adjoint_image_ops_func<double> > warps;
 
     const double normalizer = 1.0/255.0;
 
@@ -356,7 +356,7 @@ int main(int argc, char* argv[])
     else
     {
       vil_image_view<double> upsamp;
-      super3d::upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::CUBIC);
+      super3d::upsample(ref_image, upsamp, scale_factor, super3d::warp_image_parameters::CUBIC);
 
       vil_image_view<vxl_byte> output;
       vil_convert_stretch_range_limited(upsamp, output, 0.0, 1.0);
@@ -420,7 +420,7 @@ void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
 void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
                              const vcl_vector<vil_image_view<double> > &frames,
                              const vcl_vector<vil_image_view<double> > &weights,
-                             vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                             vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
                              int scale_factor,
                              super3d::config *cfg)
 {
@@ -461,11 +461,11 @@ void difference_from_flow(const vil_image_view<double> &I0,
   vil_image_view<double> temp;
   if( bicubic_warping )
   {
-    vidtk::warp_back_with_flow_bicub(I1_x, flow, temp);
+    super3d::warp_back_with_flow_bicub(I1_x, flow, temp);
   }
   else
   {
-    vidtk::warp_back_with_flow_bilin(I1_x, flow, temp);
+    super3d::warp_back_with_flow_bilin(I1_x, flow, temp);
   }
   vil_math_image_difference(temp, I0_x, diff);
 }
@@ -484,11 +484,11 @@ void create_low_res(vcl_vector<vil_image_view<double> > &frames,
     vil_gauss_filter_2d(frames[i], temp, sensor_sigma, 3.0*sensor_sigma);
     if( down_sample_averaging )
     {
-      vidtk::down_scale(temp, frames[i], scale);
+      super3d::down_scale(temp, frames[i], scale);
     }
     else
     {
-      vidtk::down_sample(temp, frames[i], scale);
+      super3d::down_sample(temp, frames[i], scale);
     }
   }
 }

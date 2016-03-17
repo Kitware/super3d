@@ -30,7 +30,7 @@
 
 #include "dual_rof_denoise.h"
 
-namespace vidtk
+namespace super3d
 {
 
 

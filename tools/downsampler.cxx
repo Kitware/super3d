@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
   {
     vil_image_view<double> temp;
     vil_gauss_filter_2d(frames[i], temp, sensor_sigma, 3.0*sensor_sigma);
-    vidtk::down_sample(temp, frames[i], downsampling());
+    super3d::down_sample(temp, frames[i], downsampling());
     vcl_string output_filename = output_dir() + filenames[i];
     vil_image_view<vxl_byte> output_image;
     vil_convert_cast(frames[i], output_image);

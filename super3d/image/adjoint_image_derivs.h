@@ -35,7 +35,7 @@
 #include <vil/vil_image_view.h>
 #include <cstdlib>
 
-namespace vidtk
+namespace super3d
 {
 
 
@@ -109,6 +109,6 @@ void backward_divergence(const vil_image_view<T>& src, vil_image_view<T>& dst)
   }
 }
 
-} // end namespace vidtk
+} // end namespace super3d
 
 #endif //adjoint_image_derivs_h_

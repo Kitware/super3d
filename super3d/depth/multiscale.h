@@ -90,7 +90,7 @@ scale_point(const vnl_vector_fixed<double,3>& p,
 /// \param interp The interpolation method, e.g. bilinear, bicubic
 SUPER3D_DEPTH_EXPORT
 void upsample(const vil_image_view<double> &src, vil_image_view<double> &dest,
-              double scale_factor, vidtk::warp_image_parameters::interp_type interp);
+              double scale_factor, super3d::warp_image_parameters::interp_type interp);
 
 } // end namespace super3d
 

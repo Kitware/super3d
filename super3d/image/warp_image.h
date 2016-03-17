@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef vidtk_warp_image_h_
-#define vidtk_warp_image_h_
+#ifndef super3d_warp_image_h_
+#define super3d_warp_image_h_
 
 /// \file
 #include <vgl/algo/vgl_h_matrix_2d.h>
@@ -37,7 +37,7 @@
 template<class T>
 class vil_image_view;
 
-namespace vidtk
+namespace super3d
 {
 
 
@@ -156,7 +156,7 @@ warp_image( vil_image_view<T> const& src,
             vil_image_view< bool > * const unmapped_mask = NULL );
 
 
-} // end namespace vidtk
+} // end namespace super3d
 
 
-#endif // vidtk_warp_image_h_
+#endif // super3d_warp_image_h_

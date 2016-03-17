@@ -44,7 +44,7 @@
 // won't conflict.
 namespace {
 
-using namespace vidtk;
+using namespace super3d;
 
 // same parameters as the vil_image_view constructor
 vil_image_view<vxl_byte>

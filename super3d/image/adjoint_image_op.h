@@ -38,7 +38,7 @@
 #include <boost/function.hpp>
 
 
-namespace vidtk
+namespace super3d
 {
 
 /// Abstract base class for adjoint image operators.
@@ -258,6 +258,6 @@ protected:
 };
 
 
-} // end namespace vidtk
+} // end namespace super3d
 
 #endif //adjoint_image_op_h_

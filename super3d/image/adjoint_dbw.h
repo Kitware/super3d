@@ -37,7 +37,7 @@
 #include "adjoint_image_op.h"
 
 
-namespace vidtk
+namespace super3d
 {
 
 /// Create DBW adjoint operator from a flow field and various options.
@@ -58,6 +58,6 @@ create_dbw_from_flow(const vil_image_view<double> &flow,
                      bool down_sample_averaging = false,
                      bool bicubic_warping = false);
 
-} // end namespace vidtk
+} // end namespace super3d
 
 #endif //adjoint_dbw_h_

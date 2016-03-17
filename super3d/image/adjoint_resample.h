@@ -34,7 +34,7 @@
 
 #include <vil/vil_image_view.h>
 
-namespace vidtk
+namespace super3d
 {
 
 /// Down sample an image by selecting a subset of pixels.
@@ -233,6 +233,6 @@ void up_scale(const vil_image_view<T> &input,
   }
 }
 
-} // end namespace vidtk
+} // end namespace super3d
 
 #endif //adjoint_resample_h_

@@ -45,7 +45,7 @@ world_space::world_space(unsigned int pixel_width, unsigned int pixel_height)
 {
   wip.set_fill_unmapped(true);
   wip.set_unmapped_value(-1.0);
-  wip.set_interpolator(vidtk::warp_image_parameters::LINEAR);
+  wip.set_interpolator(super3d::warp_image_parameters::LINEAR);
 }
 
 vcl_vector<vpgl_perspective_camera<double> >
@@ -84,7 +84,7 @@ void world_space::warp_image_to_depth(const vil_image_view<double> &in,
   dlt.compute(warp_pts, proj_pts, H);
 
   out.set_size(ni_, nj_, 1);
-  vidtk::warp_image(in, out, vgl_h_matrix_2d<double>(H), wip);
+  super3d::warp_image(in, out, vgl_h_matrix_2d<double>(H), wip);
 
 #if 0
   vil_image_view<double> outwrite;

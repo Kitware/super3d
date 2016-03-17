@@ -40,7 +40,7 @@
 
 #include "adjoint_image_op.h"
 
-namespace vidtk
+namespace super3d
 {
 
 struct super_res_params
@@ -120,6 +120,6 @@ private:
 };
 
 
-} // end namespace vidtk
+} // end namespace super3d
 
 #endif //super_res_h_

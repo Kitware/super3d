@@ -50,7 +50,7 @@
 /// and are intended to be only instantiated with double and float.
 
 
-namespace vidtk
+namespace super3d
 {
 
 /// Apply several iterations of the dual Rudin, Osher and Fatemi model.

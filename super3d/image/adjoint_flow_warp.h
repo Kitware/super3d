@@ -38,7 +38,7 @@
 #include <vnl/vnl_math.h>
 
 
-namespace vidtk
+namespace super3d
 {
 
 
@@ -351,6 +351,6 @@ void warp_forward_with_flow_bicub( const vil_image_view<srcT> &input,
 }
 
 
-} // end namespace vidtk
+} // end namespace super3d
 
 #endif //adjoint_flow_warp_h_

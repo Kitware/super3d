@@ -35,7 +35,7 @@
 #include <vnl/vnl_math.h>
 #include <vil/vil_crop.h>
 
-namespace vidtk
+namespace super3d
 {
 
 void homogs_to_flows(const std::vector<vgl_h_matrix_2d<double> > &homogs,
@@ -203,4 +203,4 @@ void create_warps_from_flows(const std::vector<vil_image_view<double> > &flows,
   }
 }
 
-} // end namespace vidtk
+} // end namespace super3d

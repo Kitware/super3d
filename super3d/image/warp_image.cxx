@@ -30,7 +30,7 @@
 
 #include <vgl/algo/vgl_h_matrix_2d.h>
 
-namespace vidtk
+namespace super3d
 {
 
 
@@ -45,4 +45,4 @@ warp_image_is_identity( vgl_h_matrix_2d<double> const& H )
 }
 
 
-} // end namespace vidtk
+} // end namespace super3d

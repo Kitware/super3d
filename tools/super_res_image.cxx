@@ -47,14 +47,14 @@
 
 #define DEBUG
 
-vcl_vector<vidtk::adjoint_image_ops_func<double> >
+vcl_vector<super3d::adjoint_image_ops_func<double> >
 create_warps_simple(int sni, int snj, int scale_factor, super3d::config *cfg);
 
-vcl_vector<vidtk::adjoint_image_ops_func<double> >
+vcl_vector<super3d::adjoint_image_ops_func<double> >
 create_warps(int sni, int snj, int scale_factor, super3d::config *cfg);
 
 void create_downsampled_frames(const vil_image_view<double> &high_res,
-                               const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                               const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
                                vcl_vector<vil_image_view<double> > &frames);
 
 //*****************************************************************************
@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
     vcl_cout << "Creating downsampled frames\n";
     vcl_vector<vil_image_view<double> > frames;
 
-    vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
+    vcl_vector<super3d::adjoint_image_ops_func<double> > warps;
     warps = create_warps_simple(img.ni(), img.nj(), scale_factor, cfg.get());
     create_downsampled_frames(img, warps, frames);
 
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
 
 //*****************************************************************************
 
-vcl_vector<vidtk::adjoint_image_ops_func<double> >
+vcl_vector<super3d::adjoint_image_ops_func<double> >
 create_warps_simple(int sni, int snj, int scale_factor, super3d::config *cfg)
 {
   //int num_imgs = scale_factor * scale_factor;
@@ -146,8 +146,8 @@ create_warps_simple(int sni, int snj, int scale_factor, super3d::config *cfg)
   bool bicubic_warping = cfg->get_value<bool>("bicubic_warping");
   double sensor_sigma = cfg->get_value<double>("sensor_sigma");
 
-  typedef vidtk::adjoint_image_ops_func<double>::func_t func_t;
-  vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
+  typedef super3d::adjoint_image_ops_func<double>::func_t func_t;
+  vcl_vector<super3d::adjoint_image_ops_func<double> > warps;
 
   for (unsigned int i = 0; i < static_cast<unsigned int>(scale_factor); i++)
   {
@@ -157,7 +157,7 @@ create_warps_simple(int sni, int snj, int scale_factor, super3d::config *cfg)
       vil_plane<double>(flow, 0).fill(static_cast<double>(i));
       vil_plane<double>(flow, 1).fill(static_cast<double>(j));
 
-      warps.push_back(vidtk::create_dbw_from_flow(flow, dni, dnj, 1, scale_factor, sensor_sigma,
+      warps.push_back(super3d::create_dbw_from_flow(flow, dni, dnj, 1, scale_factor, sensor_sigma,
                                            down_sample_averaging,
                                            bicubic_warping));
     }
@@ -167,7 +167,7 @@ create_warps_simple(int sni, int snj, int scale_factor, super3d::config *cfg)
 
 //*****************************************************************************
 
-vcl_vector<vidtk::adjoint_image_ops_func<double> >
+vcl_vector<super3d::adjoint_image_ops_func<double> >
 create_warps(int sni, int snj, int scale_factor, super3d::config *cfg)
 {
   int dni = sni / scale_factor;
@@ -176,8 +176,8 @@ create_warps(int sni, int snj, int scale_factor, super3d::config *cfg)
   bool bicubic_warping = cfg->get_value<bool>("bicubic_warping");
   double sensor_sigma = cfg->get_value<double>("sensor_sigma");
 
-  typedef vidtk::adjoint_image_ops_func<double>::func_t func_t;
-  vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
+  typedef super3d::adjoint_image_ops_func<double>::func_t func_t;
+  vcl_vector<super3d::adjoint_image_ops_func<double> > warps;
   for (double i = 0.0; i < scale_factor; i+=0.5)
   {
     for (double j = 0.0; j < scale_factor; j+=0.5)
@@ -186,7 +186,7 @@ create_warps(int sni, int snj, int scale_factor, super3d::config *cfg)
       vil_plane<double>(flow, 0).fill(i);
       vil_plane<double>(flow, 1).fill(j);
 
-      warps.push_back(vidtk::create_dbw_from_flow(flow, dni, dnj, 1, scale_factor, sensor_sigma,
+      warps.push_back(super3d::create_dbw_from_flow(flow, dni, dnj, 1, scale_factor, sensor_sigma,
                                            down_sample_averaging,
                                            bicubic_warping));
     }
@@ -198,7 +198,7 @@ create_warps(int sni, int snj, int scale_factor, super3d::config *cfg)
 
 
 void create_downsampled_frames(const vil_image_view<double> &high_res,
-                               const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                               const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
                                vcl_vector<vil_image_view<double> > &frames)
 {
   frames.clear();

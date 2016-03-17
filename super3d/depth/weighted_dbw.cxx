@@ -95,7 +95,7 @@ private:
 };
 
 
-vidtk::adjoint_image_ops_func<double>
+super3d::adjoint_image_ops_func<double>
 create_dbw_from_flow(const vil_image_view<double> &flow,
                      const vil_image_view<double> &weights,
                      const unsigned ni, const unsigned nj, const unsigned np,
@@ -113,28 +113,28 @@ create_dbw_from_flow(const vil_image_view<double> &flow,
   func_t weight_f = boost::bind(vil_math_image_product<double, double, double>,
                                 _1, weights, _2);
 
-  func_t warp_fwd = boost::bind(vidtk::warp_forward_with_flow_bilin<double, double, double>,
+  func_t warp_fwd = boost::bind(super3d::warp_forward_with_flow_bilin<double, double, double>,
                                 _1, flow, _2);
-  func_t warp_back = boost::bind(vidtk::warp_back_with_flow_bilin<double, double, double>,
+  func_t warp_back = boost::bind(super3d::warp_back_with_flow_bilin<double, double, double>,
                                  _1, flow, _2);
   if(bicubic_warping)
   {
-    warp_fwd = boost::bind(vidtk::warp_forward_with_flow_bicub<double, double, double>,
+    warp_fwd = boost::bind(super3d::warp_forward_with_flow_bicub<double, double, double>,
                            _1, flow, _2);
-    warp_back = boost::bind(vidtk::warp_back_with_flow_bicub<double, double, double>,
+    warp_back = boost::bind(super3d::warp_back_with_flow_bicub<double, double, double>,
                             _1, flow, _2);
   }
 
   func_t blur_sf = boost::bind(vil_gauss_filter_2d<double, double>, _1, _2, sensor_sigma,
                                static_cast<unsigned int>(3.0 * sensor_sigma), vil_convolve_zero_extend);
 
-  func_t down_s = boost::bind(vidtk::down_sample<double>, _1, _2, scale_factor, 0, 0);
-  func_t up_s = boost::bind(vidtk::up_sample<double>, _1, _2, scale_factor, 0, 0);
+  func_t down_s = boost::bind(super3d::down_sample<double>, _1, _2, scale_factor, 0, 0);
+  func_t up_s = boost::bind(super3d::up_sample<double>, _1, _2, scale_factor, 0, 0);
 
   if(down_sample_averaging)
   {
-    down_s = boost::bind(vidtk::down_scale<double>, _1, _2, scale_factor);
-    up_s = boost::bind(vidtk::up_scale<double>, _1, _2, scale_factor);
+    down_s = boost::bind(super3d::down_scale<double>, _1, _2, scale_factor);
+    up_s = boost::bind(super3d::up_scale<double>, _1, _2, scale_factor);
   }
 
   image_op_2_func<double> forward_ww(weight_f, warp_fwd, sni, snj, np);
@@ -145,7 +145,7 @@ create_dbw_from_flow(const vil_image_view<double> &flow,
   image_op_2_func<double> backward_bs(up_s, blur_sf, wni, wnj, np);
   image_op_2_func<double> backward(backward_bs, backward_ww, wni, wnj, np);
 
-  return vidtk::adjoint_image_ops_func<double>(forward, backward,
+  return super3d::adjoint_image_ops_func<double>(forward, backward,
                                                sni, snj, np,
                                                ni, nj, np);
 }

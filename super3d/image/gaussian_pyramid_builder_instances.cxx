@@ -32,16 +32,16 @@
 
 #define GAUSSIAN_PYRAMID_INSTANTIATE(PixType)                                \
 template void                                                                \
-vidtk::gaussian_pyramid_builder::                                            \
+super3d::gaussian_pyramid_builder::                                            \
 build_pyramid<PixType >(const vil_image_view<PixType >&,                     \
                        std::vector<vil_image_view<PixType > >&) const;        \
 template void                                                                \
-vidtk::tile_pyramid<PixType >(const std::vector<vil_image_view<PixType > > &, \
+super3d::tile_pyramid<PixType >(const std::vector<vil_image_view<PixType > > &, \
                              vil_image_view<PixType > &)
 
 #define GAUSSIAN_PYRAMID_INSTANTIATE2(PixType, GradType)                     \
 template void                                                                \
-vidtk::gaussian_pyramid_builder::                                            \
+super3d::gaussian_pyramid_builder::                                            \
 build_pyramid<PixType, GradType >(const vil_image_view<PixType >&,           \
                                  std::vector<vil_image_view<PixType > >&,     \
                                  std::vector<vil_image_view<GradType > >&) const

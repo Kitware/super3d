@@ -80,7 +80,7 @@ public:
 protected:
   unsigned int ni_, nj_;
 
-  vidtk::warp_image_parameters wip;
+  super3d::warp_image_parameters wip;
 };
 
 } // end namespace super3d

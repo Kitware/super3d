@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef vidtk_warp_and_average_h_
-#define vidtk_warp_and_average_h_
+#ifndef super3d_warp_and_average_h_
+#define super3d_warp_and_average_h_
 
 #include <vil/vil_image_view.h>
 #include <vgl/algo/vgl_h_matrix_2d.h>
@@ -40,7 +40,7 @@
 //template < typename PixType >
 //class vil_image_view;
 
-namespace vidtk
+namespace super3d
 {
 
 /// \brief Warps images to a reference frame and averages them with a crop region
@@ -80,4 +80,4 @@ void warp_and_average(const std::vector<vil_image_view<PixType> > &src_frames,
                       double scale_factor = 1.0);
 }
 
-#endif // vidtk_warp_and_average
+#endif // super3d_warp_and_average
