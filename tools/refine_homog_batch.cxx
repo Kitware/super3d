@@ -1,29 +1,31 @@
-/*
- * Copyright 2013 Kitware, Inc.
+/*ckwg +29
+ * Copyright 2013 by Kitware, Inc.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of this project nor the names of its contributors
- *       may be used to endorse or promote products derived from this software
- *       without specific prior written permission.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "refine_homog.h"
@@ -48,8 +50,8 @@
 #include <vcl_utility.h>
 #include <vcl_iomanip.h>
 
-#include <video_transforms/warp_image.h>
-#include <tracking/refine_homography.h>
+#include <super3d/image/warp_image.h>
+#include <super3d/image/refine_homography.h>
 
 
 
@@ -151,20 +153,20 @@ int main(int argc, char* argv[])
     vil_image_view<double> moving = vil_convert_cast<>(double(), image_sptr);
 
     vnl_double_3x3 H = Hs[i];
-    vidtk::refine_homography(ref, moving, H, 10, 100, 15);
+    super3d::refine_homography(ref, moving, H, 10, 100, 15);
 
     vil_image_view<vxl_byte> out;
 
     vil_image_view<double> warped(ref.ni(), ref.nj());
     vnl_double_3x3 Hinv = vnl_inverse<double>(H);
-    vidtk::warp_image(moving, warped, Hinv);
+    super3d::warp_image(moving, warped, Hinv);
     sprintf(buf, "refined/img%03d.png", i);
     vil_convert_cast(warped, out);
     vil_save(out, buf);
 
     vil_image_view<double> original_warped(ref.ni(), ref.nj());
     vnl_double_3x3 original_Hinv = vnl_inverse<double>(Hs[i]);
-    vidtk::warp_image(moving, original_warped, original_Hinv);
+    super3d::warp_image(moving, original_warped, original_Hinv);
     sprintf(buf, "klt/img%03d.png", i);
     vil_convert_cast(original_warped, out);
     vil_save(out, buf);

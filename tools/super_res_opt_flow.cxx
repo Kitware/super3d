@@ -1,29 +1,31 @@
-/*
- * Copyright 2013 Kitware, Inc.
+/*ckwg +29
+ * Copyright 2013 by Kitware, Inc.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of this project nor the names of its contributors
- *       may be used to endorse or promote products derived from this software
- *       without specific prior written permission.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <super3d/depth/super_config.h>
@@ -33,9 +35,9 @@
 #include <super3d/depth/flow_manip.h>
 #include <super3d/depth/depth_map.h>
 
-#include <video_transforms/adjoint_flow_warp.h>
-#include <video_transforms/adjoint_resample.h>
-#include <video_transforms/adjoint_dbw.h>
+#include <super3d/image/adjoint_flow_warp.h>
+#include <super3d/image/adjoint_resample.h>
+#include <super3d/image/adjoint_dbw.h>
 
 #include <vcl_iostream.h>
 #include <boost/bind.hpp>
@@ -54,9 +56,9 @@
 #include <vgl/vgl_homg_point_2d.h>
 #include <vgl/vgl_intersection.h>
 
-#include <video_transforms/warp_image.h>
-#include <video_transforms/warp_and_average.h>
-#include <tracking/refine_homography.h>
+#include <super3d/image/warp_image.h>
+#include <super3d/image/warp_and_average.h>
+#include <super3d/image/refine_homography.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -67,7 +69,7 @@
 void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_image_view<double> > &flows);
 void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
                              const vcl_vector<vil_image_view<double> > &frames,
-                             vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                             vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
                              int scale_factor,
                              bool down_sample_averaging,
                              bool bicubic_warping,
@@ -174,7 +176,7 @@ int main(int argc, char* argv[])
 
     ref_image.deep_copy(frames[ref_frame]);
 
-    vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
+    vcl_vector<super3d::adjoint_image_ops_func<double> > warps;
     vcl_vector<vil_image_view<double> > flows;
 
     if (cfg->is_set("flow_file"))
@@ -214,11 +216,11 @@ int main(int argc, char* argv[])
         //refine_homogs(homogs, frames, ref_frame, i0, ni, j0, nj, 100);
       }
 
-      vidtk::warp_image_parameters wip;
+      super3d::warp_image_parameters wip;
       wip.set_fill_unmapped(true);
       wip.set_unmapped_value(-1.0);
-      wip.set_interpolator(vidtk::warp_image_parameters::CUBIC);
-      vidtk::warp_and_average<double>(frames, waa, homogs, ref_frame, i0, j0, ni, nj, wip, scale_factor);
+      wip.set_interpolator(super3d::warp_image_parameters::CUBIC);
+      super3d::warp_and_average<double>(frames, waa, homogs, ref_frame, i0, j0, ni, nj, wip, scale_factor);
       vil_image_view<unsigned short> out;
       vil_convert_stretch_range_limited(waa, out, 0.0, 1.0, 0, 65535);
       vil_save(out, "mfavg.png");
@@ -312,7 +314,7 @@ int main(int argc, char* argv[])
     }
 
     vil_image_view<double> upsamp;
-    super3d::upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::CUBIC);
+    super3d::upsample(ref_image, upsamp, scale_factor, super3d::warp_image_parameters::CUBIC);
     vil_image_view<unsigned short> output;
     vil_convert_stretch_range_limited(upsamp, output, 0.0, 1.0, 0, 65535);
     vil_save(output, "bicub.png");
@@ -371,7 +373,7 @@ void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
 
 void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
                              const vcl_vector<vil_image_view<double> > &frames,
-                             vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                             vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
                              int scale_factor,
                              bool down_sample_averaging,
                              bool bicubic_warping,
@@ -383,7 +385,7 @@ void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
   warps.reserve(flows.size());
   for (unsigned int i = 0; i < flows.size(); ++i)
   {
-    warps.push_back(vidtk::create_dbw_from_flow(flows[i],
+    warps.push_back(super3d::create_dbw_from_flow(flows[i],
                                          frames[i].ni(),
                                          frames[i].nj(),
                                          frames[i].nplanes(),
@@ -488,7 +490,7 @@ void refine_homogs(vcl_vector<vgl_h_matrix_2d<double> > &homogs,
 
     vnl_double_3x3 H = ref_H_inv * homogs[i].get_matrix();
     H = T * H;
-    vidtk::refine_homography(refimg, img, H, 4, 50, 5);
+    super3d::refine_homography(refimg, img, H, 4, 50, 5);
     H = ref_H * Tinv * H;
     homogs[i].set(H);
   }
@@ -553,10 +555,10 @@ void write_warped_frames(const vcl_vector<vil_image_view<double> > &frames,
   T(0,2) = i0;
   T(1,2) = j0;
 
-  vidtk::warp_image_parameters wip;
+  super3d::warp_image_parameters wip;
   wip.set_fill_unmapped(true);
   wip.set_unmapped_value(-1.0);
-  wip.set_interpolator(vidtk::warp_image_parameters::LINEAR);
+  wip.set_interpolator(super3d::warp_image_parameters::LINEAR);
 
   const vnl_double_3x3 M = homogs[ref_frame].get_matrix() * T;
 
@@ -565,7 +567,7 @@ void write_warped_frames(const vcl_vector<vil_image_view<double> > &frames,
   {
     vgl_h_matrix_2d<double> H = homogs[i].get_inverse().get_matrix() * M;
     vil_image_view<double> warped(ni, nj, frames[i].nplanes());
-    vidtk::warp_image(frames[i], warped, H, wip);
+    super3d::warp_image(frames[i], warped, H, wip);
 
     double min, max;
     vil_math_value_range(warped, min, max);
@@ -664,11 +666,11 @@ void create_low_res(vcl_vector<vil_image_view<double> > &frames,
     vil_gauss_filter_2d(frames[i], temp, sensor_sigma, 3.0*sensor_sigma);
     if( down_sample_averaging )
     {
-      vidtk::down_scale(temp, frames[i], scale);
+      super3d::down_scale(temp, frames[i], scale);
     }
     else
     {
-      vidtk::down_sample(temp, frames[i], scale);
+      super3d::down_sample(temp, frames[i], scale);
     }
   }
 }

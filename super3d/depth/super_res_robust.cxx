@@ -1,11 +1,35 @@
-/*ckwg +5
- * Copyright 2014 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
+/*ckwg +29
+ * Copyright 2014 by Kitware, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <stdio.h>
-#include <video_transforms/adjoint_image_derivs.h>
+#include <super3d/image/adjoint_image_derivs.h>
 
 #include <vil/algo/vil_gauss_filter.h>
 #include <vil/vil_save.h>
@@ -16,7 +40,7 @@
 #include <vil/algo/vil_greyscale_erode.h>
 #include <vil/algo/vil_median.h>
 #include <vil/vil_resample_bicub.txx>
-#include <video_transforms/warp_image.h>
+#include <super3d/image/warp_image.h>
 
 #include "super_res.h"
 #include "super_config.h"
@@ -42,7 +66,7 @@ void dual_step_grad_prior(const vil_image_view<double> &primal,
                           int cost_function=super_res_params::HUBER_NORM)
 {
   vil_image_view<double> work;
-  vidtk::forward_gradient(primal, work);
+  super3d::forward_gradient(primal, work);
 
   double denom=1.0;
   switch( cost_function )
@@ -119,7 +143,7 @@ void dual_step_qa(
   const vcl_vector<vil_image_view<double> > &frames,
   vcl_vector<vil_image_view<double> > &qa,
   const vcl_vector< vil_image_view<double> > &As,
-  const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+  const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
   const vcl_vector<vil_image_view<double> > &weights,
   const super3d::super_res_params &srp)
 {
@@ -208,7 +232,7 @@ void dual_step_qg(
   const vil_image_view<double> &u,
   const vcl_vector<vil_image_view<double> > &gradient_frames,
   vcl_vector<vil_image_view<double> > &qg,
-  const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+  const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
   const vcl_vector<vil_image_view<double> > &weights,
   const super3d::super_res_params &srp)
 {
@@ -234,7 +258,7 @@ void dual_step_qg(
     vil_image_view<double> l_u;
     warps[f].apply_A(u, l_u);
     vil_image_view<double> gradient_lu;
-    vidtk::forward_gradient(l_u, gradient_lu);
+    super3d::forward_gradient(l_u, gradient_lu);
 
     for (unsigned int j = 0; j < nj; j++)
     {
@@ -272,7 +296,7 @@ void primal_step_A(
   const vcl_vector<vil_image_view<double> > &qa,
   const vcl_vector< vil_image_view<double> >& pl,
   vcl_vector<vil_image_view<double> > &As,
-  const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+  const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
   const vcl_vector<vil_image_view<double> > &weights,
   const super_res_params &srp)
 {
@@ -296,14 +320,14 @@ void primal_step_A(
     // vil_math_image_product( super_qa, frames[i], super_qay );
 
     vil_image_view<double> work;
-    vidtk::backward_divergence(pl[i2], work);
+    super3d::backward_divergence(pl[i2], work);
     vil_math_add_image_fraction(work, scale, super_qa, scale * sf_2);
     vil_image_view<double>& A0 = As[i2];
     vil_math_image_sum(A0, work, A0);
     // TODO: the following lines are for intensity scaling
     // vil_math_image_sum(A0, work, work);
     // vil_math_add_image_fraction( A0, -1.0, work, 2.0);
-    // vidtk::backward_divergence(pl[i*2+1], work);
+    // super3d::backward_divergence(pl[i*2+1], work);
     // vil_math_add_image_fraction(work, scale, super_qay, scale * sf_2);
     // vil_image_view<double>& A1 = As[2*i+1];
     // vil_math_image_sum(A1, work, work);
@@ -317,7 +341,7 @@ void primal_step_Y(
   const vcl_vector<vil_image_view<double> > &qa,
   const vcl_vector<vil_image_view<double> > &qg,
   const vil_image_view<double> &pr,
-  const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+  const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
   const vcl_vector<vil_image_view<double> > &weights,
   const super3d::super_res_params &srp)
 {
@@ -356,7 +380,7 @@ void primal_step_Y(
     for (unsigned int i = 0; i < qg.size(); i++)
     {
       vil_image_view<double> div;
-      vidtk::backward_divergence(qg[i], div);
+      super3d::backward_divergence(qg[i], div);
 
       vil_image_view<double> weighted_qg_div;
       vil_math_image_product( div, weights[i], weighted_qg_div );
@@ -369,7 +393,7 @@ void primal_step_Y(
   }
 
   vil_image_view<double> work;
-  vidtk::backward_divergence(pr, work);
+  super3d::backward_divergence(pr, work);
   vil_math_add_image_fraction(work, srp.tau, sum_super_qa, -srp.tau * sf_2);
 
   vil_math_image_sum(u, work, u);
@@ -382,7 +406,7 @@ void primal_step_Y(
 
 void super_resolve_robust(
   const vcl_vector<vil_image_view<double> > &frames,
-  const vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+  const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
   vil_image_view<double> &Y,
   super_res_params srp,
   unsigned int iterations,
@@ -531,7 +555,7 @@ void super_resolve_robust(
 
       if( i == srp.ref_frame )
       {
-        super3d::upsample( frame_median, Yref_median, srp.scale_factor, vidtk::warp_image_parameters::CUBIC );
+        super3d::upsample( frame_median, Yref_median, srp.scale_factor, super3d::warp_image_parameters::CUBIC );
       }
 
       if( srp.debug )
@@ -559,7 +583,7 @@ void super_resolve_robust(
 
       if( i == srp.ref_frame )
       {
-        super3d::upsample( frame_median, Y_baseline, srp.scale_factor, vidtk::warp_image_parameters::CUBIC );
+        super3d::upsample( frame_median, Y_baseline, srp.scale_factor, super3d::warp_image_parameters::CUBIC );
       }
 
       vil_math_image_difference( frames[i], frame_median, frame_median );
@@ -602,7 +626,7 @@ void super_resolve_robust(
     for( unsigned int i=0; i<frames.size(); i++ )
     {
       vil_image_view<double> work;
-      vidtk::forward_gradient(frames[i], work);
+      super3d::forward_gradient(frames[i], work);
       frames_gradient.push_back( work );
     }
   }

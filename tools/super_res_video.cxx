@@ -1,29 +1,31 @@
-/*
- * Copyright 2012 Kitware, Inc.
+/*ckwg +29
+ * Copyright 2012 by Kitware, Inc.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of this project nor the names of its contributors
- *       may be used to endorse or promote products derived from this software
- *       without specific prior written permission.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <super3d/depth/super_config.h>
@@ -35,8 +37,8 @@
 #include <super3d/depth/normal_map.h>
 #include <super3d/depth/weighted_dbw.h>
 
-#include <video_transforms/adjoint_flow_warp.h>
-#include <video_transforms/adjoint_resample.h>
+#include <super3d/image/adjoint_flow_warp.h>
+#include <super3d/image/adjoint_resample.h>
 
 #include <vcl_iostream.h>
 #include <boost/bind.hpp>
@@ -65,7 +67,7 @@ void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
 void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
                              const vcl_vector<vil_image_view<double> > &weights,
                              const vcl_vector<vil_image_view<double> > &frames,
-                             vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                             vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
                              int scale_factor,
                              super3d::config *cfg);
 
@@ -145,7 +147,7 @@ int main(int argc, char* argv[])
     int ni, nj;
 
     vcl_vector<vil_image_view<double> > weights;
-    vcl_vector<vidtk::adjoint_image_ops_func<double> > warps;
+    vcl_vector<super3d::adjoint_image_ops_func<double> > warps;
 
     const double normalizer = 1.0/255.0;
 
@@ -354,7 +356,7 @@ int main(int argc, char* argv[])
     else
     {
       vil_image_view<double> upsamp;
-      super3d::upsample(ref_image, upsamp, scale_factor, vidtk::warp_image_parameters::CUBIC);
+      super3d::upsample(ref_image, upsamp, scale_factor, super3d::warp_image_parameters::CUBIC);
 
       vil_image_view<vxl_byte> output;
       vil_convert_stretch_range_limited(upsamp, output, 0.0, 1.0);
@@ -418,7 +420,7 @@ void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
 void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
                              const vcl_vector<vil_image_view<double> > &frames,
                              const vcl_vector<vil_image_view<double> > &weights,
-                             vcl_vector<vidtk::adjoint_image_ops_func<double> > &warps,
+                             vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
                              int scale_factor,
                              super3d::config *cfg)
 {
@@ -459,11 +461,11 @@ void difference_from_flow(const vil_image_view<double> &I0,
   vil_image_view<double> temp;
   if( bicubic_warping )
   {
-    vidtk::warp_back_with_flow_bicub(I1_x, flow, temp);
+    super3d::warp_back_with_flow_bicub(I1_x, flow, temp);
   }
   else
   {
-    vidtk::warp_back_with_flow_bilin(I1_x, flow, temp);
+    super3d::warp_back_with_flow_bilin(I1_x, flow, temp);
   }
   vil_math_image_difference(temp, I0_x, diff);
 }
@@ -482,11 +484,11 @@ void create_low_res(vcl_vector<vil_image_view<double> > &frames,
     vil_gauss_filter_2d(frames[i], temp, sensor_sigma, 3.0*sensor_sigma);
     if( down_sample_averaging )
     {
-      vidtk::down_scale(temp, frames[i], scale);
+      super3d::down_scale(temp, frames[i], scale);
     }
     else
     {
-      vidtk::down_sample(temp, frames[i], scale);
+      super3d::down_sample(temp, frames[i], scale);
     }
   }
 }

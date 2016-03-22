@@ -1,29 +1,31 @@
-/*
- * Copyright 2012 Kitware, Inc.
+/*ckwg +29
+ * Copyright 2012 by Kitware, Inc.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of this project nor the names of its contributors
- *       may be used to endorse or promote products derived from this software
- *       without specific prior written permission.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "tv_refine.h"
@@ -32,7 +34,7 @@
 #include <super3d/depth/depth_map.h>
 #include <super3d/depth/multiscale.h>
 
-#include <video_transforms/gaussian_pyramid_builder.h>
+#include <super3d/image/gaussian_pyramid_builder.h>
 
 // VXL includes
 #include <vil/vil_image_view.h>
@@ -62,7 +64,7 @@ void compute_plane_parallax(const vpgl_proj_camera<double>& src_camera,
                             vnl_vector_fixed<double,3>& e);
 void compute_gaussian_pyramid(vil_image_view<double> &frame,
                               vcl_pair<double, double> *exposure,
-                              const vidtk::gaussian_pyramid_builder &gpb,
+                              const super3d::gaussian_pyramid_builder &gpb,
                               vcl_vector<vil_image_view<double> > &pyramid);
 
 
@@ -139,7 +141,7 @@ int main(int argc, char* argv[])
 
   vcl_cout << "Making image pyramids"<<vcl_endl;
   unsigned levels = 4;
-  vidtk::gaussian_pyramid_builder gpb(levels+1, 2, 1.0);
+  super3d::gaussian_pyramid_builder gpb(levels+1, 2, 1.0);
 
   vcl_vector<vil_image_view<double> > pyr_ref;
   compute_gaussian_pyramid(frames[ref_frame], exposure_file.set() ? &exposures[ref_frame] : NULL, gpb, pyr_ref);
@@ -223,7 +225,7 @@ int main(int argc, char* argv[])
 
 void compute_gaussian_pyramid(vil_image_view<double> &frame,
                               vcl_pair<double, double> *exposure,
-                              const vidtk::gaussian_pyramid_builder &gpb,
+                              const super3d::gaussian_pyramid_builder &gpb,
                               vcl_vector<vil_image_view<double> > &pyramid)
 {
   // scale and offset used to map the range [0,255] to [-1,1]

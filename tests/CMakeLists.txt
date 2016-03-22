@@ -22,6 +22,7 @@ include_directories("${Super3D_BINARY_DIR}")
 # diving into module test directories
 add_subdirectory(imesh)
 add_subdirectory(imesh_algo)
+add_subdirectory(image)
 add_subdirectory(depth)
 
 #super3d_build_test(normal_map libraries test_normal_map.cxx)
