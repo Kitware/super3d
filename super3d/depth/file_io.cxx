@@ -40,6 +40,7 @@
 #include <vil/vil_image_view.h>
 #include <vil/vil_convert.h>
 #include <vnl/vnl_double_3.h>
+#include <vnl/vnl_double_2.h>
 
 #include "multiscale.h"
 
@@ -303,6 +304,51 @@ void load_from_frame_file(const char *framefile,
   framestream.close();
 }
 
+/// Loads images from a list of frames paths
+/// \param filenames vector of frame files to be read
+/// \param framelist vector of indices of the read frames
+void load_frames(const std::vector<std::string> &filenames,
+				 std::vector<vil_image_view<double> > &frames,
+				 bool color,
+				 bool rgb12)
+{
+	for (unsigned int i = 0; i < filenames.size(); i++)
+	{
+    std::cout << "Reading frame: " << filenames[i] << "\n";
+		vil_image_resource_sptr img_rsc = vil_load_image_resource(filenames[i].c_str());
+		if (img_rsc != NULL)
+		{
+			vil_image_view<double> flt;
+			if (rgb12)
+			{
+				vil_image_view<unsigned short> img = img_rsc->get_view();
+				vil_convert_cast(img, flt);
+				vil_math_scale_values(flt, 255.0 / 4095.0);
+
+				if (img.nplanes() == 3 && !color)
+				{
+					vil_image_view<double> grey;
+					vil_convert_planes_to_grey(flt, grey);
+					flt = grey;
+				}
+			}
+			else
+			{
+				vil_image_view<vxl_byte> img = img_rsc->get_view();
+				if (img.nplanes() == 3 && !color)
+					vil_convert_planes_to_grey(img, flt);
+				else
+					vil_convert_cast(img, flt);
+			}
+
+			vil_math_scale_and_offset_values(flt, 1.0 / 255.0, 0.0);
+			frames.push_back(flt);
+		}
+		else
+			std::cout << filenames[i] << " NOT FOUND.\n";
+	}
+}
+
 /// Load camera from a file per camera
 vpgl_perspective_camera<double>
 load_cam(const std::string& filename)
@@ -365,5 +411,115 @@ bool read_flow_file(vil_image_view<double> &flowimg, const char* filename)
   fclose(stream);
   return true;
 }
+
+void read_landmark_file(const std::string &filename, std::vector<vnl_double_3> &landmarks)
+{
+  std::ifstream infile(filename.c_str());
+  std::string x;
+  unsigned int numverts;
+  do
+  {
+    infile >> x;
+    if (x == "element")
+    {
+      infile >> x;
+      if (x == "vertex")
+      {
+        infile >> numverts;
+      }
+    }
+  } while (x != std::string("end_header"));
+
+  for (unsigned int i = 0; i < numverts; i++)
+  {
+    vnl_double_3 pt;
+    unsigned int id;
+    infile >> pt[0] >> pt[1] >> pt[2] >> id;
+    landmarks.push_back(pt);
+  }
+
+  infile.close();
+}
+
+/// Loads nvm file from visual sfm
+void load_nvm(const std::string &filename,
+              const std::vector<std::string> &imagenames,
+              const std::vector<vil_image_view<double> > &frames,
+              std::vector<vpgl_perspective_camera<double> > &cameras,
+              std::vector<vnl_double_3> &landmarks)
+{
+  std::ifstream infile(filename.c_str());
+
+  std::string version;
+  infile >> version;
+
+  assert(version == std::string("NVM_V3"));
+
+  int numcameras;
+  infile >> numcameras;
+
+  std::map<std::string, int> framemap;
+  for (unsigned int i = 0; i < imagenames.size(); i++)
+  {
+    framemap[imagenames[i]] = i;
+  }
+
+  cameras.resize(imagenames.size());
+
+  for (int i = 0; i < numcameras; i++)
+  {
+    std::string imgname;
+    double f;
+    vnl_quaternion<double> q;
+    vgl_vector_3d<double> center;
+    vnl_double_2 d;
+
+    infile >> imgname >> f >> q.r() >> q.x() >> q.y() >> q.z()
+                      >> center.x_ >> center.y_ >> center.z_
+                      >> d[0] >> d[1];
+
+    std::map<std::string, int>::const_iterator itr = framemap.find(imgname);
+    if (itr == framemap.end())
+      continue;
+
+    int index = itr->second;
+
+    vpgl_perspective_camera<double> cam;
+    vgl_rotation_3d<double> R(q);
+    vgl_vector_3d<double> t = -(R * center);
+
+    double ppx = frames[index].ni() / 2.0;
+    double ppy = frames[index].nj() / 2.0;
+
+    vpgl_calibration_matrix<double> cal;
+    cal.set_focal_length(f);
+    cal.set_principal_point(vgl_point_2d<double>(ppx, ppy));
+
+    cam.set_calibration(cal);
+    cam.set_rotation(vgl_rotation_3d<double>(R));
+    cam.set_translation(t);
+
+    cameras[index] = cam;
+  }
+
+  int numpoints;
+  infile >> numpoints;
+  std::string x;
+  std::getline(infile, x);
+  std::cout << x << "\n";
+  for (int i = 0; i < numpoints; i++)
+  {
+    std::getline(infile, x);
+    vnl_double_3 pt;
+    std::istringstream istr(x);
+    istr >> pt[0] >> pt[1] >> pt[2];
+    landmarks.push_back(pt);
+
+  }
+
+  infile.close();
+}
+
+
 
 } // end namespace super3d

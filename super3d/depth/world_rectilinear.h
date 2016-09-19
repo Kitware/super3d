@@ -47,6 +47,10 @@ public:
                     unsigned int pixel_width,
                     unsigned int pixel_height);
 
+  world_rectilinear(const std::string &landmarks_file,
+					unsigned int pixel_width,
+					unsigned int pixel_height);
+
   /// returns the corner points of an image slice at depth slice.
   /// depth slice is a value between 0 and 1 over the depth range
   std::vector<vnl_double_3> get_slice(double depth_slice) const;

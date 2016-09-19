@@ -77,28 +77,32 @@ int main(int argc, char* argv[])
   std::vector<vil_image_view<double> > frames;
   std::vector<vpgl_perspective_camera<double> >  cameras;
   std::vector<std::string> filenames;
+  std::vector<vnl_double_3> landmarks;
 
   std::string frame_file = cfg->get_value<std::string>("frame_list");
   std::string dir("");
   if (cfg->is_set("directory"))
     dir = cfg->get_value<std::string>("directory");
   std::vector<int> frameindex;
+  std::cout << "Using frame file: " << frame_file << " to find images and ";
+  super3d::load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames,
+      cfg->get_value<bool>("use_color"), cfg->get_value<bool>("use_rgb12"));
 
-  if (cfg->is_set("camera_file"))
+  if (cfg->is_set("nvm_file"))
+  {
+    super3d::load_nvm(cfg->get_value<std::string>("nvm_file"), filenames, frames, cameras, landmarks);
+  }
+  else if (cfg->is_set("camera_file"))
   {
     std::string camera_file = cfg->get_value<std::string>("camera_file");
-    std::cout << "Using frame file: " << frame_file << " to find images and " << camera_file  << " to find cameras.\n";
-    super3d::load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames,
-                         cfg->get_value<bool>("use_color"), cfg->get_value<bool>("use_rgb12"));
+    std::cout << camera_file << " to find cameras.\n";
     super3d::load_cams(camera_file.c_str(), frameindex, cameras);
   }
   else if (cfg->is_set("camera_dir"))
   {
     std::string camera_dir = cfg->get_value<std::string>("camera_dir");
-    std::cout << "Using frame file: " << frame_file << " to find images and " << camera_dir  << " to find cameras.\n";
+    std::cout << camera_dir  << " to find cameras.\n";
 
-    super3d::load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames,
-                          cfg->get_value<bool>("use_color"), cfg->get_value<bool>("use_rgb12"));
     for (unsigned int i = 0; i < filenames.size(); i++)
     {
       std::string camname = filenames[i];
@@ -179,7 +183,12 @@ int main(int argc, char* argv[])
     if (cfg->is_set("landmarks_path"))
     {
       std::cout << "Computing depth range from " << cfg->get_value<std::string>("landmarks_path") << "\n";
-      super3d::compute_depth_range(cameras[ref_frame], 0, ni, 0, nj, cfg->get_value<std::string>("landmarks_path"), depth_min, depth_max);
+      super3d::read_landmark_file(cfg->get_value<std::string>("landmarks_path"), landmarks);
+    }
+
+    if (cfg->get_value<bool>("use_landmarks_depth_range"))
+    {
+      super3d::compute_depth_range(cameras[ref_frame], 0, ni, 0, nj, landmarks, depth_min, depth_max);
       std::cout << "Max estimated depth: " << depth_max << "\n";
       std::cout << "Min estimated depth: " << depth_min << "\n";
     }

@@ -112,9 +112,31 @@ void load_from_frame_file(const char *framefile,
                           bool color = false,
                           bool rgb12 = false);
 
+/// Loads images from a list of frames paths
+/// \param filenames vector of frame files to be read
+/// \param framelist vector of indices of the read frames
+SUPER3D_DEPTH_EXPORT
+void load_frames(const std::vector<std::string> &filenames,
+				 std::vector<vil_image_view<double> > &frames,
+				 bool color,
+				 bool rgb12);
+
 /// read a flow file into 2-band image
 SUPER3D_DEPTH_EXPORT
 bool read_flow_file(vil_image_view<double> &flowimg, const char* filename);
+
+SUPER3D_DEPTH_EXPORT
+void read_landmark_file(const std::string &filename, std::vector<vnl_double_3> &landmarks);
+
+/// Loads nvm file from visual sfm
+SUPER3D_DEPTH_EXPORT
+void load_nvm(const std::string &filename,
+              const std::vector<std::string> &imagenames,
+              const std::vector<vil_image_view<double> > &frames,
+              std::vector<vpgl_perspective_camera<double> > &cameras,
+              std::vector<vnl_double_3> &landmarks);
+
+
 
 }  // end namespace super3d
 
