@@ -308,45 +308,45 @@ void load_from_frame_file(const char *framefile,
 /// \param filenames vector of frame files to be read
 /// \param framelist vector of indices of the read frames
 void load_frames(const std::vector<std::string> &filenames,
-				 std::vector<vil_image_view<double> > &frames,
-				 bool color,
-				 bool rgb12)
+         std::vector<vil_image_view<double> > &frames,
+         bool color,
+         bool rgb12)
 {
-	for (unsigned int i = 0; i < filenames.size(); i++)
-	{
+  for (unsigned int i = 0; i < filenames.size(); i++)
+  {
     std::cout << "Reading frame: " << filenames[i] << "\n";
-		vil_image_resource_sptr img_rsc = vil_load_image_resource(filenames[i].c_str());
-		if (img_rsc != NULL)
-		{
-			vil_image_view<double> flt;
-			if (rgb12)
-			{
-				vil_image_view<unsigned short> img = img_rsc->get_view();
-				vil_convert_cast(img, flt);
-				vil_math_scale_values(flt, 255.0 / 4095.0);
+    vil_image_resource_sptr img_rsc = vil_load_image_resource(filenames[i].c_str());
+    if (img_rsc != NULL)
+    {
+      vil_image_view<double> flt;
+      if (rgb12)
+      {
+        vil_image_view<unsigned short> img = img_rsc->get_view();
+        vil_convert_cast(img, flt);
+        vil_math_scale_values(flt, 255.0 / 4095.0);
 
-				if (img.nplanes() == 3 && !color)
-				{
-					vil_image_view<double> grey;
-					vil_convert_planes_to_grey(flt, grey);
-					flt = grey;
-				}
-			}
-			else
-			{
-				vil_image_view<vxl_byte> img = img_rsc->get_view();
-				if (img.nplanes() == 3 && !color)
-					vil_convert_planes_to_grey(img, flt);
-				else
-					vil_convert_cast(img, flt);
-			}
+        if (img.nplanes() == 3 && !color)
+        {
+          vil_image_view<double> grey;
+          vil_convert_planes_to_grey(flt, grey);
+          flt = grey;
+        }
+      }
+      else
+      {
+        vil_image_view<vxl_byte> img = img_rsc->get_view();
+        if (img.nplanes() == 3 && !color)
+          vil_convert_planes_to_grey(img, flt);
+        else
+          vil_convert_cast(img, flt);
+      }
 
-			vil_math_scale_and_offset_values(flt, 1.0 / 255.0, 0.0);
-			frames.push_back(flt);
-		}
-		else
-			std::cout << filenames[i] << " NOT FOUND.\n";
-	}
+      vil_math_scale_and_offset_values(flt, 1.0 / 255.0, 0.0);
+      frames.push_back(flt);
+    }
+    else
+      std::cout << filenames[i] << " NOT FOUND.\n";
+  }
 }
 
 /// Load camera from a file per camera

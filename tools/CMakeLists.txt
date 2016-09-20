@@ -26,7 +26,6 @@ super3d_add_executable(video_depth video_depth.cxx)
 target_link_libraries(video_depth
   super3d_depth super3d_image imesh_algo
   vil vpgl vnl vul vil_algo
-  ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY}
   )
 
 #

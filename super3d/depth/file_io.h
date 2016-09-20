@@ -117,9 +117,9 @@ void load_from_frame_file(const char *framefile,
 /// \param framelist vector of indices of the read frames
 SUPER3D_DEPTH_EXPORT
 void load_frames(const std::vector<std::string> &filenames,
-				 std::vector<vil_image_view<double> > &frames,
-				 bool color,
-				 bool rgb12);
+         std::vector<vil_image_view<double> > &frames,
+         bool color,
+         bool rgb12);
 
 /// read a flow file into 2-band image
 SUPER3D_DEPTH_EXPORT
