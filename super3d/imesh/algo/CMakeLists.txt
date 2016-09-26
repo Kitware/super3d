@@ -10,9 +10,9 @@ set(imesh_algo_headers
     imesh_pca.h
     imesh_project.h
     imesh_detect.h
-    imesh_kd_tree.h      imesh_kd_tree.txx
+    imesh_kd_tree.h      imesh_kd_tree.hxx
     imesh_render.h
-    imesh_imls_surface.h imesh_imls_surface.txx
+    imesh_imls_surface.h imesh_imls_surface.hxx
    )
 
 set(imesh_algo_sources

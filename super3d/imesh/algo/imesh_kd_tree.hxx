@@ -1,6 +1,6 @@
-// This is brl/bbas/imesh/algo/imesh_kd_tree.txx
-#ifndef imesh_kd_tree_txx_
-#define imesh_kd_tree_txx_
+// This is brl/bbas/imesh/algo/imesh_kd_tree.hxx
+#ifndef imesh_kd_tree_hxx_
+#define imesh_kd_tree_hxx_
 //:
 // \file
 // \brief A KD-Tree template code
@@ -128,4 +128,4 @@ imesh_closest_index(const vgl_point_3d<double>& query,
 }
 
 
-#endif // imesh_kd_tree_txx_
+#endif // imesh_kd_tree_hxx_

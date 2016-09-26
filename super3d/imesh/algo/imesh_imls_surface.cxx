@@ -6,7 +6,7 @@
 
 #include "../imesh_operations.h"
 #include "imesh_intersect.h"
-#include "imesh_kd_tree.txx"
+#include "imesh_kd_tree.hxx"
 
 #include <cmath>
 #include <limits>
@@ -981,6 +981,6 @@ bool snap_to_surface(const imesh_imls_surface& f,
 }
 
 // Explicit instantiation needed in the implementations in this file:
-#include "imesh_imls_surface.txx"
+#include "imesh_imls_surface.hxx"
 IMESH_IMLS_SURFACE_INSTANTATE(vgl_vector_2d<double>,vgl_point_3d<double>);
 IMESH_IMLS_SURFACE_INSTANTATE(imesh_imls_surface::integral_data,vgl_point_3d<double>);

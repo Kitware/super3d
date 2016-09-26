@@ -3,7 +3,7 @@
 // \file
 
 #include "imesh_kd_tree.h"
-#include "imesh_kd_tree.txx"
+#include "imesh_kd_tree.hxx"
 
 #include "imesh_intersect.h"
 
