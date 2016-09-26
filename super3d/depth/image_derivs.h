@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 
 #include <vil/vil_image_view.h>
 #include <vil/vil_math.h>
-#include <vcl_cstdlib.h>
+#include <cstdlib>
 
 
 namespace super3d

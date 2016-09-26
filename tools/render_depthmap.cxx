@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
     imesh_project_depth(mesh,
                         camera,
                         depth_map);
-    vcl_string name = vul_sprintf(output_pattern().c_str(), citr->first);
+    std::string name = vul_sprintf(output_pattern().c_str(), citr->first);
     if (byte_images())
     {
       double min_d, max_d;

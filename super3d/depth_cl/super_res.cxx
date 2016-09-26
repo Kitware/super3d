@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,8 +82,8 @@ void convert_flow(const vil_image_view<float> &pflow, cl_float2 *iflow)
 }
 
 
-void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frames,
-                              const vcl_vector<vil_image_view<float> > &flows,
+void super_res_cl::super_resolve(const std::vector<vil_image_view<float> > &frames,
+                              const std::vector<vil_image_view<float> > &flows,
                               vil_image_view<float> &u,
                               params &srp,
                               unsigned int iterations)
@@ -91,8 +91,8 @@ void super_res_cl::super_resolve(const vcl_vector<vil_image_view<float> > &frame
   try {
   unsigned int num_frames = frames.size();
   viscl::buffer cl_u = viscl::manager::inst()->create_buffer<float>(CL_MEM_READ_WRITE, srp.sdim.s[0] * srp.sdim.s[1]);
-  vcl_vector<viscl::buffer> cl_frames(num_frames), cl_flows(num_frames), q(num_frames), temp1(num_frames), temp2(num_frames);
-  vcl_vector<cl_int2> flow_sizes(num_frames), frame_sizes(num_frames);
+  std::vector<viscl::buffer> cl_frames(num_frames), cl_flows(num_frames), q(num_frames), temp1(num_frames), temp2(num_frames);
+  std::vector<cl_int2> flow_sizes(num_frames), frame_sizes(num_frames);
 
   srp.sf_2 = 1.0f / (srp.scale_factor * srp.scale_factor);
   srp.dual_q_denom = 1.0f + (srp.sigma * srp.epsilon_data) / srp.sf_2;

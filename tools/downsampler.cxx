@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vcl_iostream.h>
-#include <vcl_vector.h>
+#include <iostream>
+#include <vector>
 
 #include <vul/vul_arg.h>
 #include <vil/algo/vil_gauss_filter.h>
@@ -44,16 +44,16 @@
 
 int main(int argc, char *argv[])
 {
-  vul_arg<vcl_string> directory( 0, "input directory prefix", "" );
-  vul_arg<vcl_string> framefile( 0, "frame file", "" );
-  vul_arg<vcl_string> output_dir(0, "output directory prefix", "");
+  vul_arg<std::string> directory( 0, "input directory prefix", "" );
+  vul_arg<std::string> framefile( 0, "frame file", "" );
+  vul_arg<std::string> output_dir(0, "output directory prefix", "");
   vul_arg<int> downsampling( "-d", "downsample factor", 2);
 
   vul_arg_parse( argc, argv );
 
-  vcl_vector<vil_image_view<double> > frames;
-  vcl_vector<vcl_string> filenames;
-  vcl_vector<int> framelist;
+  std::vector<vil_image_view<double> > frames;
+  std::vector<std::string> filenames;
+  std::vector<int> framelist;
   super3d::load_from_frame_file(framefile().c_str(), directory(), filenames, framelist, frames);
 
   double scale_factor = downsampling();
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     vil_image_view<double> temp;
     vil_gauss_filter_2d(frames[i], temp, sensor_sigma, 3.0*sensor_sigma);
     super3d::down_sample(temp, frames[i], downsampling());
-    vcl_string output_filename = output_dir() + filenames[i];
+    std::string output_filename = output_dir() + filenames[i];
     vil_image_view<vxl_byte> output_image;
     vil_convert_cast(frames[i], output_image);
     vil_save(output_image, output_filename.c_str());

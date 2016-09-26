@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,8 +55,8 @@
 #include <vil/vil_resample_bilin.h>
 
 // vcl includes
-#include <vcl_iostream.h>
-#include <vcl_string.h>
+#include <iostream>
+#include <string>
 
 
 void compute_plane_parallax(const vpgl_proj_camera<double>& src_camera,
@@ -64,9 +64,9 @@ void compute_plane_parallax(const vpgl_proj_camera<double>& src_camera,
                             vnl_matrix_fixed<double,3,3>& H,
                             vnl_vector_fixed<double,3>& e);
 void compute_gaussian_pyramid(vil_image_view<double> &frame,
-                              vcl_pair<double, double> *exposure,
+                              std::pair<double, double> *exposure,
                               const super3d::gaussian_pyramid_builder &gpb,
-                              vcl_vector<vil_image_view<double> > &pyramid);
+                              std::vector<vil_image_view<double> > &pyramid);
 
 
 int main(int argc, char* argv[])
@@ -75,9 +75,9 @@ int main(int argc, char* argv[])
 
   config::inst()->read_config(argv[1]);
 
-  vcl_vector<vil_image_view<double> > frames;
-  vcl_vector<vpgl_perspective_camera<double> >  cameras;
-  vcl_vector<vcl_string> filenames;
+  std::vector<vil_image_view<double> > frames;
+  std::vector<vpgl_perspective_camera<double> >  cameras;
+  std::vector<std::string> filenames;
 
   if (!load_frames_and_cameras(frames, cameras, filenames))
     return -1;
@@ -99,13 +99,13 @@ int main(int argc, char* argv[])
   //need to recompute cropping input for super resolution.
   if (config::inst()->is_set("crop_window"))
   {
-    vcl_istringstream cwstream(config::inst()->get_value<vcl_string>("crop_window"));
+    std::istringstream cwstream(config::inst()->get_value<std::string>("crop_window"));
     cwstream >> i0 >> ni >> j0 >> nj;
     i0 = (int)(i0*camera_scale);
     j0 = (int)(j0*camera_scale);
     ni = (int)(ni*camera_scale);
     nj = (int)(nj*camera_scale);
-    vcl_cout << "Crop window: " << i0 << " " << ni << " " << j0 << " " << nj << "\n";
+    std::cout << "Crop window: " << i0 << " " << ni << " " << j0 << " " << nj << "\n";
     frames[ref_frame] = vil_crop(frames[ref_frame], i0, ni, j0, nj);
     cameras[ref_frame] = crop_camera(cameras[ref_frame], i0, j0);
   }
@@ -116,16 +116,16 @@ int main(int argc, char* argv[])
     nj = frames[ref_frame].nj();
   }
 
-  vcl_cout << "Making image pyramids"<<vcl_endl;
+  std::cout << "Making image pyramids"<<std::endl;
   unsigned int levels = config::inst()->get_value<unsigned int>("levels");
   super3d::gaussian_pyramid_builder gpb(levels+1, 2, 1.0);
 
-  vcl_vector<vil_image_view<double> > pyr_ref;
+  std::vector<vil_image_view<double> > pyr_ref;
   gpb.build_pyramid(frames[ref_frame], pyr_ref);
 
-  vcl_vector<vcl_vector<vil_image_view<double> > > pyrs(frames.size()-1);
-  vcl_vector<vnl_matrix_fixed<double,3,3> > Hs;
-  vcl_vector<vnl_vector_fixed<double,3> > es;
+  std::vector<std::vector<vil_image_view<double> > > pyrs(frames.size()-1);
+  std::vector<vnl_matrix_fixed<double,3,3> > Hs;
+  std::vector<vnl_vector_fixed<double,3> > es;
   for (unsigned int i = 0, index = 0; i < frames.size(); i++)
   {
     if (i == ref_frame)
@@ -143,19 +143,19 @@ int main(int argc, char* argv[])
   double depth_min = config::inst()->get_value<double>("depth_min");
   double depth_max = config::inst()->get_value<double>("depth_max");
 
-  vcl_cout << "Initializing depth map"<<vcl_endl;
+  std::cout << "Initializing depth map"<<std::endl;
   vil_image_view<double> depth;
 
 
-  vcl_cout << "Refining depth"<<vcl_endl;
+  std::cout << "Refining depth"<<std::endl;
   double theta = 1e-4;
   double lambda = .01;
   for (int s = levels; s > 0; --s)
   {
     double scale = 1.0/(1<<s);
-    vcl_vector<vil_image_view<double> > scaled_I1;
-    vcl_vector<vnl_matrix_fixed<double,3,3> > scaled_H;
-    vcl_vector<vnl_vector_fixed<double,3> > scaled_e;
+    std::vector<vil_image_view<double> > scaled_I1;
+    std::vector<vnl_matrix_fixed<double,3,3> > scaled_H;
+    std::vector<vnl_vector_fixed<double,3> > scaled_e;
     for (unsigned i = 0; i < pyrs.size(); ++i)
     {
       scaled_I1.push_back(pyrs[i][s]);
@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
 
 
   }  catch (const config::cfg_exception &e)  {
-    vcl_cout << "Error in config: " << e.what() << "\n";
+    std::cout << "Error in config: " << e.what() << "\n";
   }
 
 }
@@ -321,9 +321,9 @@ compute_linear_bcc(const vil_image_view<double>& I0,
   vnl_vector_fixed<double,3> hy = H.get_column(1);
   vnl_vector_fixed<double,3> h1 = H.get_column(2);
 
-  vcl_ptrdiff_t istep0=I0.istep(),    jstep0=I0.jstep();
-  vcl_ptrdiff_t istepD=depth.istep(), jstepD=depth.jstep();
-  vcl_ptrdiff_t istepB=bcc.istep(),   jstepB=bcc.jstep(),   pstepB=bcc.planestep();
+  std::ptrdiff_t istep0=I0.istep(),    jstep0=I0.jstep();
+  std::ptrdiff_t istepD=depth.istep(), jstepD=depth.jstep();
+  std::ptrdiff_t istepB=bcc.istep(),   jstepB=bcc.jstep(),   pstepB=bcc.planestep();
 
 
   const double* row0 = I0.top_left_ptr();
@@ -390,8 +390,8 @@ apply_bcc_to_depth_all(const vil_image_view<double>& bcc,
   assert(bcc.nplanes() == 2*num_views);
   assert(depth.nplanes() == 1);
 
-  vcl_ptrdiff_t istepB=bcc.istep(),   jstepB=bcc.jstep(),   pstepB=bcc.planestep();
-  vcl_ptrdiff_t istepD=depth.istep(), jstepD=depth.jstep();
+  std::ptrdiff_t istepB=bcc.istep(),   jstepB=bcc.jstep(),   pstepB=bcc.planestep();
+  std::ptrdiff_t istepD=depth.istep(), jstepD=depth.jstep();
 
   const double*   rowB = bcc.top_left_ptr();
   double*         rowD = depth.top_left_ptr();

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vcl_iostream.h>
-#include <vcl_vector.h>
-#include <vcl_list.h>
+#include <iostream>
+#include <vector>
+#include <list>
 
 #include <vil/vil_image_view.h>
 #include <vil/vil_load.h>
@@ -69,13 +69,13 @@ int main(int argc, char *argv[])
     }
   }
 
-  vcl_list<mode> z;
+  std::list<mode> z;
   vil_image_view<double> filtered(image.ni(), image.nj());
   double h_s = 10, h_r = 5;
-  vcl_cout << "Filtering with h = " << h_s << "\n";
+  std::cout << "Filtering with h = " << h_s << "\n";
   for (unsigned int i = 0; i < image.ni(); i++)
   {
-    //vcl_cout << i << " ";
+    //std::cout << i << " ";
     for (unsigned int j = 0; j < image.nj(); j++)
     {
       vnl_double_3 mean = vnl_double_3(x(i,j,0), x(i,j,1), x(i,j,2)), last;
@@ -84,10 +84,10 @@ int main(int argc, char *argv[])
         last = mean;
         double u = last(0);
         double v = last(1);
-        int mstart = (int)vcl_max(u-h_s, 0.0);
-        int mend = (int)vcl_min((double)image.ni()-1.0, u+h_s);
-        int nstart = (int)vcl_max(v-h_s, 0.0);
-        int nend = (int)vcl_min((double)image.nj()-1.0, v+h_s);
+        int mstart = (int)std::max(u-h_s, 0.0);
+        int mend = (int)std::min((double)image.ni()-1.0, u+h_s);
+        int nstart = (int)std::max(v-h_s, 0.0);
+        int nend = (int)std::min((double)image.nj()-1.0, v+h_s);
 
         int count = 0;
         mean = vnl_double_3(0.0, 0.0, 0.0);
@@ -120,9 +120,9 @@ int main(int argc, char *argv[])
     }
   }
 
-  //vcl_cout << "Clustering\n";
-  //vcl_vector<vcl_vector<mode> > C;
-  //C.push_back(vcl_vector<mode>(1, *z.begin()));
+  //std::cout << "Clustering\n";
+  //std::vector<std::vector<mode> > C;
+  //C.push_back(std::vector<mode>(1, *z.begin()));
   //z.pop_front();
 
   //for (unsigned int i = 0; i < C.size(); i++)
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
   //  for (unsigned int j = 0; j < C[i].size(); j++)
   //  {
   //    const vnl_double_3 &m = C[i][j].z;
-  //    for (vcl_list<mode>::iterator itr = z.begin(); itr != z.end(); )
+  //    for (std::list<mode>::iterator itr = z.begin(); itr != z.end(); )
   //    {
   //      if ((m - itr->z).squared_magnitude() < CTHRESH)
   //      {
@@ -142,10 +142,10 @@ int main(int argc, char *argv[])
   //    }
   //  }
 
-  //   vcl_cout << C.size() << " " << z.size() << "\n";
+  //   std::cout << C.size() << " " << z.size() << "\n";
   //  if (!z.empty())
   //  {
-  //    C.push_back(vcl_vector<mode>(1, *z.begin()));
+  //    C.push_back(std::vector<mode>(1, *z.begin()));
   //    z.pop_front();
   //  }
   //}

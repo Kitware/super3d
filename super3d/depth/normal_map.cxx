@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,10 +58,10 @@ depth_map_to_normal_map(const vpgl_perspective_camera<double>& camera,
 
   vnl_matrix_fixed<double,3,3> M_t = camera.get_matrix().extract(3,3).transpose();
 
-  const vcl_ptrdiff_t istepD=depth_map.istep(),   jstepD=depth_map.jstep();
-  const vcl_ptrdiff_t istepN=normal_map.istep(),  jstepN=normal_map.jstep();
-  const vcl_ptrdiff_t pstepN=normal_map.planestep();
-  const vcl_ptrdiff_t pstep2N=2*pstepN;
+  const std::ptrdiff_t istepD=depth_map.istep(),   jstepD=depth_map.jstep();
+  const std::ptrdiff_t istepN=normal_map.istep(),  jstepN=normal_map.jstep();
+  const std::ptrdiff_t pstepN=normal_map.planestep();
+  const std::ptrdiff_t pstep2N=2*pstepN;
 
   // currently ignores the boundary cases
   const double*   rowD = depth_map.top_left_ptr() + jstepD;
@@ -122,10 +122,10 @@ depth_map_to_normal_map_inv_len(const vpgl_perspective_camera<double>& camera,
   assert(K.x_scale() / K.y_scale() == 1.0);
   vnl_matrix_fixed<double,3,3> M_t = camera.get_matrix().extract(3,3).transpose();
 
-  const vcl_ptrdiff_t istepD=depth_map.istep(),   jstepD=depth_map.jstep();
-  const vcl_ptrdiff_t istepN=normal_map.istep(),  jstepN=normal_map.jstep();
-  const vcl_ptrdiff_t pstepN=normal_map.planestep();
-  const vcl_ptrdiff_t pstep2N=2*pstepN;
+  const std::ptrdiff_t istepD=depth_map.istep(),   jstepD=depth_map.jstep();
+  const std::ptrdiff_t istepN=normal_map.istep(),  jstepN=normal_map.jstep();
+  const std::ptrdiff_t pstepN=normal_map.planestep();
+  const std::ptrdiff_t pstep2N=2*pstepN;
 
   // currently ignores the boundary cases
   const double*   rowD = depth_map.top_left_ptr() + jstepD;
@@ -187,10 +187,10 @@ depth_map_to_location_map(const vpgl_perspective_camera<double>& camera,
   vnl_matrix_fixed<double,3,3> M_inv = vnl_inverse(camera.get_matrix().extract(3,3));
   vnl_double_3 p4 = camera.get_matrix().get_column(3);
 
-  const vcl_ptrdiff_t istepD=depth_map.istep(),    jstepD=depth_map.jstep();
-  const vcl_ptrdiff_t istepL=location_map.istep(), jstepL=location_map.jstep();
-  const vcl_ptrdiff_t pstepL=location_map.planestep();
-  const vcl_ptrdiff_t pstep2L=2*pstepL;
+  const std::ptrdiff_t istepD=depth_map.istep(),    jstepD=depth_map.jstep();
+  const std::ptrdiff_t istepL=location_map.istep(), jstepL=location_map.jstep();
+  const std::ptrdiff_t pstepL=location_map.planestep();
+  const std::ptrdiff_t pstep2L=2*pstepL;
 
   const double*   rowD = depth_map.top_left_ptr();
   double*         rowL = location_map.top_left_ptr();
@@ -227,10 +227,10 @@ location_map_to_normal_map(const vil_image_view<double>& location_map,
   normal_map.set_size(ni,nj,3);
   normal_map.fill(0.0);
 
-  const vcl_ptrdiff_t istepL=location_map.istep(), jstepL=location_map.jstep();
-  const vcl_ptrdiff_t pstepL=location_map.planestep(), pstep2L=2*pstepL;
-  const vcl_ptrdiff_t istepN=normal_map.istep(),  jstepN=normal_map.jstep();
-  const vcl_ptrdiff_t pstepN=normal_map.planestep(), pstep2N=2*pstepN;
+  const std::ptrdiff_t istepL=location_map.istep(), jstepL=location_map.jstep();
+  const std::ptrdiff_t pstepL=location_map.planestep(), pstep2L=2*pstepL;
+  const std::ptrdiff_t istepN=normal_map.istep(),  jstepN=normal_map.jstep();
+  const std::ptrdiff_t pstepN=normal_map.planestep(), pstep2N=2*pstepN;
   typedef vgl_vector_3d<double> vec_t;
   typedef vgl_point_3d<double> pnt_t;
 
@@ -289,13 +289,13 @@ viewing_angle_map(const vgl_homg_point_3d<double>& center,
 
   angle_map.set_size(ni,nj);
 
-  const vcl_ptrdiff_t istepL=location_map.istep(), jstepL=location_map.jstep();
-  const vcl_ptrdiff_t pstepL=location_map.planestep();
-  const vcl_ptrdiff_t pstep2L=2*pstepL;
-  const vcl_ptrdiff_t istepN=normal_map.istep(),  jstepN=normal_map.jstep();
-  const vcl_ptrdiff_t pstepN=normal_map.planestep();
-  const vcl_ptrdiff_t pstep2N=2*pstepN;
-  const vcl_ptrdiff_t istepA=angle_map.istep(), jstepA=angle_map.jstep();
+  const std::ptrdiff_t istepL=location_map.istep(), jstepL=location_map.jstep();
+  const std::ptrdiff_t pstepL=location_map.planestep();
+  const std::ptrdiff_t pstep2L=2*pstepL;
+  const std::ptrdiff_t istepN=normal_map.istep(),  jstepN=normal_map.jstep();
+  const std::ptrdiff_t pstepN=normal_map.planestep();
+  const std::ptrdiff_t pstep2N=2*pstepN;
+  const std::ptrdiff_t istepA=angle_map.istep(), jstepA=angle_map.jstep();
 
   const double*   rowL = location_map.top_left_ptr();
   const double*   rowN = normal_map.top_left_ptr();
@@ -336,13 +336,13 @@ dot_product_map(const vil_image_view<double>& normal_map1,
 
   angle_map.set_size(ni,nj);
 
-  const vcl_ptrdiff_t istepB=normal_map1.istep(), jstepB=normal_map1.jstep();
-  const vcl_ptrdiff_t pstepB=normal_map1.planestep();
-  const vcl_ptrdiff_t pstep2B=2*pstepB;
-  const vcl_ptrdiff_t istepC=normal_map2.istep(),  jstepC=normal_map2.jstep();
-  const vcl_ptrdiff_t pstepC=normal_map2.planestep();
-  const vcl_ptrdiff_t pstep2C=2*pstepC;
-  const vcl_ptrdiff_t istepA=angle_map.istep(), jstepA=angle_map.jstep();
+  const std::ptrdiff_t istepB=normal_map1.istep(), jstepB=normal_map1.jstep();
+  const std::ptrdiff_t pstepB=normal_map1.planestep();
+  const std::ptrdiff_t pstep2B=2*pstepB;
+  const std::ptrdiff_t istepC=normal_map2.istep(),  jstepC=normal_map2.jstep();
+  const std::ptrdiff_t pstepC=normal_map2.planestep();
+  const std::ptrdiff_t pstep2C=2*pstepC;
+  const std::ptrdiff_t istepA=angle_map.istep(), jstepA=angle_map.jstep();
 
   const double*   rowB = normal_map1.top_left_ptr();
   const double*   rowC = normal_map2.top_left_ptr();

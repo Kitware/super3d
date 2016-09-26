@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ namespace super3d
 /// \param frame the image to correct
 /// \param exposure scale and offset for correcting the image
 void apply_exposure_correction(vil_image_view<double> &frame,
-                              const vcl_pair<double, double> &exposure)
+                              const std::pair<double, double> &exposure)
 {
   // scale and offset used to map the range [0,255] to [0,1]
   const static double norm_scale = 1.0/255.0;

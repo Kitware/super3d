@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@
  */
 
 
-#include <vcl_iostream.h>
+#include <iostream>
 #include <testlib/testlib_test.h>
 
 #include <super3d/image/adjoint_image_derivs.h>
@@ -77,7 +77,7 @@ test_image_derivs_norm()
   adjoint_image_ops_func<double> adj(forward, backward, ni, nj, np);
 
   double norm = adj.norm_estimation(1e-6);
-  TEST_NEAR("Gradient norm", norm, vcl_sqrt(8.0), 1e-2);
+  TEST_NEAR("Gradient norm", norm, std::sqrt(8.0), 1e-2);
 }
 
 

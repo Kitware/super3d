@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,8 +68,8 @@ normals_rof(vil_image_view<double> &n,
 SUPER3D_DEPTH_EXPORT
 void huber_normals_rof_preproc(const vil_image_view<double> &bp,
                                const vil_image_view<double> &d,
-                               vcl_vector<vcl_vector<vnl_matrix_fixed<double, 2, 2> > > &AtAinv,
-                               vcl_vector<vcl_vector<vnl_vector_fixed<double, 2> > > &Atb,
+                               std::vector<std::vector<vnl_matrix_fixed<double, 2, 2> > > &AtAinv,
+                               std::vector<std::vector<vnl_vector_fixed<double, 2> > > &Atb,
                                double lambda,
                                double step,
                                int neighborhood,
@@ -80,8 +80,8 @@ SUPER3D_DEPTH_EXPORT
 void
 huber_normals_rof_update(vil_image_view<double> &q,
                          vil_image_view<double> &n,
-                         vcl_vector<vcl_vector<vnl_matrix_fixed<double, 2, 2> > > &AtAinv,
-                         vcl_vector<vcl_vector<vnl_vector_fixed<double, 2> > > &Atb,
+                         std::vector<std::vector<vnl_matrix_fixed<double, 2, 2> > > &AtAinv,
+                         std::vector<std::vector<vnl_vector_fixed<double, 2> > > &Atb,
                          const vil_image_view<double> &g,
                          double lambda,
                          double step,

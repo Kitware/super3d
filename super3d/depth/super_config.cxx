@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,34 +30,34 @@
 
 #include "super_config.h"
 
-#include <vcl_fstream.h>
-#include <vcl_algorithm.h>
+#include <fstream>
+#include <algorithm>
 
 
 namespace super3d
 {
 
 template<class T>
-void config::cfg_type<T>::from_string(vcl_istringstream &stream)
+void config::cfg_type<T>::from_string(std::istringstream &stream)
 {
   stream >> var;
 }
 
 template<>
-void config::cfg_type<vcl_string>::from_string(vcl_istringstream &stream)
+void config::cfg_type<std::string>::from_string(std::istringstream &stream)
 {
   getline(stream, var);
   while (var[0] == ' ') var.erase(var.begin());
 }
 
 template<>
-void config::cfg_type<bool>::from_string(vcl_istringstream &stream)
+void config::cfg_type<bool>::from_string(std::istringstream &stream)
 {
-  vcl_string value;
+  std::string value;
   getline(stream, value);
   while (value[0] == ' ') value.erase(value.begin());
   value.erase(value.find_last_not_of(" \n\r\t")+1);
-  vcl_transform(value.begin(), value.end(), value.begin(), ::tolower);
+  std::transform(value.begin(), value.end(), value.begin(), ::tolower);
   var = true;
   if (value == "false" ||
       value == "no" ||
@@ -68,9 +68,9 @@ void config::cfg_type<bool>::from_string(vcl_istringstream &stream)
 }
 
 template<class T>
-vcl_string config::cfg_type<T>::to_string()
+std::string config::cfg_type<T>::to_string()
 {
-  vcl_stringstream stream;
+  std::stringstream stream;
   stream << var;
   return stream.str();
 }
@@ -87,7 +87,7 @@ config::config()
   typemap["double"] = new cfg_type<double>;
   typemap["uint"] = new cfg_type<unsigned int>;
   typemap["int"] = new cfg_type<int>;
-  typemap["string"] = new cfg_type<vcl_string>;
+  typemap["string"] = new cfg_type<std::string>;
   typemap["bool"] = new cfg_type<bool>;
 }
 
@@ -105,7 +105,7 @@ config::~config()
 }
 
 template<class T>
-T config::get_value(const vcl_string &str) const
+T config::get_value(const std::string &str) const
 {
   maptype::const_iterator itr = varmap.find(str);
   if (itr == varmap.end())
@@ -119,7 +119,7 @@ T config::get_value(const vcl_string &str) const
 }
 
 template<class T>
-bool config::set_if(const vcl_string &str, T &var) const
+bool config::set_if(const std::string &str, T &var) const
 {
   maptype::const_iterator itr = varmap.find(str);
   if (itr == varmap.end())
@@ -133,64 +133,64 @@ bool config::set_if(const vcl_string &str, T &var) const
   return true;
 }
 
-vcl_string int_to_str(int v)
+std::string int_to_str(int v)
 {
-  vcl_stringstream stream;
+  std::stringstream stream;
   stream << v;
   return stream.str();
 }
 
-void config::parse_config(const vcl_string &dir, const vcl_string &filename)
+void config::parse_config(const std::string &dir, const std::string &filename)
 {
-  vcl_string path = dir + filename;
-  vcl_fstream infile(path.c_str());
+  std::string path = dir + filename;
+  std::fstream infile(path.c_str());
   if (!infile)
   {
     throw cfg_exception("Could not open config file: " + path + ".");
   }
 
   int linenum = 0;
-  vcl_string line;
+  std::string line;
 
   while (infile.good())
   {
-    vcl_getline(infile, line);
+    std::getline(infile, line);
     linenum++;
-    vcl_string linenum_s = int_to_str(linenum);
+    std::string linenum_s = int_to_str(linenum);
 
     //remove comments
     size_t loc = line.find_first_of("%");
-    if (loc != vcl_string::npos)
+    if (loc != std::string::npos)
       line.resize(loc);
 
     if (line.empty())
       continue;
 
-    vcl_istringstream stream(line);
-    vcl_string command;
+    std::istringstream stream(line);
+    std::string command;
 
     stream >> command;
-    vcl_transform(command.begin(), command.end(), command.begin(), ::tolower);
+    std::transform(command.begin(), command.end(), command.begin(), ::tolower);
 
-    if (command == vcl_string("exclude"))
+    if (command == std::string("exclude"))
     {
-      vcl_vector<vcl_string> ex;
-      vcl_string x;
+      std::vector<std::string> ex;
+      std::string x;
       while (stream >> x) ex.push_back(x);
       exclusives.push_back(ex);
     }
-    else if (command == vcl_string("include"))
+    else if (command == std::string("include"))
     {
-      vcl_string include_file;
+      std::string include_file;
       stream >> include_file;
       parse_config(dir, include_file);
     }
     else
     {
-      vcl_string type, variable, x;
+      std::string type, variable, x;
       type = command;
-      vcl_getline(stream, x, '=');
-      vcl_istringstream vstream(x);
+      std::getline(stream, x, '=');
+      std::istringstream vstream(x);
       vstream >> variable;
 
       if (!stream.good())
@@ -220,7 +220,7 @@ void config::parse_config(const vcl_string &dir, const vcl_string &filename)
 void config::read_config(const char *file)
 {
   //strip directory
-  vcl_string filename(file), dir;
+  std::string filename(file), dir;
   size_t found = filename.find_last_of("/\\");
   dir = filename.substr(0, found+1);
   filename = filename.substr(found+1);
@@ -230,7 +230,7 @@ void config::read_config(const char *file)
   for (unsigned int i = 0; i < exclusives.size(); i++)
   {
     bool found = false;
-    vcl_string varname;
+    std::string varname;
     for (unsigned int j = 0; j < exclusives[i].size(); j++)
     {
       maptype::const_iterator itr = varmap.find(exclusives[i][j]);
@@ -253,12 +253,12 @@ void config::read_argument_updates(int argc, char *argv[])
   //format is: "variable=value"
   for (int i = 2; i < argc; i++)
   {
-    vcl_string str(argv[i]);
+    std::string str(argv[i]);
     size_t eq = str.find_first_of("=");
-    if (eq == vcl_string::npos)
+    if (eq == std::string::npos)
       throw cfg_exception("argument must be of format 'variable=value'\n");
-    vcl_string var = str.substr(0, eq);
-    vcl_string value = str.substr(eq+1, str.size());
+    std::string var = str.substr(0, eq);
+    std::string value = str.substr(eq+1, str.size());
 
     maptype::iterator itr = varmap.find(var);
     if (itr == varmap.end())
@@ -267,33 +267,33 @@ void config::read_argument_updates(int argc, char *argv[])
     if (value.empty())
       throw cfg_exception("arg updates: var '" + var + "' was set to nothing");
 
-    vcl_istringstream stream(value);
+    std::istringstream stream(value);
     itr->second->from_string(stream);
   }
 }
 
-bool config::is_set(const vcl_string &varname) const
+bool config::is_set(const std::string &varname) const
 {
   maptype::const_iterator itr = varmap.find(varname);
   return itr != varmap.end();
 }
 
-template SUPER3D_DEPTH_EXPORT double config::get_value<double>(const vcl_string &str) const;
-template SUPER3D_DEPTH_EXPORT int config::get_value<int>(const vcl_string &str) const;
-template SUPER3D_DEPTH_EXPORT unsigned int config::get_value<unsigned int>(const vcl_string &str) const;
-template SUPER3D_DEPTH_EXPORT vcl_string config::get_value<vcl_string>(const vcl_string &str) const;
-template SUPER3D_DEPTH_EXPORT bool config::get_value<bool>(const vcl_string &str) const;
+template SUPER3D_DEPTH_EXPORT double config::get_value<double>(const std::string &str) const;
+template SUPER3D_DEPTH_EXPORT int config::get_value<int>(const std::string &str) const;
+template SUPER3D_DEPTH_EXPORT unsigned int config::get_value<unsigned int>(const std::string &str) const;
+template SUPER3D_DEPTH_EXPORT std::string config::get_value<std::string>(const std::string &str) const;
+template SUPER3D_DEPTH_EXPORT bool config::get_value<bool>(const std::string &str) const;
 
-template SUPER3D_DEPTH_EXPORT bool config::set_if<double>(const vcl_string &str, double &) const;
-template SUPER3D_DEPTH_EXPORT bool config::set_if<int>(const vcl_string &str, int &) const;
-template SUPER3D_DEPTH_EXPORT bool config::set_if<unsigned int>(const vcl_string &str, unsigned int &) const;
-template SUPER3D_DEPTH_EXPORT bool config::set_if<vcl_string>(const vcl_string &str, vcl_string &) const;
-template SUPER3D_DEPTH_EXPORT bool config::set_if<bool>(const vcl_string &str, bool &) const;
+template SUPER3D_DEPTH_EXPORT bool config::set_if<double>(const std::string &str, double &) const;
+template SUPER3D_DEPTH_EXPORT bool config::set_if<int>(const std::string &str, int &) const;
+template SUPER3D_DEPTH_EXPORT bool config::set_if<unsigned int>(const std::string &str, unsigned int &) const;
+template SUPER3D_DEPTH_EXPORT bool config::set_if<std::string>(const std::string &str, std::string &) const;
+template SUPER3D_DEPTH_EXPORT bool config::set_if<bool>(const std::string &str, bool &) const;
 
 template class SUPER3D_DEPTH_EXPORT config::cfg_type<double>;
 template class SUPER3D_DEPTH_EXPORT config::cfg_type<int>;
 template class SUPER3D_DEPTH_EXPORT config::cfg_type<unsigned int>;
-template class SUPER3D_DEPTH_EXPORT config::cfg_type<vcl_string>;
+template class SUPER3D_DEPTH_EXPORT config::cfg_type<std::string>;
 template class SUPER3D_DEPTH_EXPORT config::cfg_type<bool>;
 
 } // end namespace super3d

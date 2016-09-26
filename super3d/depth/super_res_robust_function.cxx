@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ namespace super3d
 
 double rho_huber_norm( double x, double alpha )
 {
-  const double absx = vcl_fabs(x);
+  const double absx = std::fabs(x);
   if( absx <= alpha )
     return x*x / 2.0 / alpha;
   else
@@ -44,7 +44,7 @@ double rho_huber_norm( double x, double alpha )
 
 double psi_huber_norm( double x, double alpha )
 {
-  if( vcl_fabs(x) <= alpha )
+  if( std::fabs(x) <= alpha )
     return 1.0;
   else
     return -1.0;
@@ -69,8 +69,8 @@ double psi_truncated_quadratic( double x, double alpha, double gamma )
 
 double rho_generalized_huber( double x, double alpha, double beta, double gamma )
 {
-  double t = vcl_sqrt( alpha/gamma );
-  if( vcl_fabs(x) <= t )
+  double t = std::sqrt( alpha/gamma );
+  if( std::fabs(x) <= t )
     return gamma * x * x;
   else
     return beta * x + alpha - t * beta;

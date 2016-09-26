@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 #include "depth_map.h"
 #include "multiscale.h"
 
-#include <vcl_limits.h>
+#include <limits>
 
 #include <vnl/vnl_inverse.h>
 #include <vnl/vnl_double_3x3.h>
@@ -44,10 +44,10 @@
 namespace super3d
 {
 
-void compute_flows_from_depth(const vcl_vector<vpgl_perspective_camera<double> > &cameras,
+void compute_flows_from_depth(const std::vector<vpgl_perspective_camera<double> > &cameras,
                               const vpgl_perspective_camera<double> &ref_cam,
                               const vil_image_view<double> &depth,
-                              vcl_vector<vil_image_view<double> > &flows)
+                              std::vector<vil_image_view<double> > &flows)
 {
   flows.resize(cameras.size());
   const vnl_matrix_fixed<double,3,4> &P1 = ref_cam.get_matrix();
@@ -62,7 +62,7 @@ void compute_flows_from_depth(const vcl_vector<vpgl_perspective_camera<double> >
 
     vil_image_view<double> &flow = flows[c];
     flow.set_size(depth.ni(), depth.nj(), 2);
-    flow.fill(vcl_numeric_limits<double>::quiet_NaN());
+    flow.fill(std::numeric_limits<double>::quiet_NaN());
 
     //Use plane+parallax to find the flow between current image and the ref image
     for (unsigned int j = 0; j < depth.nj(); j++)
@@ -81,10 +81,10 @@ void compute_flows_from_depth(const vcl_vector<vpgl_perspective_camera<double> >
 }
 
 
-void compute_occluded_flows_from_depth(const vcl_vector<vpgl_perspective_camera<double> > &cameras,
+void compute_occluded_flows_from_depth(const std::vector<vpgl_perspective_camera<double> > &cameras,
                                        const vpgl_perspective_camera<double> &ref_cam,
                                        const vil_image_view<double> &depth,
-                                       vcl_vector<vil_image_view<double> > &flows)
+                                       std::vector<vil_image_view<double> > &flows)
 {
   const unsigned int ni = depth.ni();
   const unsigned int nj = depth.nj();
@@ -104,7 +104,7 @@ void compute_occluded_flows_from_depth(const vcl_vector<vpgl_perspective_camera<
 
     vil_image_view<double> &flow = flows[c];
     flow.set_size(ni, nj, 2);
-    flow.fill(vcl_numeric_limits<double>::quiet_NaN());
+    flow.fill(std::numeric_limits<double>::quiet_NaN());
 
     //Use plane+parallax to find the flow between current image and the ref image
     for (unsigned int j = 0; j < nj; j++)
@@ -122,21 +122,21 @@ void compute_occluded_flows_from_depth(const vcl_vector<vpgl_perspective_camera<
     }
 
     vgl_box_2d<double> bounds = flow_destination_bounds(flow);
-    vgl_box_2d<int> bbox(vcl_floor(bounds.min_x()), vcl_ceil(bounds.max_x()),
-                         vcl_floor(bounds.min_y()), vcl_ceil(bounds.max_y()));
+    vgl_box_2d<int> bbox(std::floor(bounds.min_x()), std::ceil(bounds.max_x()),
+                         std::floor(bounds.min_y()), std::ceil(bounds.max_y()));
     const int ox = bbox.min_x();
     const int oy = bbox.min_y();
 
     vil_image_view<double> warped_depth(bbox.width()+2, bbox.height()+2);
-    warped_depth.fill(vcl_numeric_limits<double>::infinity());
+    warped_depth.fill(std::numeric_limits<double>::infinity());
     imesh_project_depth(mesh, crop_camera(cameras[c], ox, oy), warped_depth);
 
     for (unsigned int j = 0; j < nj; j++)
     {
       for (unsigned int i = 0; i < ni; i++)
       {
-        int x = i + vcl_floor(flow(i,j,0)) - ox;
-        int y = j + vcl_floor(flow(i,j,1)) - oy;
+        int x = i + std::floor(flow(i,j,0)) - ox;
+        int y = j + std::floor(flow(i,j,1)) - oy;
         assert(x>=0);  assert(x<=bbox.width());
         assert(y>=0);  assert(y<=bbox.height());
         const double& fd = fdepth(i,j);
@@ -146,7 +146,7 @@ void compute_occluded_flows_from_depth(const vcl_vector<vpgl_perspective_camera<
         double max_d = wd.max_value();
         if( fd > max_d + 0.5 * (max_d-min_d))
         {
-          flow(i,j,0) = flow(i,j,1) = vcl_numeric_limits<double>::quiet_NaN();
+          flow(i,j,0) = flow(i,j,1) = std::numeric_limits<double>::quiet_NaN();
         }
       }
     }

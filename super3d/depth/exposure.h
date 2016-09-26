@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 #include "depth_config.h"
 
 #include <vil/vil_image_view.h>
-#include <vcl_utility.h>
+#include <utility>
 
 
 namespace super3d
@@ -47,7 +47,7 @@ namespace super3d
 /// \param exposure scale and offset for correcting the image
 SUPER3D_DEPTH_EXPORT
 void apply_exposure_correction(vil_image_view<double> &frame,
-                               const vcl_pair<double, double> &exposure);
+                               const std::pair<double, double> &exposure);
 
 } // end namespace super3d
 

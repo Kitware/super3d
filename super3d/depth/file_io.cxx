@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,8 @@
 #include "file_io.h"
 #include "multiscale.h"
 
-#include <vcl_fstream.h>
-#include <vcl_iostream.h>
+#include <fstream>
+#include <iostream>
 
 #include <vul/vul_file.h>
 #include <vul/vul_sequence_filename_map.h>
@@ -51,12 +51,12 @@ namespace super3d
 /// where i is the frame number, K is the calibration matrix,
 /// R is the rotation matrix, and t is the translation vector
 /// \returns A vector of perspective cameras
-vcl_vector<vpgl_perspective_camera<double> >
+std::vector<vpgl_perspective_camera<double> >
 load_cams(const std::string& filename, vul_sequence_filename_map frame_seq)
 {
-  vcl_vector<vpgl_perspective_camera<double> > cameras;
-  vcl_fstream ifs(filename.c_str());
-  const vcl_vector< int > & indices = frame_seq.get_real_indices();
+  std::vector<vpgl_perspective_camera<double> > cameras;
+  std::fstream ifs(filename.c_str());
+  const std::vector< int > & indices = frame_seq.get_real_indices();
   int frame;
   unsigned int index = 0;
   while (ifs >> frame && index < indices.size())
@@ -77,22 +77,22 @@ load_cams(const std::string& filename, vul_sequence_filename_map frame_seq)
 
   ifs.close();
 
-  vcl_cout << "Loaded " << cameras.size() << " cameras.\n";
+  std::cout << "Loaded " << cameras.size() << " cameras.\n";
   return cameras;
 }
 
 
 /// Find all frames matching the format string and extract the frame number.
 /// \returns A vector of image views
-vcl_vector<vil_image_view<double> >
-load_frames(vul_sequence_filename_map frame_seq, vcl_vector<vcl_string> &filenames, bool color)
+std::vector<vil_image_view<double> >
+load_frames(vul_sequence_filename_map frame_seq, std::vector<std::string> &filenames, bool color)
 {
-  vcl_vector<vil_image_view<double> > frames;
-  const vcl_vector< int > & indices = frame_seq.get_real_indices();
+  std::vector<vil_image_view<double> > frames;
+  const std::vector< int > & indices = frame_seq.get_real_indices();
   for (unsigned i=0; i<indices.size(); ++i)
   {
     std::string file = frame_seq.image_name(i);
-    vcl_cout << frame_seq.get_real_index(i) << " ";
+    std::cout << frame_seq.get_real_index(i) << " ";
     std::cout << "Loading: " << file << " ";
     if (vul_file_exists(file))
     {
@@ -120,13 +120,13 @@ load_frames(vul_sequence_filename_map frame_seq, vcl_vector<vcl_string> &filenam
 
 /// Load an exposure file with parameters for linear exposure compensation
 /// \returns A vector of (scale, offest) pair
-vcl_vector<vcl_pair<double,double> >
+std::vector<std::pair<double,double> >
 load_exposure(const std::string& filename, vul_sequence_filename_map frame_seq)
 {
   typedef std::pair<double,double> Dpair;
-  vcl_vector<Dpair> exposure;
-  vcl_fstream ifs(filename.c_str());
-  const vcl_vector< int > & indices = frame_seq.get_real_indices();
+  std::vector<Dpair> exposure;
+  std::fstream ifs(filename.c_str());
+  const std::vector< int > & indices = frame_seq.get_real_indices();
   int frame;
   unsigned int index = 0;
   while (ifs >> frame && index < indices.size())
@@ -147,12 +147,12 @@ load_exposure(const std::string& filename, vul_sequence_filename_map frame_seq)
 
 /// Load an exposure file with parameters for linear exposure compensation
 /// \returns A vector of (scale, offest) pair
-vcl_vector<vcl_pair<double,double> >
-load_exposure(const std::string& filename, const vcl_vector<int> &framelist)
+std::vector<std::pair<double,double> >
+load_exposure(const std::string& filename, const std::vector<int> &framelist)
 {
   typedef std::pair<double,double> Dpair;
-  vcl_vector<Dpair> exposure;
-  vcl_fstream ifs(filename.c_str());
+  std::vector<Dpair> exposure;
+  std::fstream ifs(filename.c_str());
   int frame;
   unsigned int index = 0;
   while (ifs >> frame && index < framelist.size())
@@ -173,17 +173,17 @@ load_exposure(const std::string& filename, const vcl_vector<int> &framelist)
 //Load cameras from a file per camera
 //Assume cameras are in directory named %04d.krtd
 void
-load_krtd_cams(const vcl_string& directory,
-               vcl_vector<int> &framelist,
-               vcl_vector<vpgl_perspective_camera<double> > &cameras)
+load_krtd_cams(const std::string& directory,
+               std::vector<int> &framelist,
+               std::vector<vpgl_perspective_camera<double> > &cameras)
 {
-  vcl_cout << "Loading Cameras: ";
+  std::cout << "Loading Cameras: ";
   char buf[32];
   for (unsigned int i = 0; i < framelist.size(); i++)
   {
     sprintf(buf, "%04d.krtd", framelist[i]);
-    vcl_cout << (directory+buf) << "\n";
-    vcl_fstream ifs((directory + buf).c_str());
+    std::cout << (directory+buf) << "\n";
+    std::fstream ifs((directory + buf).c_str());
 
     vpgl_perspective_camera<double> cam;
     vnl_double_3x3 K, R;
@@ -205,18 +205,18 @@ load_krtd_cams(const vcl_string& directory,
     cameras.push_back(cam);
   }
 
-  vcl_cout << "\n";
+  std::cout << "\n";
 }
 
 //Load cameras from a single camera file with a framelist
 void load_cams(const char *camerafile,
-               vcl_vector<int> &framelist,
-               vcl_vector<vpgl_perspective_camera<double> > &cameras)
+               std::vector<int> &framelist,
+               std::vector<vpgl_perspective_camera<double> > &cameras)
 {
   std::ifstream camstream(camerafile);
   int frame;
 
-  vcl_cout << "Looking for " << framelist.size() << " frames.\n";
+  std::cout << "Looking for " << framelist.size() << " frames.\n";
 
   unsigned int cur = 0;
   while (camstream.good() && cur < framelist.size())
@@ -240,7 +240,7 @@ void load_cams(const char *camerafile,
   }
 
   camstream.close();
-  vcl_cout << "Loaded " << cameras.size() << " cameras.\n";
+  std::cout << "Loaded " << cameras.size() << " cameras.\n";
 }
 
 
@@ -251,23 +251,23 @@ void load_cams(const char *camerafile,
 /// \param framelist vector of indices of the read frames
 /// \param frames images that were read and converted to greyscale
 void load_from_frame_file(const char *framefile,
-                          const vcl_string &directory,
-                          vcl_vector<vcl_string> &filenames,
-                          vcl_vector<int> &framelist,
-                          vcl_vector<vil_image_view<double> > &frames,
+                          const std::string &directory,
+                          std::vector<std::string> &filenames,
+                          std::vector<int> &framelist,
+                          std::vector<vil_image_view<double> > &frames,
                           bool color,
                           bool rgb12)
 {
   std::ifstream framestream(framefile);
   int frame;
-  vcl_string imagename;
+  std::string imagename;
 
   while (framestream >> frame >> imagename && framestream.good())
   {
     framelist.push_back(frame);
     filenames.push_back(imagename);
 
-    vcl_cout << "Reading frame: " << (directory + imagename) << "\n";
+    std::cout << "Reading frame: " << (directory + imagename) << "\n";
     vil_image_resource_sptr img_rsc = vil_load_image_resource((directory + imagename).c_str());
     if (img_rsc != NULL)
     {
@@ -296,18 +296,18 @@ void load_from_frame_file(const char *framefile,
       frames.push_back(flt);
     }
     else
-      vcl_cout << "\n" << (directory + imagename) << " NOT FOUND.\n";
+      std::cout << "\n" << (directory + imagename) << " NOT FOUND.\n";
   }
 
-  vcl_cout << "\n";
+  std::cout << "\n";
   framestream.close();
 }
 
 /// Load camera from a file per camera
 vpgl_perspective_camera<double>
-load_cam(const vcl_string& filename)
+load_cam(const std::string& filename)
 {
-  vcl_fstream ifs((filename).c_str());
+  std::fstream ifs((filename).c_str());
 
   vpgl_perspective_camera<double> cam;
 
@@ -326,11 +326,11 @@ load_cam(const vcl_string& filename)
 /// read a flow file into 2-band image
 bool read_flow_file(vil_image_view<double> &flowimg, const char* filename)
 {
-  vcl_cout << "Reading " << filename << "\n";
+  std::cout << "Reading " << filename << "\n";
   FILE *stream = fopen(filename, "rb");
   if (stream == 0)
   {
-    vcl_cerr << "ReadFlowFile: could not open file\n";
+    std::cerr << "ReadFlowFile: could not open file\n";
     return false;
   }
 
@@ -341,7 +341,7 @@ bool read_flow_file(vil_image_view<double> &flowimg, const char* filename)
   (int)fread(&width,  sizeof(int),   1, stream) != 1 ||
   (int)fread(&height, sizeof(int),   1, stream) != 1)
   {
-    vcl_cerr << "ReadFlowFile: problem reading file";
+    std::cerr << "ReadFlowFile: problem reading file";
     return false;
   }
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,15 +47,15 @@
 
 #define DEBUG
 
-vcl_vector<super3d::adjoint_image_ops_func<double> >
+std::vector<super3d::adjoint_image_ops_func<double> >
 create_warps_simple(int sni, int snj, int scale_factor, super3d::config *cfg);
 
-vcl_vector<super3d::adjoint_image_ops_func<double> >
+std::vector<super3d::adjoint_image_ops_func<double> >
 create_warps(int sni, int snj, int scale_factor, super3d::config *cfg);
 
 void create_downsampled_frames(const vil_image_view<double> &high_res,
-                               const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
-                               vcl_vector<vil_image_view<double> > &frames);
+                               const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
+                               std::vector<vil_image_view<double> > &frames);
 
 //*****************************************************************************
 
@@ -65,8 +65,8 @@ int main(int argc, char* argv[])
     boost::scoped_ptr<super3d::config> cfg(new super3d::config);
     cfg->read_config(argv[1]);
     double scale_factor = cfg->get_value<double>("scale_factor");
-    vcl_string img_name = cfg->get_value<vcl_string>("single_frame");
-        vcl_cout << "Reading image " << img_name << "\n";
+    std::string img_name = cfg->get_value<std::string>("single_frame");
+        std::cout << "Reading image " << img_name << "\n";
     vil_image_view<double> img;
     vil_image_resource_sptr img_rsc = vil_load_image_resource(img_name.c_str());
     if (img_rsc != NULL)
@@ -85,10 +85,10 @@ int main(int argc, char* argv[])
 
     vil_math_scale_values(img, 1.0/255.0);
 
-    vcl_cout << "Creating downsampled frames\n";
-    vcl_vector<vil_image_view<double> > frames;
+    std::cout << "Creating downsampled frames\n";
+    std::vector<vil_image_view<double> > frames;
 
-    vcl_vector<super3d::adjoint_image_ops_func<double> > warps;
+    std::vector<super3d::adjoint_image_ops_func<double> > warps;
     warps = create_warps_simple(img.ni(), img.nj(), scale_factor, cfg.get());
     create_downsampled_frames(img, warps, frames);
 
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    vcl_cout << "Computing super resolution\n";
+    std::cout << "Computing super resolution\n";
     vil_image_view<double> super_u;
     super3d::super_res_params srp;
     srp.scale_factor = scale_factor;
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
     srp.sigma = cfg->get_value<double>("sigma");
     srp.tau = cfg->get_value<double>("tau");
     const unsigned int iterations = cfg->get_value<unsigned int>("iterations");
-    vcl_string output_image = cfg->get_value<vcl_string>("output_image");
+    std::string output_image = cfg->get_value<std::string>("output_image");
     super_resolve(frames, warps, super_u, srp, iterations, output_image);
 
     super3d::compare_to_original(frames[ref_frame], super_u, img, scale_factor);
@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
     vil_save(output, output_image.c_str());
   }
   catch (const super3d::config::cfg_exception &e)  {
-    vcl_cout << "Error in config: " << e.what() << "\n";
+    std::cout << "Error in config: " << e.what() << "\n";
   }
 
   return 0;
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
 
 //*****************************************************************************
 
-vcl_vector<super3d::adjoint_image_ops_func<double> >
+std::vector<super3d::adjoint_image_ops_func<double> >
 create_warps_simple(int sni, int snj, int scale_factor, super3d::config *cfg)
 {
   //int num_imgs = scale_factor * scale_factor;
@@ -147,7 +147,7 @@ create_warps_simple(int sni, int snj, int scale_factor, super3d::config *cfg)
   double sensor_sigma = cfg->get_value<double>("sensor_sigma");
 
   typedef super3d::adjoint_image_ops_func<double>::func_t func_t;
-  vcl_vector<super3d::adjoint_image_ops_func<double> > warps;
+  std::vector<super3d::adjoint_image_ops_func<double> > warps;
 
   for (unsigned int i = 0; i < static_cast<unsigned int>(scale_factor); i++)
   {
@@ -167,7 +167,7 @@ create_warps_simple(int sni, int snj, int scale_factor, super3d::config *cfg)
 
 //*****************************************************************************
 
-vcl_vector<super3d::adjoint_image_ops_func<double> >
+std::vector<super3d::adjoint_image_ops_func<double> >
 create_warps(int sni, int snj, int scale_factor, super3d::config *cfg)
 {
   int dni = sni / scale_factor;
@@ -177,7 +177,7 @@ create_warps(int sni, int snj, int scale_factor, super3d::config *cfg)
   double sensor_sigma = cfg->get_value<double>("sensor_sigma");
 
   typedef super3d::adjoint_image_ops_func<double>::func_t func_t;
-  vcl_vector<super3d::adjoint_image_ops_func<double> > warps;
+  std::vector<super3d::adjoint_image_ops_func<double> > warps;
   for (double i = 0.0; i < scale_factor; i+=0.5)
   {
     for (double j = 0.0; j < scale_factor; j+=0.5)
@@ -198,8 +198,8 @@ create_warps(int sni, int snj, int scale_factor, super3d::config *cfg)
 
 
 void create_downsampled_frames(const vil_image_view<double> &high_res,
-                               const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
-                               vcl_vector<vil_image_view<double> > &frames)
+                               const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
+                               std::vector<vil_image_view<double> > &frames)
 {
   frames.clear();
   for (unsigned i=0; i<warps.size(); ++i)

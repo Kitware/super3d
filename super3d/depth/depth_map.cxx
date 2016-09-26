@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,7 @@ double average_finite(const vil_image_view<double>& img)
   const unsigned nj = img.nj();
   assert(img.nplanes() == 1);
 
-  vcl_ptrdiff_t istep=img.istep(),  jstep=img.jstep();
+  std::ptrdiff_t istep=img.istep(),  jstep=img.jstep();
   double avg = 0.0;
   unsigned count = 0;
 
@@ -97,7 +97,7 @@ void fill_infinite(vil_image_view<double>& img, double value)
   const unsigned nj = img.nj();
   assert(img.nplanes() == 1);
 
-  vcl_ptrdiff_t istep=img.istep(),  jstep=img.jstep();
+  std::ptrdiff_t istep=img.istep(),  jstep=img.jstep();
 
   double* row = img.top_left_ptr();
   for (unsigned j=0; j<nj; ++j, row += jstep)
@@ -128,8 +128,8 @@ void copy_finite(const vil_image_view<double>& src,
   assert(dest.nj() == nj);
   assert(dest.nplanes() == 1);
 
-  vcl_ptrdiff_t istepS=src.istep(),  jstepS=src.jstep();
-  vcl_ptrdiff_t istepD=dest.istep(), jstepD=dest.jstep();
+  std::ptrdiff_t istepS=src.istep(),  jstepS=src.jstep();
+  std::ptrdiff_t istepD=dest.istep(), jstepD=dest.jstep();
 
   const double* rowS = src.top_left_ptr();
   double*       rowD = dest.top_left_ptr();
@@ -246,8 +246,8 @@ depth_map_to_vertices(const vpgl_perspective_camera<double>& camera,
   vnl_matrix_fixed<double,3,3> M_inv = vnl_inverse(camera.get_matrix().extract(3,3));
   vnl_double_3 p4 = camera.get_matrix().get_column(3);
 
-  vcl_ptrdiff_t istepD=depth_map.istep(),   jstepD=depth_map.jstep();
-  vcl_ptrdiff_t istepI=index_image.istep(), jstepI=index_image.jstep();
+  std::ptrdiff_t istepD=depth_map.istep(),   jstepD=depth_map.jstep();
+  std::ptrdiff_t istepI=index_image.istep(), jstepI=index_image.jstep();
 
   // compute vertices
   const double*   rowD = depth_map.top_left_ptr();
@@ -298,8 +298,8 @@ height_map_to_vertices(const vil_image_view<double>& height_map,
 
   std::auto_ptr<imesh_vertex_array<3> > verts(new imesh_vertex_array<3>);
 
-  vcl_ptrdiff_t istepH=height_map.istep(),  jstepH=height_map.jstep();
-  vcl_ptrdiff_t istepI=index_image.istep(), jstepI=index_image.jstep();
+  std::ptrdiff_t istepH=height_map.istep(),  jstepH=height_map.jstep();
+  std::ptrdiff_t istepI=index_image.istep(), jstepI=index_image.jstep();
 
   // compute vertices
   const double*   rowH = height_map.top_left_ptr();
@@ -338,7 +338,7 @@ triangulate_index_image(const vil_image_view<unsigned>& index_image)
 
   std::auto_ptr<imesh_regular_face_array<3> > faces(new imesh_regular_face_array<3>);
 
-  vcl_ptrdiff_t istepI=index_image.istep(), jstepI=index_image.jstep();
+  std::ptrdiff_t istepI=index_image.istep(), jstepI=index_image.jstep();
 
   // compute triangles
   const unsigned* rowI = index_image.top_left_ptr();
@@ -449,7 +449,7 @@ void finite_value_range(const vil_image_view<double>& img,
   const unsigned nj = img.nj();
   assert(img.nplanes() == 1);
 
-  vcl_ptrdiff_t istep=img.istep(),  jstep=img.jstep();
+  std::ptrdiff_t istep=img.istep(),  jstep=img.jstep();
   bool first_finite = true;
 
   const double* row = img.top_left_ptr();
@@ -482,12 +482,12 @@ void finite_value_range(const vil_image_view<double>& img,
 
 void save_depth(const vil_image_view<double> &depth, const char *filename)
 {
-  vcl_string ext(filename);
+  std::string ext(filename);
   ext = ext.substr(ext.find_last_of(".") + 1);
-  vcl_transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+  std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
   if (ext == "tif" || ext == "tiff")
   {
-    vcl_cout << "Saving "<<filename<<" as a TIFF"<<vcl_endl;
+    std::cout << "Saving "<<filename<<" as a TIFF"<<std::endl;
     vil_save(depth, filename);
     return;
   }
@@ -511,12 +511,12 @@ void save_depth(const vil_image_view<double> &depth, const char *filename)
 
 void load_depth(vil_image_view<double> &depth, const char *filename)
 {
-  vcl_string ext(filename);
+  std::string ext(filename);
   ext = ext.substr(ext.find_last_of(".") + 1);
-  vcl_transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+  std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
   if (ext == "tif" || ext == "tiff")
   {
-    vcl_cout << "Loading "<<filename<<" as a TIFF"<<vcl_endl;
+    std::cout << "Loading "<<filename<<" as a TIFF"<<std::endl;
     depth = vil_load(filename);
     return;
   }
@@ -558,8 +558,8 @@ void score_vs_gt(const vil_image_view<double> &depth,
   double mean_error = 0.0;
   vil_math_mean(mean_error, error_img, 0);
 
-  vcl_cout << "Percentage of bad pixels: " << (double)numbad / (double)numpixels << vcl_endl;
-  vcl_cout << "Average Error: " << mean_error << vcl_endl;
+  std::cout << "Percentage of bad pixels: " << (double)numbad / (double)numpixels << std::endl;
+  std::cout << "Average Error: " << mean_error << std::endl;
 
   vil_image_view<vxl_byte> bad_img_byte;
   vil_convert_stretch_range(bad_img, bad_img_byte);
@@ -647,7 +647,7 @@ void save_depth_to_vtp(const char *filename,
 
 //*****************************************************************************
 
-void write_points_to_vtp(vcl_vector<vnl_double_3> &points, const char *filename)
+void write_points_to_vtp(std::vector<vnl_double_3> &points, const char *filename)
 {
   vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> verts = vtkSmartPointer<vtkCellArray>::New();

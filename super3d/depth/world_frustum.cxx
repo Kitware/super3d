@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,15 +58,15 @@ world_frustum::world_frustum(const vpgl_perspective_camera<double> &cam,
 
   double w1 = 0.5 * ((b2 - b1).two_norm() + (t2 - t1).two_norm());
   dscale = fabs(f - n) * (double)ni_ / w1;
-  vcl_cout << dscale << "\n";
+  std::cout << dscale << "\n";
 }
 
 
 /// returns the corner points of an image slice at depth slice.
 /// depth slice is a value between 0 and 1 over the depth range
-vcl_vector<vnl_double_3> world_frustum::get_slice(double depth_slice) const
+std::vector<vnl_double_3> world_frustum::get_slice(double depth_slice) const
 {
-  vcl_vector<vnl_double_3> slice;
+  std::vector<vnl_double_3> slice;
   slice.push_back(point_at_depth_on_axis(0.0, 0.0, depth_slice));
   slice.push_back(point_at_depth_on_axis((double)ni_, 0.0, depth_slice));
   slice.push_back(point_at_depth_on_axis((double)ni_, (double)nj_, depth_slice));
@@ -75,10 +75,10 @@ vcl_vector<vnl_double_3> world_frustum::get_slice(double depth_slice) const
 }
 
 
-vcl_vector<vpgl_perspective_camera<double> >
-world_frustum::warp_cams(const vcl_vector<vpgl_perspective_camera<double> > &cameras, int ref_frame) const
+std::vector<vpgl_perspective_camera<double> >
+world_frustum::warp_cams(const std::vector<vpgl_perspective_camera<double> > &cameras, int ref_frame) const
 {
-  vcl_vector<vpgl_perspective_camera<double> > newcams(cameras.size());
+  std::vector<vpgl_perspective_camera<double> > newcams(cameras.size());
   vgl_rotation_3d<double> R_ref = cameras[ref_frame].get_rotation().inverse();
   for (unsigned int i = 0; i < newcams.size(); i++)
   {

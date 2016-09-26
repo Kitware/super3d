@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,8 @@
 #include "cost_volume.h"
 #include "depth_map.h"
 
-#include <vcl_cstdio.h>
-#include <vcl_fstream.h>
+#include <cstdio>
+#include <fstream>
 
 #include <super3d/image/warp_image.h>
 #include <vil/vil_bilin_interp.h>
@@ -47,7 +47,7 @@
 #include <vil/vil_save.h>
 #include <vil/vil_convert.h>
 
-#include <vcl_limits.h>
+#include <limits>
 
 
 namespace
@@ -67,8 +67,8 @@ namespace super3d
 {
 
 void
-compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
-                          const vcl_vector<vpgl_perspective_camera<double> > &cameras,
+compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
+                          const std::vector<vpgl_perspective_camera<double> > &cameras,
                           world_space *ws,
                           unsigned int ref_frame,
                           unsigned int S,
@@ -81,11 +81,11 @@ compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
   cost_volume = vil_image_view<double>(ws->ni(), ws->nj(), 1, S);
   cost_volume.fill(0.0);
 
-  vcl_vector<vpgl_perspective_camera<double> > warp_cams = ws->warp_cams(cameras, ref_frame);
+  std::vector<vpgl_perspective_camera<double> > warp_cams = ws->warp_cams(cameras, ref_frame);
 
   double s_step = 1.0/static_cast<double>(S);
 
-  vcl_cout << "Computing cost volume of size (" << cost_volume.ni() << ", " << cost_volume.nj() << ", " << cost_volume.nplanes() << ").\n";
+  std::cout << "Computing cost volume of size (" << cost_volume.ni() << ", " << cost_volume.nj() << ", " << cost_volume.nplanes() << ").\n";
 
   double total_weight = intesity_weight + gradient_weight + census_weight;
   intesity_weight /= total_weight;
@@ -104,7 +104,7 @@ compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
   //Depths
   for (unsigned int k = 0; k < S; k++)
   {
-    vcl_cout << k << " " << vcl_flush;
+    std::cout << k << " " << std::flush;
     double s = (k + 0.5) * s_step;
 
     //Warp ref image to world volume
@@ -190,13 +190,13 @@ compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
     }
   }
     //
-  vcl_cout << "\n";
+  std::cout << "\n";
 }
 
 
 void
-compute_cost_volume_warp(const vcl_vector<vil_image_view<double> > &frames,
-                         const vcl_vector<vpgl_perspective_camera<double> > &cameras,
+compute_cost_volume_warp(const std::vector<vil_image_view<double> > &frames,
+                         const std::vector<vpgl_perspective_camera<double> > &cameras,
                          unsigned int ref_frame,
                          unsigned int S,
                          double depth_min,
@@ -213,7 +213,7 @@ compute_cost_volume_warp(const vcl_vector<vil_image_view<double> > &frames,
   vil_image_view<double> ref_grad(ref.ni(), ref.nj(), 2), grad(ref.ni(), ref.nj(), 2);
   vil_sobel_3x3(frames[ref_frame], ref_grad);
 
-  vcl_cout << "Computing cost volume of size (" << ref.ni() << ", " << ref.nj() << ", " << cost_volume.nplanes() << ").\n";
+  std::cout << "Computing cost volume of size (" << ref.ni() << ", " << ref.nj() << ", " << cost_volume.nplanes() << ").\n";
   double bcc_mix = 0.3;
 
   const vpgl_perspective_camera<double>& camera_ref = cameras[ref_frame];
@@ -277,8 +277,8 @@ compute_cost_volume_warp(const vcl_vector<vil_image_view<double> > &frames,
 
 
 void
-compute_cost_volume_bp(const vcl_vector<vil_image_view<double> > &frames,
-                       const vcl_vector<vpgl_perspective_camera<double> > &cameras,
+compute_cost_volume_bp(const std::vector<vil_image_view<double> > &frames,
+                       const std::vector<vpgl_perspective_camera<double> > &cameras,
                        unsigned int ref_frame,
                        unsigned int S,
                        double depth_min,
@@ -290,11 +290,11 @@ compute_cost_volume_bp(const vcl_vector<vil_image_view<double> > &frames,
 
   double s_step = 1.0/static_cast<double>(S);
 
-  vcl_vector<vil_image_view<double> > grads(frames.size());
+  std::vector<vil_image_view<double> > grads(frames.size());
   for (unsigned int f = 0;  f < frames.size(); f++)
     vil_sobel_3x3(frames[f], grads[f]);
 
-  vcl_cout << "Computing cost volume of size (" << ref.ni() << ", " << ref.nj() << ", " << cost_volume.nplanes() << ").\n";
+  std::cout << "Computing cost volume of size (" << ref.ni() << ", " << ref.nj() << ", " << cost_volume.nplanes() << ").\n";
   double bcc_mix = 1;
 
   for (unsigned int j = 0; j < ref.nj(); j++)
@@ -346,7 +346,7 @@ compute_cost_volume_bp(const vcl_vector<vil_image_view<double> > &frames,
 
 
 //disparity increases along negative x
-void compute_cost_volume_rectified(const vcl_vector<vil_image_view<double> > &frames,
+void compute_cost_volume_rectified(const std::vector<vil_image_view<double> > &frames,
                                   unsigned int ref_frame,
                                   unsigned int S,
                                   double idepth_min,
@@ -355,11 +355,11 @@ void compute_cost_volume_rectified(const vcl_vector<vil_image_view<double> > &fr
 {
   const vil_image_view<double> &ref = frames[ref_frame];
   cost_volume = vil_image_view<double>(ref.ni(), ref.nj(), 1, S);
-  vcl_cout << "Computing cost volume of size (" << ref.ni() << ", " << ref.nj() << ", " << cost_volume.nplanes() << ").\n";
+  std::cout << "Computing cost volume of size (" << ref.ni() << ", " << ref.nj() << ", " << cost_volume.nplanes() << ").\n";
 
   double s_step = 1.0/static_cast<double>(S);
 
-  vcl_vector<vil_image_view<double> > grads(frames.size());
+  std::vector<vil_image_view<double> > grads(frames.size());
   for (unsigned int f = 0;  f < frames.size(); f++)
     vil_sobel_3x3(frames[f], grads[f]);
 
@@ -409,10 +409,10 @@ vxl_uint_64 compute_census(const vil_image_view<double> &img, int u, int v)
 {
   double val = img(u,v);
   vxl_uint_64 census = 0;
-  int mini = vcl_max(0, u-4);
-  int minj = vcl_max(0, v-3);
-  int maxi = vcl_min((int)img.ni()-1, u+4);
-  int maxj = vcl_min((int)img.nj()-1, v+3);
+  int mini = std::max(0, u-4);
+  int minj = std::max(0, v-3);
+  int maxi = std::min((int)img.ni()-1, u+4);
+  int maxj = std::min((int)img.nj()-1, v+3);
   for (int j = v - 3; j <= v + 3; j++)
   {
     for (int i = u - 4; i <= u + 4; i++)
@@ -486,8 +486,8 @@ void save_cost_volume(const vil_image_view<double> &cost_volume,
                       const vil_image_view<double> &g_weight,
                       const char *file_name)
 {
-  vcl_cout << "Saving cost volume to " << file_name << "\n";
-  FILE *file = vcl_fopen(file_name, "wb");
+  std::cout << "Saving cost volume to " << file_name << "\n";
+  FILE *file = std::fopen(file_name, "wb");
 
   unsigned int ni = cost_volume.ni(), nj = cost_volume.nj();
   unsigned int np = cost_volume.nplanes();
@@ -518,7 +518,7 @@ void load_cost_volume(vil_image_view<double> &cost_volume,
                       vil_image_view<double> &g_weight,
                       const char *file_name)
 {
-  vcl_cout << "Loading cost volume from " << file_name << "\n";
+  std::cout << "Loading cost volume from " << file_name << "\n";
 
   FILE *file = fopen(file_name, "rb");
 
@@ -568,10 +568,10 @@ read_cost_volume_at(FILE *file,
 
 bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
                          int i0, int ni, int j0, int nj,
-                         const vcl_string &landmark_file, double &min_depth, double &max_depth)
+                         const std::string &landmark_file, double &min_depth, double &max_depth)
 {
-  vcl_ifstream infile(landmark_file.c_str());
-  vcl_string x;
+  std::ifstream infile(landmark_file.c_str());
+  std::string x;
   unsigned int numverts;
   do
   {
@@ -584,16 +584,16 @@ bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
         infile >> numverts;
       }
     }
-  } while (x != vcl_string("end_header"));
+  } while (x != std::string("end_header"));
 
-  min_depth = vcl_numeric_limits<double>::infinity();
-  max_depth = -vcl_numeric_limits<double>::infinity();
+  min_depth = std::numeric_limits<double>::infinity();
+  max_depth = -std::numeric_limits<double>::infinity();
 
-  vcl_vector<double> depths;
-  //vcl_vector<vnl_double_3> points;
+  std::vector<double> depths;
+  //std::vector<vnl_double_3> points;
 
   vgl_box_2d<double> box(i0, i0+ni, j0, j0+nj);
-  vcl_cout << box << "\n";
+  std::cout << box << "\n";
   for (unsigned int i = 0; i < numverts; i++)
   {
     double x, y, z;
@@ -612,11 +612,11 @@ bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
     }
   }
 
-  //vcl_cout << "Points in region: " << points.size() << "\n";
+  //std::cout << "Points in region: " << points.size() << "\n";
   if (depths.size() < 3)
     return false;
 
-  vcl_sort(depths.begin(), depths.end());
+  std::sort(depths.begin(), depths.end());
 
   //write_points_to_vtp(points, "pointsincrop.vtp");
 

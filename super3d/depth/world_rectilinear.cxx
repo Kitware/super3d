@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,17 +55,17 @@ world_rectilinear::world_rectilinear(const vnl_double_3 &origin,
   xscale = dimensions[0] / pixel_width;
   yscale = dimensions[1] / pixel_height;
 
-  vcl_cout << "x scale: " << xscale << "\n";
-  vcl_cout << "y scale: " << yscale << "\n";
-  vcl_cout << "z scale: " << height << "\n";
+  std::cout << "x scale: " << xscale << "\n";
+  std::cout << "y scale: " << yscale << "\n";
+  std::cout << "z scale: " << height << "\n";
 }
 
 
 /// returns the corner points of an image slice at depth slice.
 /// depth slice is a value between 0 and 1 over the depth range
-vcl_vector<vnl_double_3> world_rectilinear::get_slice(double depth_slice) const
+std::vector<vnl_double_3> world_rectilinear::get_slice(double depth_slice) const
 {
-  vcl_vector<vnl_double_3> slice_corners;
+  std::vector<vnl_double_3> slice_corners;
   for (unsigned int i = 0; i < 4; i++)
   {
     vnl_double_3 corner = b_corners[i];

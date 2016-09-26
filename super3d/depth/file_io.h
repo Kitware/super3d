@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,9 +33,9 @@
 
 #include "depth_config.h"
 
-#include <vcl_string.h>
-#include <vcl_vector.h>
-#include <vcl_utility.h>
+#include <string>
+#include <vector>
+#include <utility>
 #include <vil/vil_image_view.h>
 #include <vpgl/vpgl_perspective_camera.h>
 #include <vgl/vgl_point_3d.h>
@@ -51,51 +51,51 @@ namespace super3d
 /// R is the rotation matrix, and t is the translation vector
 /// \returns A vector of perspective cameras
 SUPER3D_DEPTH_EXPORT
-vcl_vector<vpgl_perspective_camera<double> >
-load_cams(const vcl_string& filename, vul_sequence_filename_map frame_seq);
+std::vector<vpgl_perspective_camera<double> >
+load_cams(const std::string& filename, vul_sequence_filename_map frame_seq);
 
 SUPER3D_DEPTH_EXPORT
 vpgl_perspective_camera<double>
-load_cam(const vcl_string& filename);
+load_cam(const std::string& filename);
 
 /// Find all frames matching the format string and extract the frame number.
 /// \returns A vector of image views
 SUPER3D_DEPTH_EXPORT
-vcl_vector<vil_image_view<double> >
-load_frames(vul_sequence_filename_map frame_seq, vcl_vector<vcl_string> &filenames, bool color = false);
+std::vector<vil_image_view<double> >
+load_frames(vul_sequence_filename_map frame_seq, std::vector<std::string> &filenames, bool color = false);
 
 /// Load an exposure file with parameters for linear exposure compensation
 /// Uses a file sequence
 /// \returns A vector of (scale, offest) pair
 SUPER3D_DEPTH_EXPORT
-vcl_vector<vcl_pair<double,double> >
+std::vector<std::pair<double,double> >
 load_exposure(const std::string& filename, vul_sequence_filename_map frame_seq);
 
 /// Load an exposure file with parameters for linear exposure compensation
 /// Uses a list of frames
 /// \returns A vector of (scale, offest) pair
 SUPER3D_DEPTH_EXPORT
-vcl_vector<vcl_pair<double,double> >
-load_exposure(const std::string& filename, const vcl_vector<int> &framelist);
+std::vector<std::pair<double,double> >
+load_exposure(const std::string& filename, const std::vector<int> &framelist);
 
 //Load camera from a file per camera
 SUPER3D_DEPTH_EXPORT
 vpgl_perspective_camera<double>
-load_cam(const vcl_string& filename);
+load_cam(const std::string& filename);
 
 //Load cameras from a file per camera
 //Assume cameras are in directory named %04d.krtd
 SUPER3D_DEPTH_EXPORT
 void
-load_krtd_cams(const vcl_string& directory,
-               vcl_vector<int> &framelist,
-               vcl_vector<vpgl_perspective_camera<double> > &cameras);
+load_krtd_cams(const std::string& directory,
+               std::vector<int> &framelist,
+               std::vector<vpgl_perspective_camera<double> > &cameras);
 
 //Load cameras from a single camera file with a framelist
 SUPER3D_DEPTH_EXPORT
 void load_cams(const char *camerafile,
-               vcl_vector<int> &framelist,
-               vcl_vector<vpgl_perspective_camera<double> > &cameras);
+               std::vector<int> &framelist,
+               std::vector<vpgl_perspective_camera<double> > &cameras);
 
 /// Loads images from a file list of frames paths
 /// \param framefile file that lists frame number and frame paths
@@ -105,10 +105,10 @@ void load_cams(const char *camerafile,
 /// \param frames images that were read and converted to greyscale
 SUPER3D_DEPTH_EXPORT
 void load_from_frame_file(const char *framefile,
-                          const vcl_string &directory,
-                          vcl_vector<vcl_string> &filenames,
-                          vcl_vector<int> &framelist,
-                          vcl_vector<vil_image_view<double> > &frames,
+                          const std::string &directory,
+                          std::vector<std::string> &filenames,
+                          std::vector<int> &framelist,
+                          std::vector<vil_image_view<double> > &frames,
                           bool color = false,
                           bool rgb12 = false);
 

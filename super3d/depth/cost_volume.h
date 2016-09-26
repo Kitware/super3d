@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 
 #include "depth_config.h"
 
-#include <vcl_vector.h>
+#include <vector>
 #include <vil/vil_image_view.h>
 #include <vpgl/vpgl_perspective_camera.h>
 
@@ -45,14 +45,14 @@ namespace super3d
 
 SUPER3D_DEPTH_EXPORT
 bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
-                         int i0, int ni, int j0, int nj, const vcl_string &landmark_file,
+                         int i0, int ni, int j0, int nj, const std::string &landmark_file,
                          double &min_depth, double &max_depth);
 
 SUPER3D_DEPTH_EXPORT
 
 void
-compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
-                          const vcl_vector<vpgl_perspective_camera<double> > &cameras,
+compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
+                          const std::vector<vpgl_perspective_camera<double> > &cameras,
                           world_space *ws,
                           unsigned int ref_frame,
                           unsigned int S,
@@ -63,8 +63,8 @@ compute_world_cost_volume(const vcl_vector<vil_image_view<double> > &frames,
 
 SUPER3D_DEPTH_EXPORT
 void
-compute_cost_volume_warp(const vcl_vector<vil_image_view<double> > &frames,
-                         const vcl_vector<vpgl_perspective_camera<double> > &cameras,
+compute_cost_volume_warp(const std::vector<vil_image_view<double> > &frames,
+                         const std::vector<vpgl_perspective_camera<double> > &cameras,
                          unsigned int ref_frame,
                          unsigned int S,
                          double depth_min,
@@ -73,8 +73,8 @@ compute_cost_volume_warp(const vcl_vector<vil_image_view<double> > &frames,
 
 SUPER3D_DEPTH_EXPORT
 void
-compute_cost_volume_bp(const vcl_vector<vil_image_view<double> > &frames,
-                       const vcl_vector<vpgl_perspective_camera<double> > &cameras,
+compute_cost_volume_bp(const std::vector<vil_image_view<double> > &frames,
+                       const std::vector<vpgl_perspective_camera<double> > &cameras,
                        unsigned int ref_frame,
                        unsigned int S,
                        double depth_min,
@@ -84,7 +84,7 @@ compute_cost_volume_bp(const vcl_vector<vil_image_view<double> > &frames,
 
 //disparity increases along negative x
 SUPER3D_DEPTH_EXPORT
-void compute_cost_volume_rectified(const vcl_vector<vil_image_view<double> > &frames,
+void compute_cost_volume_rectified(const std::vector<vil_image_view<double> > &frames,
                                   unsigned int ref_frame,
                                   unsigned int S,
                                   double idepth_min,

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 #include "depth_config.h"
 
 #include <vil/vil_image_view.h>
-#include <vcl_vector.h>
+#include <vector>
 #include <super3d/image/adjoint_dbw.h>
 
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,8 @@
  */
 
 
-#include <vcl_iostream.h>
-#include <vcl_limits.h>
+#include <iostream>
+#include <limits>
 
 #include <testlib/testlib_test.h>
 
@@ -67,7 +67,7 @@ test_flow_warp_bilin()
   adj.set_dst_size(ni+20, nj+20, 3);
   TEST("Bilin: forward and backward warping adjoint (different size images)", true, adj.is_adjoint());
 
-  vil_crop(flow, 10, 20, 10, 20).fill(vcl_numeric_limits<float>::quiet_NaN());
+  vil_crop(flow, 10, 20, 10, 20).fill(std::numeric_limits<float>::quiet_NaN());
   TEST("Bilin: forward and backward warping adjoint (with invalid flow)", true, adj.is_adjoint());
 }
 
@@ -89,7 +89,7 @@ test_flow_warp_bicub()
   adj.set_dst_size(ni+20, nj+20, 3);
   TEST("Bicub: forward and backward warping adjoint (different size images)", true, adj.is_adjoint());
 
-  vil_crop(flow, 10, 20, 10, 20).fill(vcl_numeric_limits<float>::quiet_NaN());
+  vil_crop(flow, 10, 20, 10, 20).fill(std::numeric_limits<float>::quiet_NaN());
   TEST("Bicub: forward and backward warping adjoint (with invalid flow)", true, adj.is_adjoint());
 }
 

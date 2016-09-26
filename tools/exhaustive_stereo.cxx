@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,16 +48,16 @@
 #include <vil/vil_resample_bilin.h>
 
 // vcl includes
-#include <vcl_iostream.h>
-#include <vcl_string.h>
+#include <iostream>
+#include <string>
 
 
 //C:/Data/ground_medians/cameras.txt C:/Data/ground_medians/full_window15_reset50/frame###.png,000:100:950 c:/Data/meshes/crop.obj -f 0  -e C:/Data/exposure/exposure.txt -cw "767 1320 757 954"
 int main(int argc, char* argv[])
 {
-  vul_arg<vcl_string> image1_file( 0, "image 1 name", "" );
-  vul_arg<vcl_string> image2_file( 0, "image 2 name", "" );
-  vul_arg<vcl_string> output_file( 0, "output disparity map (image file)", "");
+  vul_arg<std::string> image1_file( 0, "image 1 name", "" );
+  vul_arg<std::string> image2_file( 0, "image 2 name", "" );
+  vul_arg<std::string> output_file( 0, "output disparity map (image file)", "");
 
   vul_arg_parse( argc, argv );
 
@@ -68,14 +68,14 @@ int main(int argc, char* argv[])
     vil_image_resource_sptr img1_rsc = vil_load_image_resource(image1_file().c_str());
     if (img1_rsc == NULL)
     {
-      vcl_cerr << "cannot load image 1\n";
+      std::cerr << "cannot load image 1\n";
       return 1;
     }
 
     vil_image_resource_sptr img2_rsc = vil_load_image_resource(image2_file().c_str());
     if (img2_rsc == NULL)
     {
-      vcl_cerr << "cannot load image 2\n";
+      std::cerr << "cannot load image 2\n";
       return 1;
     }
 
@@ -88,10 +88,10 @@ int main(int argc, char* argv[])
   double idepth_min = 0.25;
   double idepth_max = 16;
 
-  vcl_cout << "Initializing depth map"<<vcl_endl;
+  std::cout << "Initializing depth map"<<std::endl;
   vil_image_view<double> depth(img1.ni(), img1.nj(), 1);
 
-  vcl_cout << "Refining depth"<<vcl_endl;
+  std::cout << "Refining depth"<<std::endl;
   unsigned int S = 64;
   double theta0 = 100.0;
   double beta_end = 1e-7;
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
   vil_image_view<double> cost_volume;
 
 #if 1
-  vcl_vector<vil_image_view<double> > frames;
+  std::vector<vil_image_view<double> > frames;
   frames.push_back(img1);
   frames.push_back(img2);
   super3d::compute_cost_volume_rectified(frames, 0, S, idepth_min, idepth_max, cost_volume);
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
   vil_sobel_3x3(img1, img1_g);
 
   const double alpha = 5.0;
-  vcl_cout << "Computing g weighting.\n";
+  std::cout << "Computing g weighting.\n";
   for (unsigned int i = 0; i < img1_g.ni(); i++)
   {
     for (unsigned int j = 0; j < img1_g.nj(); j++)

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ void finite_value_range(const vil_image_view<double>& img,
   const unsigned nj = img.nj();
   assert(img.nplanes() == 1);
 
-  vcl_ptrdiff_t istep=img.istep(),  jstep=img.jstep();
+  std::ptrdiff_t istep=img.istep(),  jstep=img.jstep();
   bool first_finite = true;
 
   const double* row = img.top_left_ptr();

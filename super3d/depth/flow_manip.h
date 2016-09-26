@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 
 #include "depth_config.h"
 
-#include <vcl_vector.h>
+#include <vector>
 
 #include <vil/vil_image_view.h>
 #include <vpgl/vpgl_perspective_camera.h>
@@ -50,10 +50,10 @@ namespace super3d
 /// \param depth  The depth map relative to \a ref_cam.
 /// \retval flows The computed optical flow fields from \a ref_cam to all \a cameras.
 SUPER3D_DEPTH_EXPORT
-void compute_flows_from_depth(const vcl_vector<vpgl_perspective_camera<double> > &cameras,
+void compute_flows_from_depth(const std::vector<vpgl_perspective_camera<double> > &cameras,
                               const vpgl_perspective_camera<double> &ref_cam,
                               const vil_image_view<double> &depth,
-                              vcl_vector<vil_image_view<double> > &flows);
+                              std::vector<vil_image_view<double> > &flows);
 
 
 /// Compute optical flows induced by camera pair and a depth map.
@@ -65,10 +65,10 @@ void compute_flows_from_depth(const vcl_vector<vpgl_perspective_camera<double> >
 /// \param depth  The depth map relative to \a ref_cam.
 /// \retval flows The computed optical flow fields from \a ref_cam to all \a cameras.
 SUPER3D_DEPTH_EXPORT
-void compute_occluded_flows_from_depth(const vcl_vector<vpgl_perspective_camera<double> > &cameras,
+void compute_occluded_flows_from_depth(const std::vector<vpgl_perspective_camera<double> > &cameras,
                                        const vpgl_perspective_camera<double> &ref_cam,
                                        const vil_image_view<double> &depth,
-                                       vcl_vector<vil_image_view<double> > &flows);
+                                       std::vector<vil_image_view<double> > &flows);
 
 
 /// Compute the axis-aligned bounding box contain all flow vectors destinations.

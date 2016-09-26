@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vcl_iostream.h>
+#include <iostream>
 
 #include <vil/vil_math.h>
 #include <boost/bind.hpp>
@@ -75,7 +75,7 @@ test_rescaler()
 
   double sum1 = dot_product(I0, u_I1);
   double sum2 = dot_product(I1, d_I0);
-  double relative_error = vcl_abs(sum1 - sum2) / vcl_abs(sum1);
+  double relative_error = std::abs(sum1 - sum2) / std::abs(sum1);
 
   TEST_NEAR("down scaling and up scaling adjoint", relative_error, 0.0, 1e-8);
 }

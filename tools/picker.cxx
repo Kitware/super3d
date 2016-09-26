@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,7 +77,7 @@ void Picker::SetUpChart(vtkRenderer *chart_renderer,
   fread(&dims[1], sizeof(unsigned int), 1, costvol);
   fread(&dims[2], sizeof(unsigned int), 1, costvol);
 
-  vcl_cout << dims[0] << " " << dims[1] << " " << dims[2] << "\n";
+  std::cout << dims[0] << " " << dims[1] << " " << dims[2] << "\n";
   // Now the chart
   chart = vtkSmartPointer<vtkChartXY>::New();
   chartScene = vtkSmartPointer<vtkContextScene>::New();
@@ -120,7 +120,7 @@ void Picker::UpdateChart(unsigned int picked)
   unsigned int i = picked % dims[0];
   unsigned int j = picked / dims[0];
 
-  vcl_cout << i << " " << j << "\n";
+  std::cout << i << " " << j << "\n";
 
   vnl_vector<double> values;
   super3d::read_cost_volume_at(costvol, dims, i, j, values);

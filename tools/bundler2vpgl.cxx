@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vcl_iostream.h>
-#include <vcl_fstream.h>
-#include <vcl_string.h>
-#include <vcl_iomanip.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <iomanip>
 
 #ifdef HAVE_VTK
 #include <vtkXMLPolyDataWriter.h>
@@ -53,7 +53,7 @@
 #include <vnl/vnl_matrix_fixed.h>
 #include <vil/vil_load.h>
 #include <vil/vil_image_view.h>
-#include <vcl_sstream.h>
+#include <sstream>
 
 #include <vpgl/algo/vpgl_bundle_adjust.h>
 
@@ -62,21 +62,21 @@
 
 int main(int argc, char *argv[])
 {
-  vcl_string dir(argv[1]);
-  vcl_string bundlerfilename = dir + "/bundle/bundle.out";
-  vcl_string listfilename = dir + "/list.txt";
+  std::string dir(argv[1]);
+  std::string bundlerfilename = dir + "/bundle/bundle.out";
+  std::string listfilename = dir + "/list.txt";
 
-  vcl_ifstream bout(bundlerfilename.c_str());
-  vcl_ifstream list(listfilename.c_str());
-  vcl_ofstream outfile(argv[2]);
+  std::ifstream bout(bundlerfilename.c_str());
+  std::ifstream list(listfilename.c_str());
+  std::ofstream outfile(argv[2]);
 
-  vcl_string line;
-  vcl_getline(bout, line);
+  std::string line;
+  std::getline(bout, line);
 
   unsigned int cams, pts;
   bout >> cams >> pts;
 
-  vcl_ofstream vrml("cameras.wrl");
+  std::ofstream vrml("cameras.wrl");
 
 #ifdef HAVE_VTK
   vtkSmartPointer<vtkPoints> vtkpts = vtkSmartPointer<vtkPoints>::New();
@@ -84,9 +84,9 @@ int main(int argc, char *argv[])
   vtkIdType vert[1];
 #endif
 
-  vcl_ofstream framelist("framelist.txt");
+  std::ofstream framelist("framelist.txt");
 
-  vcl_vector<vpgl_perspective_camera<double> > cameras;
+  std::vector<vpgl_perspective_camera<double> > cameras;
   for (unsigned int i = 0; i < cams; i++)
   {
     double fl, k1, k2;
@@ -95,13 +95,13 @@ int main(int argc, char *argv[])
     if (fabs(fl) < 1e-9)
       continue;
 
-    vcl_getline(list, line);
-    vcl_istringstream lss(line);
+    std::getline(list, line);
+    std::istringstream lss(line);
     lss >> line;
     line.erase(line.begin());
 
     line = dir + line;
-    vcl_cout << "loading image: " << line << "\n";
+    std::cout << "loading image: " << line << "\n";
     vil_image_view<vxl_byte> img = vil_load(line.c_str());
 
     vpgl_calibration_matrix<double> K;
@@ -132,20 +132,20 @@ int main(int argc, char *argv[])
     verts->InsertNextCell(1, vert);
 #endif
 
-    vcl_cout << camcenter << "\n";
+    std::cout << camcenter << "\n";
     vpgl_perspective_camera<double> cam(K, vgl_point_3d<double>(camcenter.data_block()), vgl_rotation_3d<double>(Rx * R));
-    vcl_cout << "Cam Center: " << cam.get_camera_center() << "\n";
+    std::cout << "Cam Center: " << cam.get_camera_center() << "\n";
 
-    vcl_cout << "Principle axis bundle: " << R.transpose() * vnl_vector_fixed<double, 3>(0, 0, -1)  << "\n";
+    std::cout << "Principle axis bundle: " << R.transpose() * vnl_vector_fixed<double, 3>(0, 0, -1)  << "\n";
 
-    outfile << i << "\n" << vcl_setprecision(11) << cam << "\n";
+    outfile << i << "\n" << std::setprecision(11) << cam << "\n";
     framelist << line << "\n";
     cameras.push_back(cam);
     vrml_write(vrml, cam, 0.01);
   }
 
-  vcl_vector<vgl_point_3d<double> > worldpts;
-  vpgl_bundle_adjust::write_vrml(vcl_string("camerasnew.wrl"), cameras, worldpts);
+  std::vector<vgl_point_3d<double> > worldpts;
+  vpgl_bundle_adjust::write_vrml(std::string("camerasnew.wrl"), cameras, worldpts);
 
 #ifdef HAVE_VTK
   vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();

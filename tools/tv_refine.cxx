@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,9 @@
 
 #include "tv_refine.h"
 
-#include <vcl_sstream.h>
-#include <vcl_fstream.h>
-#include <vcl_iomanip.h>
+#include <sstream>
+#include <fstream>
+#include <iomanip>
 
 #include <vil/vil_convert.h>
 #include <vil/vil_save.h>
@@ -169,9 +169,9 @@ compute_linear_bcc(const vil_image_view<double>& I0,
   vnl_vector_fixed<double,3> hy = H.get_column(1);
   vnl_vector_fixed<double,3> h1 = H.get_column(2);
 
-  vcl_ptrdiff_t istep0=I0.istep(),    jstep0=I0.jstep();
-  vcl_ptrdiff_t istepD=depth.istep(), jstepD=depth.jstep();
-  vcl_ptrdiff_t istepB=bcc.istep(),   jstepB=bcc.jstep(),   pstepB=bcc.planestep();
+  std::ptrdiff_t istep0=I0.istep(),    jstep0=I0.jstep();
+  std::ptrdiff_t istepD=depth.istep(), jstepD=depth.jstep();
+  std::ptrdiff_t istepB=bcc.istep(),   jstepB=bcc.jstep(),   pstepB=bcc.planestep();
 
 
   const double* row0 = I0.top_left_ptr();
@@ -249,8 +249,8 @@ apply_bcc_to_depth(const vil_image_view<double>& bcc,
   assert(bcc.nplanes() == 2);
   assert(depth.nplanes() == 1);
 
-  vcl_ptrdiff_t istepB=bcc.istep(),   jstepB=bcc.jstep(),   pstepB=bcc.planestep();
-  vcl_ptrdiff_t istepD=depth.istep(), jstepD=depth.jstep();
+  std::ptrdiff_t istepB=bcc.istep(),   jstepB=bcc.jstep(),   pstepB=bcc.planestep();
+  std::ptrdiff_t istepD=depth.istep(), jstepD=depth.jstep();
 
 
   const double*   rowB = bcc.top_left_ptr();
@@ -301,8 +301,8 @@ apply_bcc_to_depth_lst_sqr_two(const vil_image_view<double>& bcc,
   assert(bcc.nplanes() == 2*num_views);
   assert(depth.nplanes() == 1);
 
-  vcl_ptrdiff_t istepB=bcc.istep(),   jstepB=bcc.jstep(),   pstepB=bcc.planestep();
-  vcl_ptrdiff_t istepD=depth.istep(), jstepD=depth.jstep();
+  std::ptrdiff_t istepB=bcc.istep(),   jstepB=bcc.jstep(),   pstepB=bcc.planestep();
+  std::ptrdiff_t istepD=depth.istep(), jstepD=depth.jstep();
 
   const double*   rowB = bcc.top_left_ptr();
   double*         rowD = depth.top_left_ptr();
@@ -344,8 +344,8 @@ apply_bcc_to_depth_all(const vil_image_view<double>& bcc,
   assert(bcc.nplanes() == 2*num_views);
   assert(depth.nplanes() == 1);
 
-  vcl_ptrdiff_t istepB=bcc.istep(),   jstepB=bcc.jstep(),   pstepB=bcc.planestep();
-  vcl_ptrdiff_t istepD=depth.istep(), jstepD=depth.jstep();
+  std::ptrdiff_t istepB=bcc.istep(),   jstepB=bcc.jstep(),   pstepB=bcc.planestep();
+  std::ptrdiff_t istepD=depth.istep(), jstepD=depth.jstep();
 
   const double*   rowB = bcc.top_left_ptr();
   double*         rowD = depth.top_left_ptr();
@@ -453,7 +453,7 @@ void output_function(const vil_image_view<double>& bcc,
 {
   const unsigned num_views = bcc.nplanes()/2;
 
-  vcl_ofstream pts("pts.txt");
+  std::ofstream pts("pts.txt");
   double min = 0; double min_e = 1e10;
   for (unsigned k = 0; k < num_views; ++k)
   {
@@ -472,7 +472,7 @@ void output_function(const vil_image_view<double>& bcc,
   }
   pts.close();
 
-  vcl_ofstream outfile("eval.txt");
+  std::ofstream outfile("eval.txt");
 
   for (double v = min-1.0; v <= min+1.0; v+=0.00001)
   {
@@ -521,9 +521,9 @@ void output_function(const vil_image_view<double>& bcc,
   else
     final += -pm_u/Imx;
 
-  vcl_ofstream minimum("min.txt");
+  std::ofstream minimum("min.txt");
   minimum << final << " " << eval_vij(bcc, lambda, theta, depth, final, i, j);
   minimum.close();
 
-  vcl_cout << "wrote\n";
+  std::cout << "wrote\n";
 }

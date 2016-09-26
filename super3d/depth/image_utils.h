@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 
 #include <vil/vil_image_view.h>
 #include <vil/vil_math.h>
-#include <vcl_cstdlib.h>
+#include <cstdlib>
 
 
 namespace super3d
@@ -50,7 +50,7 @@ void fill_random(vil_image_view<T>& img, T min_v, T max_v)
     {
       for (unsigned i=0; i < img.ni(); ++i)
       {
-        img(i,j,p) = static_cast<T>(vcl_rand()) / RAND_MAX * scale + min_v;
+        img(i,j,p) = static_cast<T>(std::rand()) / RAND_MAX * scale + min_v;
       }
     }
   }
@@ -73,7 +73,7 @@ double image_norm2(const vil_image_view<T>& img)
       }
     }
   }
-  return vcl_sqrt(sum);
+  return std::sqrt(sum);
 }
 
 

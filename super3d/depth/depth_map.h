@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -200,7 +200,7 @@ void save_depth_to_vtp(const char *filename,
 #endif
 
 SUPER3D_DEPTH_EXPORT
-void write_points_to_vtp(vcl_vector<vnl_double_3> &points, const char *filename);
+void write_points_to_vtp(std::vector<vnl_double_3> &points, const char *filename);
 
 } // end namespace super3d
 

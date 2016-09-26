@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2010 by Kitware, Inc.
+ * Copyright 2010-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,9 +98,9 @@ parallax_warp(const vil_image_view<double>& depth_map,
   const unsigned np = other_view.nplanes();
   rendered.set_size(ni,nj,np);
 
-  vcl_ptrdiff_t istepD=depth_map.istep(), jstepD=depth_map.jstep();
-  vcl_ptrdiff_t istepR=rendered.istep(),  jstepR=rendered.jstep();
-  vcl_ptrdiff_t pstepR=rendered.planestep();
+  std::ptrdiff_t istepD=depth_map.istep(), jstepD=depth_map.jstep();
+  std::ptrdiff_t istepR=rendered.istep(),  jstepR=rendered.jstep();
+  std::ptrdiff_t pstepR=rendered.planestep();
 
   const double* rowD = depth_map.top_left_ptr();
   T*            rowR = rendered.top_left_ptr();

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
 
 #include "tv_utils.h"
 
-#include <vcl_algorithm.h>
-#include <vcl_limits.h>
+#include <algorithm>
+#include <limits>
 
 
 namespace super3d
@@ -46,7 +46,7 @@ min_search_bound(vil_image_view<double> &a,
            double lambda)
 {
   double coeff = (1.0/(2.0*theta));
-  double range_coeff = vcl_sqrt(2.0 * theta * lambda);
+  double range_coeff = std::sqrt(2.0 * theta * lambda);
   unsigned int S = cost_volume.nplanes();
   double a_step = 1.0 / S;
 
@@ -62,8 +62,8 @@ min_search_bound(vil_image_view<double> &a,
       // range needs to be shifted to the closest edge of the volume
       // for example if dij < 0 then search in [0, r] and
       // if dij > 0 search in [1-r, 1]
-      double min_idepth = vcl_min(vcl_max(dij - r, 0.0), 1.0 - r);
-      double max_idepth = vcl_min(vcl_max(dij + r, r), 1.0);
+      double min_idepth = std::min(std::max(dij - r, 0.0), 1.0 - r);
+      double max_idepth = std::min(std::max(dij + r, r), 1.0);
 
       unsigned int k = static_cast<unsigned int>(min_idepth * S);
       if (k >= S)

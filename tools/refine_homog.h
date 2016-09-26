@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 #include <vnl/vnl_double_3x3.h>
 #include <vnl/vnl_double_2.h>
 
-#include <vcl_vector.h>
+#include <vector>
 
 /// Refines the planar homography that warps from moving -> fixed images
 /// \param fixed the destination image of the homography
@@ -73,7 +73,7 @@ struct edgel
 void extract_driving_edgels(const vil_image_view<double> &img,
                             double grad_thresh,
                             double sigma,
-                            vcl_vector<edgel> &edgels);
+                            std::vector<edgel> &edgels);
 
 /// Extracts edgels from the fixed image into a vector and index map
 /// \param img the image to compute edgels on
@@ -84,7 +84,7 @@ void extract_driving_edgels(const vil_image_view<double> &img,
 void extract_matchable_edgels(const vil_image_view<double> &img,
                               double grad_thresh,
                               double sigma,
-                              vcl_vector<edgel> &edgels,
+                              std::vector<edgel> &edgels,
                               vil_image_view<unsigned int> &index);
 
 struct match
@@ -110,17 +110,17 @@ vnl_double_2 warp_normal(const vnl_double_3x3 &H, const vnl_double_2 &pt, const 
 /// \param matches vector of matches for the computed matches
 /// \param normal_cutoff the threshold on cos(angle) between the warped normal and fixed normal
 void match_edgels(const vnl_double_3x3 &H,
-                  const vcl_vector<edgel> &e_fixed,
-                  const vcl_vector<edgel> &e_moving,
+                  const std::vector<edgel> &e_fixed,
+                  const std::vector<edgel> &e_moving,
                   const vil_image_view<unsigned int> &index,
                   const double search_rad,
-                  vcl_vector<match> &matches,
+                  std::vector<match> &matches,
                   double normal_cutoff = 0.8);
 
 /// Uses Levenberg-Marquardt to estimate a new homography using normal distances
 /// \param corresp the edgel matches
 /// \param H the homography
-void estimate_homog_lm(const vcl_vector<match> &corresp, vnl_double_3x3 &H);
+void estimate_homog_lm(const std::vector<match> &corresp, vnl_double_3x3 &H);
 
 vnl_double_2 mult_and_norm(const vnl_double_3x3 &T, const vnl_double_2 &x);
 

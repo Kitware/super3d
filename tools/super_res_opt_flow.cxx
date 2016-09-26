@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@
 #include <super3d/image/adjoint_resample.h>
 #include <super3d/image/adjoint_dbw.h>
 
-#include <vcl_iostream.h>
+#include <iostream>
 #include <boost/bind.hpp>
 
 #include <vil/vil_crop.h>
@@ -66,32 +66,32 @@
 #include "super3d/depth_cl/super_res.h"
 #endif
 
-void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_image_view<double> > &flows);
-void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
-                             const vcl_vector<vil_image_view<double> > &frames,
-                             vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
+void load_flow(const char *flow_list, const std::string &dir, std::vector<vil_image_view<double> > &flows);
+void create_warps_from_flows(const std::vector<vil_image_view<double> > &flows,
+                             const std::vector<vil_image_view<double> > &frames,
+                             std::vector<super3d::adjoint_image_ops_func<double> > &warps,
                              int scale_factor,
                              bool down_sample_averaging,
                              bool bicubic_warping,
                              double sensor_sigma);
-void load_homogs(const char *homog_list, vcl_vector<vgl_h_matrix_2d<double> > &homogs,
-                 const vcl_vector<int> &frameindex,
+void load_homogs(const char *homog_list, std::vector<vgl_h_matrix_2d<double> > &homogs,
+                 const std::vector<int> &frameindex,
                  bool create_low_res,
                  double scale_factor);
-void refine_homogs(vcl_vector<vgl_h_matrix_2d<double> > &homogs,
-                   const vcl_vector<vil_image_view<double> > &frames,
+void refine_homogs(std::vector<vgl_h_matrix_2d<double> > &homogs,
+                   const std::vector<vil_image_view<double> > &frames,
                    unsigned int ref_frame,
                    int i0, int ni, int j0, int nj,
                    int margin);
-void homogs_to_flows(const vcl_vector<vgl_h_matrix_2d<double> > &homogs,
-                     int ref_frame, const vcl_vector<vil_image_view<double> > &frames,
+void homogs_to_flows(const std::vector<vgl_h_matrix_2d<double> > &homogs,
+                     int ref_frame, const std::vector<vil_image_view<double> > &frames,
                      int i0, int j0, int ni, int nj,
-                     int scale_factor, vcl_vector<vil_image_view<double> > &flows);
-void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
-                           vcl_vector<vil_image_view<double> > &frames,
+                     int scale_factor, std::vector<vil_image_view<double> > &flows);
+void crop_frames_and_flows(std::vector<vil_image_view<double> > &flows,
+                           std::vector<vil_image_view<double> > &frames,
                            int scale_factor, int margin);
-void write_warped_frames(const vcl_vector<vil_image_view<double> > &frames,
-                         const vcl_vector<vgl_h_matrix_2d<double> > &homogs,
+void write_warped_frames(const std::vector<vil_image_view<double> > &frames,
+                         const std::vector<vgl_h_matrix_2d<double> > &homogs,
                          int i0, int j0, int ni, int nj,
                          unsigned int ref_frame);
 ///Converts optical flow 2 plane image to an RGB image
@@ -99,7 +99,7 @@ void flow_to_colormap(const vil_image_view<double> &flow,
                       const vil_image_view<double> &ref_flow,
                       vil_image_view<vil_rgb<vxl_byte> > &colormap_flow,
                       double max_flow = 0.0);
-void create_low_res(vcl_vector<vil_image_view<double> > &frames,
+void create_low_res(std::vector<vil_image_view<double> > &frames,
                     int scale,
                     bool down_sample_averaging,
                     double sensor_sigma);
@@ -118,17 +118,17 @@ int main(int argc, char* argv[])
     use_gpu = false;
 #endif
 
-    vcl_vector<vil_image_view<double> > frames;
-    vcl_vector<vpgl_perspective_camera<double> >  cameras;
-    vcl_vector<vcl_string> filenames;
-    vcl_vector<int> frameindex;
+    std::vector<vil_image_view<double> > frames;
+    std::vector<vpgl_perspective_camera<double> >  cameras;
+    std::vector<std::string> filenames;
+    std::vector<int> frameindex;
 
-    vcl_string frame_file = cfg->get_value<vcl_string>("frame_list");
-    vcl_string dir("");
+    std::string frame_file = cfg->get_value<std::string>("frame_list");
+    std::string dir("");
     if (cfg->is_set("directory"))
-      dir = cfg->get_value<vcl_string>("directory");
+      dir = cfg->get_value<std::string>("directory");
 
-    vcl_cout << "Using frame file: " << frame_file << " to find images and flows.\n";
+    std::cout << "Using frame file: " << frame_file << " to find images and flows.\n";
 
     const unsigned int ref_frame = cfg->get_value<unsigned int>("ref_frame");
     const double scale_factor = cfg->get_value<double>("scale_factor");
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
 
     if (cfg->is_set("crop_window"))
     {
-      vcl_istringstream cwstream(cfg->get_value<vcl_string>("crop_window"));
+      std::istringstream cwstream(cfg->get_value<std::string>("crop_window"));
       cwstream >> i0 >> ni >> j0 >> nj;
     }
     else
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
     original.deep_copy(frames[ref_frame]);
     if (cfg->is_set("create_low_res") && cfg->get_value<bool>("create_low_res"))
     {
-      vcl_cout << "Creating low resolution data\n";
+      std::cout << "Creating low resolution data\n";
       original = vil_crop(original, i0, ni, j0, nj);
       vil_image_view<unsigned short> out;
       vil_convert_stretch_range_limited(original, out, 0.0, 255.0, 0, 65535);
@@ -176,12 +176,12 @@ int main(int argc, char* argv[])
 
     ref_image.deep_copy(frames[ref_frame]);
 
-    vcl_vector<super3d::adjoint_image_ops_func<double> > warps;
-    vcl_vector<vil_image_view<double> > flows;
+    std::vector<super3d::adjoint_image_ops_func<double> > warps;
+    std::vector<vil_image_view<double> > flows;
 
     if (cfg->is_set("flow_file"))
     {
-      load_flow( cfg->get_value<vcl_string>("flow_file").c_str(), dir, flows);
+      load_flow( cfg->get_value<std::string>("flow_file").c_str(), dir, flows);
       if (!use_gpu)
       {
         create_warps_from_flows(flows, frames, warps, scale_factor,
@@ -192,14 +192,14 @@ int main(int argc, char* argv[])
     }
     else if (cfg->is_set("homog_file"))
     {
-      vcl_vector<vgl_h_matrix_2d<double> > homogs;
-      load_homogs(cfg->get_value<vcl_string>("homog_file").c_str(), homogs, frameindex,
+      std::vector<vgl_h_matrix_2d<double> > homogs;
+      load_homogs(cfg->get_value<std::string>("homog_file").c_str(), homogs, frameindex,
             cfg->get_value<bool>("create_low_res"),
             cfg->get_value<double>("sensor_sigma"));
 
       if (cfg->is_set("crop_window"))
       {
-        vcl_cout << frames[ref_frame].ni() << " " << frames[ref_frame].nj() << "\n";
+        std::cout << frames[ref_frame].ni() << " " << frames[ref_frame].nj() << "\n";
         if (cfg->get_value<bool>("create_low_res"))
         {
           i0 /= scale_factor;
@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
 
       //for (unsigned int i = 0; i < flows.size(); i++)
       //{
-      //  vcl_cout << flows[i].ni() << " " << flows[i].nj() << "\n";
+      //  std::cout << flows[i].ni() << " " << flows[i].nj() << "\n";
       //  vil_image_view<vil_rgb<vxl_byte> > colormap_flow;
       //  flow_to_colormap(flows[i], flows[ref_frame], colormap_flow, 3);
       //  char buf[40];
@@ -255,7 +255,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-      vcl_cerr << "Must specify flow file or homog file.\n";
+      std::cerr << "Must specify flow file or homog file.\n";
       return 1;
     }
 
@@ -280,7 +280,7 @@ int main(int argc, char* argv[])
 
       super3d::cl::super_res_cl srcl;
       vil_image_view<float> super_u_flt;
-      vcl_vector<vil_image_view<float> > frames_flt, flows_flt;
+      std::vector<vil_image_view<float> > frames_flt, flows_flt;
       frames_flt.resize(frames.size());
       flows_flt.resize(frames.size());
       for (unsigned int i = 0; i < frames.size(); i++)
@@ -289,10 +289,10 @@ int main(int argc, char* argv[])
         vil_convert_cast(flows[i], flows_flt[i]);
       }
 
-      vcl_cout << "Starting GPU Super Res.\n";
+      std::cout << "Starting GPU Super Res.\n";
       srcl.super_resolve(frames_flt, flows_flt, super_u_flt, srp, iterations);
       vil_convert_cast(super_u_flt, super_u);
-      vcl_cout << "finished GPU!\n";
+      std::cout << "finished GPU!\n";
       return 0;
 #endif
     }
@@ -310,7 +310,7 @@ int main(int argc, char* argv[])
       srp.epsilon_reg = cfg->get_value<double>("epsilon_reg");
       srp.sigma = cfg->get_value<double>("sigma");
       srp.tau = cfg->get_value<double>("tau");
-      super3d::super_resolve(frames, warps, super_u, srp, iterations, cfg->get_value<vcl_string>("output_image"));
+      super3d::super_resolve(frames, warps, super_u, srp, iterations, cfg->get_value<std::string>("output_image"));
     }
 
     vil_image_view<double> upsamp;
@@ -324,16 +324,16 @@ int main(int argc, char* argv[])
       vil_math_scale_values(original, 1.0/255.0);
       vil_math_scale_values(upsamp, 1.0/255.0);
       vil_math_scale_values(waa, 1.0/255.0);
-      vcl_cout << "ssd bicub: " << vil_math_ssd(upsamp, original, double()) << "\n";
-      vcl_cout << "ssd mfavg: " << vil_math_ssd(waa, original, double()) << "\n";
-      vcl_cout << "ssd super: " << vil_math_ssd(super_u, original, double()) << "\n";
+      std::cout << "ssd bicub: " << vil_math_ssd(upsamp, original, double()) << "\n";
+      std::cout << "ssd mfavg: " << vil_math_ssd(waa, original, double()) << "\n";
+      std::cout << "ssd super: " << vil_math_ssd(super_u, original, double()) << "\n";
     }
 
     vil_convert_stretch_range_limited(super_u, output, 0.0, 1.0, 0, 65535);
-    vil_save(output, cfg->get_value<vcl_string>("output_image").c_str());
+    vil_save(output, cfg->get_value<std::string>("output_image").c_str());
   }
   catch (const super3d::config::cfg_exception &e)  {
-    vcl_cout << "Error in config: " << e.what() << "\n";
+    std::cout << "Error in config: " << e.what() << "\n";
   }
 
 
@@ -343,8 +343,8 @@ int main(int argc, char* argv[])
 //*****************************************************************************
 
 /// Use the valid region of the flow destinations to crop the frames and translate the flow.
-void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
-                           vcl_vector<vil_image_view<double> > &frames,
+void crop_frames_and_flows(std::vector<vil_image_view<double> > &flows,
+                           std::vector<vil_image_view<double> > &frames,
                            int scale_factor, int margin)
 {
   assert(flows.size() == frames.size());
@@ -352,8 +352,8 @@ void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
   {
     // get a bounding box around the flow and expand by a margin
     vgl_box_2d<double> bounds = super3d::flow_destination_bounds(flows[i]);
-    vgl_box_2d<int> bbox(vcl_floor(bounds.min_x()), vcl_ceil(bounds.max_x()),
-                         vcl_floor(bounds.min_y()), vcl_ceil(bounds.max_y()));
+    vgl_box_2d<int> bbox(std::floor(bounds.min_x()), std::ceil(bounds.max_x()),
+                         std::floor(bounds.min_y()), std::ceil(bounds.max_y()));
     bbox.expand_about_centroid(2*margin);
 
     // get a bounding box around the (up sampled) image and intersect
@@ -371,9 +371,9 @@ void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
 
 //*****************************************************************************
 
-void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
-                             const vcl_vector<vil_image_view<double> > &frames,
-                             vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
+void create_warps_from_flows(const std::vector<vil_image_view<double> > &flows,
+                             const std::vector<vil_image_view<double> > &frames,
+                             std::vector<super3d::adjoint_image_ops_func<double> > &warps,
                              int scale_factor,
                              bool down_sample_averaging,
                              bool bicubic_warping,
@@ -398,10 +398,10 @@ void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
 
 //*****************************************************************************
 
-void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_image_view<double> > &flows)
+void load_flow(const char *flow_list, const std::string &dir, std::vector<vil_image_view<double> > &flows)
 {
-  vcl_ifstream infile(flow_list);
-  vcl_string flowname;
+  std::ifstream infile(flow_list);
+  std::string flowname;
 
   while (infile >> flowname)
   {
@@ -409,17 +409,17 @@ void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_imag
     super3d::read_flow_file(flowimg, (dir + flowname).c_str());
     flows.push_back(flowimg);
   }
-  vcl_cout << "Read " << flows.size() << " flows.\n";
+  std::cout << "Read " << flows.size() << " flows.\n";
 }
 
 //*****************************************************************************
 
-void load_homogs(const char *homog_list, vcl_vector<vgl_h_matrix_2d<double> > &homogs,
-                 const vcl_vector<int> &frameindex,
+void load_homogs(const char *homog_list, std::vector<vgl_h_matrix_2d<double> > &homogs,
+                 const std::vector<int> &frameindex,
                  bool create_low_res,
                  double scale_factor)
 {
-  vcl_ifstream infile(homog_list);
+  std::ifstream infile(homog_list);
   vgl_h_matrix_2d<double> H;
   int index = 0; int framenum = 0;
   while (infile >> H)
@@ -450,13 +450,13 @@ void load_homogs(const char *homog_list, vcl_vector<vgl_h_matrix_2d<double> > &h
 
 //*****************************************************************************
 
-void refine_homogs(vcl_vector<vgl_h_matrix_2d<double> > &homogs,
-                   const vcl_vector<vil_image_view<double> > &frames,
+void refine_homogs(std::vector<vgl_h_matrix_2d<double> > &homogs,
+                   const std::vector<vil_image_view<double> > &frames,
                    unsigned int ref_frame,
                    int i0, int ni, int j0, int nj,
                    int margin)
 {
-  vcl_cout << "Refining homog ";
+  std::cout << "Refining homog ";
   vil_image_view<double> refimg;
 
   if (frames[ref_frame].nplanes() > 1)
@@ -472,7 +472,7 @@ void refine_homogs(vcl_vector<vgl_h_matrix_2d<double> > &homogs,
   vnl_double_3x3 ref_H_inv = homogs[ref_frame].get_inverse().get_matrix();
   for (unsigned int i = 0; i < homogs.size(); i++)
   {
-    vcl_cout << i << " ";
+    std::cout << i << " ";
     vil_image_view<double> img;
 
     if (frames[i].nplanes() > 1)
@@ -495,17 +495,17 @@ void refine_homogs(vcl_vector<vgl_h_matrix_2d<double> > &homogs,
     homogs[i].set(H);
   }
 
-  vcl_cout << "\n";
+  std::cout << "\n";
 }
 
 //*****************************************************************************
 
-void homogs_to_flows(const vcl_vector<vgl_h_matrix_2d<double> > &homogs,
-                     int ref_frame, const vcl_vector<vil_image_view<double> > &frames,
+void homogs_to_flows(const std::vector<vgl_h_matrix_2d<double> > &homogs,
+                     int ref_frame, const std::vector<vil_image_view<double> > &frames,
                      int i0, int j0, int ni, int nj,
-                     int scale_factor, vcl_vector<vil_image_view<double> > &flows)
+                     int scale_factor, std::vector<vil_image_view<double> > &flows)
 {
-  vcl_string flowname;
+  std::string flowname;
 
   const vgl_h_matrix_2d<double> &ref_H = homogs[ref_frame];
 
@@ -526,7 +526,7 @@ void homogs_to_flows(const vcl_vector<vgl_h_matrix_2d<double> > &homogs,
 
     vil_image_view<double> flow;
     flow.set_size(ni, nj, 2);
-    flow.fill(vcl_numeric_limits<double>::quiet_NaN());
+    flow.fill(std::numeric_limits<double>::quiet_NaN());
     for (int i = 0; i < ni; i++)
     {
       for (int j = 0; j < nj; j++)
@@ -540,13 +540,13 @@ void homogs_to_flows(const vcl_vector<vgl_h_matrix_2d<double> > &homogs,
     flows.push_back(flow);
   }
 
-  vcl_cout << "Converted " << flows.size() << " Homogs to flows.\n";
+  std::cout << "Converted " << flows.size() << " Homogs to flows.\n";
 }
 
 //*****************************************************************************
 
-void write_warped_frames(const vcl_vector<vil_image_view<double> > &frames,
-                         const vcl_vector<vgl_h_matrix_2d<double> > &homogs,
+void write_warped_frames(const std::vector<vil_image_view<double> > &frames,
+                         const std::vector<vgl_h_matrix_2d<double> > &homogs,
                          int i0, int j0, int ni, int nj,
                          unsigned int ref_frame)
 {
@@ -571,7 +571,7 @@ void write_warped_frames(const vcl_vector<vil_image_view<double> > &frames,
 
     double min, max;
     vil_math_value_range(warped, min, max);
-    vcl_cout << min << " " << max << "\n";
+    std::cout << min << " " << max << "\n";
     vil_image_view<vxl_byte> output;
     vil_convert_stretch_range_limited(warped, output, 0.0, 1.0, 0, 255);
     sprintf(buf, "images/warped_frame%02d.png", i);
@@ -602,7 +602,7 @@ void flow_to_colormap(const vil_image_view<double> &flow,
     }
   }
 
-  vcl_cout << "Using max flow: " << max_flow << ".\n";
+  std::cout << "Using max flow: " << max_flow << ".\n";
 
   colormap_flow.set_size(ni,nj);
   //Convert flow to HSV to RGB
@@ -655,7 +655,7 @@ void flow_to_colormap(const vil_image_view<double> &flow,
   }
 }
 
-void create_low_res(vcl_vector<vil_image_view<double> > &frames,
+void create_low_res(std::vector<vil_image_view<double> > &frames,
                     int scale,
                     bool down_sample_averaging,
                     double sensor_sigma)

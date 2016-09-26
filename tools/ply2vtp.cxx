@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vcl_iostream.h>
-#include <vcl_string.h>
-#include <vcl_fstream.h>
-#include <vcl_vector.h>
-#include <vcl_set.h>
-#include <vcl_algorithm.h>
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <vector>
+#include <set>
+#include <algorithm>
 #include <vtkXMLPolyDataWriter.h>
 #include <vtkPolyData.h>
 #include <vtkPoints.h>
@@ -62,13 +62,13 @@ struct Triangle
 struct Vertex
 {
   vnl_double_3 p;
-  vcl_vector<Triangle *> tris;
+  std::vector<Triangle *> tris;
 };
 
 
-void MeshMedianFilter(vcl_vector<Vertex> &verts, const vcl_vector<Triangle *> &tris);
-void MeshMedianFilter(vcl_vector<Vertex> &verts, const vnl_double_3 &plane_pt, const vnl_double_3 &plane_n);
-void WriteMesh(const vcl_vector<Vertex> &verts, const vcl_vector<Triangle *> &tris, const char *filename);
+void MeshMedianFilter(std::vector<Vertex> &verts, const std::vector<Triangle *> &tris);
+void MeshMedianFilter(std::vector<Vertex> &verts, const vnl_double_3 &plane_pt, const vnl_double_3 &plane_n);
+void WriteMesh(const std::vector<Vertex> &verts, const std::vector<Triangle *> &tris, const char *filename);
 void ReadPLY(const char *filename, vtkSmartPointer<vtkPolyData> &polydata, bool hasnormals);
 void ClipFromPlane(vtkSmartPointer<vtkPolyData> &polydata, vnl_double_3 *plane, double tolerance);
 
@@ -77,7 +77,7 @@ void ClipFromPlane(vtkSmartPointer<vtkPolyData> &polydata, vnl_double_3 *plane, 
 int main(int argc, char *argv[])
 {
   if (argc > 2) {
-    vcl_cout << "ply2vtp filename.ply\n";
+    std::cout << "ply2vtp filename.ply\n";
     return 1;
   }
 
@@ -86,19 +86,19 @@ int main(int argc, char *argv[])
   vnl_double_3 plane[3];
   ClipFromPlane(polydata, plane, 1);
 
-  vcl_string filename(argv[1]);
+  std::string filename(argv[1]);
   filename[filename.size()-3] = 'v';
   filename[filename.size()-2] = 't';
   filename[filename.size()-1] = 'p';
 
-  vcl_cout << "Triangulating...\n";
+  std::cout << "Triangulating...\n";
   vtkSmartPointer<vtkDelaunay2D> del = vtkSmartPointer<vtkDelaunay2D>::New();
   del->SetInputData(polydata);
   del->Update();
 
   vtkPolyData *triangulated = del->GetOutput();
 
-  vcl_vector<Vertex> verts;
+  std::vector<Vertex> verts;
   for (unsigned int i = 0; i < triangulated->GetPoints()->GetNumberOfPoints(); i++)
   {
     Vertex v;
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
     verts.push_back(v);
   }
 
-  vcl_vector<Triangle *> triangles;
+  std::vector<Triangle *> triangles;
   vtkIdType npts, *tri;
   triangulated->GetPolys()->InitTraversal();
   while(triangulated->GetPolys()->GetNextCell(npts,tri))
@@ -136,17 +136,17 @@ int main(int argc, char *argv[])
 
 void ReadPLY(const char *filename, vtkSmartPointer<vtkPolyData> &polydata, bool hasnormals)
 {
-  vcl_ifstream infile(filename);
-  vcl_string x;
+  std::ifstream infile(filename);
+  std::string x;
   unsigned int numpts = 0;
   while (infile >> x) {
-    if (x == vcl_string("element"))
+    if (x == std::string("element"))
       infile >> x >> numpts;
-  if (x == vcl_string("end_header"))
+  if (x == std::string("end_header"))
       break;
   }
 
-  vcl_cout << "read " << numpts << " points.\n";
+  std::cout << "read " << numpts << " points.\n";
 
   vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkFloatArray> normals = vtkSmartPointer<vtkFloatArray>::New();
@@ -158,7 +158,7 @@ void ReadPLY(const char *filename, vtkSmartPointer<vtkPolyData> &polydata, bool 
   colors->SetName("colors");
   colors->SetNumberOfComponents(3);
 
-  vcl_cout << "Reading points...\n";
+  std::cout << "Reading points...\n";
   vtkIdType vert[1];
   for (unsigned int i = 0; i < numpts; i++)
   {
@@ -200,11 +200,11 @@ bool less_theta(const Theta &l, const Theta &r)
   return l.theta < r.theta;
 }
 
-void MeshMedianFilter(vcl_vector<Vertex> &verts, const vcl_vector<Triangle *> &tris)
+void MeshMedianFilter(std::vector<Vertex> &verts, const std::vector<Triangle *> &tris)
 {
   for (unsigned int i = 0; i < tris.size(); i++)
   {
-    vcl_set<Triangle *> neighbors;
+    std::set<Triangle *> neighbors;
     Triangle *t = tris[i];
 
     neighbors.insert(verts[t->a].tris.begin(), verts[t->a].tris.end());
@@ -212,8 +212,8 @@ void MeshMedianFilter(vcl_vector<Vertex> &verts, const vcl_vector<Triangle *> &t
     neighbors.insert(verts[t->c].tris.begin(), verts[t->c].tris.end());
 
     neighbors.erase(t);
-    vcl_vector<Theta> thetas;
-    for (vcl_set<Triangle *>::iterator itr = neighbors.begin(); itr != neighbors.end(); itr++)
+    std::vector<Theta> thetas;
+    for (std::set<Triangle *>::iterator itr = neighbors.begin(); itr != neighbors.end(); itr++)
     {
       Theta th;
       th.theta = acos(dot_product(t->n, (*itr)->n));
@@ -221,7 +221,7 @@ void MeshMedianFilter(vcl_vector<Vertex> &verts, const vcl_vector<Triangle *> &t
       thetas.push_back(th);
     }
 
-    vcl_sort(thetas.begin(), thetas.end(), less_theta);
+    std::sort(thetas.begin(), thetas.end(), less_theta);
     t->m = thetas[thetas.size()/2].t->n;
   }
 
@@ -254,9 +254,9 @@ void MeshMedianFilter(vcl_vector<Vertex> &verts, const vcl_vector<Triangle *> &t
 
 //*****************************************************************************
 
-void MeshMedianFilter(vcl_vector<Vertex> &verts, const vnl_double_3 &plane_pt, const vnl_double_3 &plane_n)
+void MeshMedianFilter(std::vector<Vertex> &verts, const vnl_double_3 &plane_pt, const vnl_double_3 &plane_n)
 {
-  vcl_vector<vnl_double_3> newlocs;
+  std::vector<vnl_double_3> newlocs;
   for (unsigned int i = 0; i < verts.size(); i++)
   {
     if (verts[i].tris.empty())
@@ -265,7 +265,7 @@ void MeshMedianFilter(vcl_vector<Vertex> &verts, const vnl_double_3 &plane_pt, c
       continue;
     }
 
-    vcl_set<int> neighbors;
+    std::set<int> neighbors;
     for (unsigned int j = 0; j < verts[i].tris.size(); j++)
     {
       neighbors.insert(verts[i].tris[j]->a);
@@ -275,11 +275,11 @@ void MeshMedianFilter(vcl_vector<Vertex> &verts, const vnl_double_3 &plane_pt, c
 
     neighbors.erase(i);
 
-    vcl_vector<double> dists;
-    for (vcl_set<int>::iterator itr = neighbors.begin(); itr != neighbors.end(); itr++)
+    std::vector<double> dists;
+    for (std::set<int>::iterator itr = neighbors.begin(); itr != neighbors.end(); itr++)
       dists.push_back(dot_product(verts[*itr].p - plane_pt, plane_n));
 
-    vcl_sort(dists.begin(), dists.end());
+    std::sort(dists.begin(), dists.end());
     double mediandist = dists[dists.size()/2];
 
     double dist = dot_product(verts[i].p - plane_pt, plane_n);
@@ -293,7 +293,7 @@ void MeshMedianFilter(vcl_vector<Vertex> &verts, const vnl_double_3 &plane_pt, c
 
 //*****************************************************************************
 
-void WriteMesh(const vcl_vector<Vertex> &verts, const vcl_vector<Triangle *> &tris, const char *filename)
+void WriteMesh(const std::vector<Vertex> &verts, const std::vector<Triangle *> &tris, const char *filename)
 {
   vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
@@ -368,5 +368,5 @@ void ClipFromPlane(vtkSmartPointer<vtkPolyData> &polydata, vnl_double_3 *plane, 
 
   polydata->SetPoints(newpts);
 
-  vcl_cout << "Best error " << best << ", removed " << n - newpts->GetNumberOfPoints() << " points.\n" << "\n";
+  std::cout << "Best error " << best << ", removed " << n - newpts->GetNumberOfPoints() << " points.\n" << "\n";
 }

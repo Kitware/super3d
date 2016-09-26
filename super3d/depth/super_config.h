@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,11 @@
 
 #include "depth_config.h"
 
-#include <vcl_vector.h>
-#include <vcl_map.h>
-#include <vcl_string.h>
-#include <vcl_sstream.h>
-#include <vcl_exception.h>
+#include <vector>
+#include <map>
+#include <string>
+#include <sstream>
+#include <exception>
 
 
 namespace super3d
@@ -55,8 +55,8 @@ public:
   public:
     cfg_type_base() {}
 
-    virtual void from_string(vcl_istringstream &) = 0;
-    virtual vcl_string to_string() = 0;
+    virtual void from_string(std::istringstream &) = 0;
+    virtual std::string to_string() = 0;
     virtual cfg_type_base *clone() = 0;
   };
 
@@ -66,46 +66,46 @@ public:
   public:
     cfg_type() : cfg_type_base() {}
 
-    void from_string(vcl_istringstream &str);
-    vcl_string to_string();
+    void from_string(std::istringstream &str);
+    std::string to_string();
     T var;
 
   protected:
     cfg_type_base *clone();
   };
 
-  class cfg_exception : public vcl_exception
+  class cfg_exception : public std::exception
   {
   public:
 
-    cfg_exception(const vcl_string &str) : name(str) {}
+    cfg_exception(const std::string &str) : name(str) {}
     virtual const char* what() const throw()
     {
       return name.c_str();
     }
     virtual ~cfg_exception() throw() {}
 
-    vcl_string name;
+    std::string name;
   };
 
   void read_config(const char *file);
   void read_argument_updates(int argc, char *argv[]);
 
   template<class T>
-  T get_value(const vcl_string &varname) const;
-  bool is_set(const vcl_string &varname) const;
+  T get_value(const std::string &varname) const;
+  bool is_set(const std::string &varname) const;
   template<class T>
-  bool set_if(const vcl_string &varname, T &var) const;
+  bool set_if(const std::string &varname, T &var) const;
 
 private:
 
-  void parse_config(const vcl_string &dir, const vcl_string &file);
+  void parse_config(const std::string &dir, const std::string &file);
 
-  typedef vcl_map<vcl_string, cfg_type_base *> maptype;
+  typedef std::map<std::string, cfg_type_base *> maptype;
   maptype typemap;
   maptype varmap;
 
-  vcl_vector<vcl_vector<vcl_string> > exclusives;
+  std::vector<std::vector<std::string> > exclusives;
 };
 
 } // end namespace super3d
