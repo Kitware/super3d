@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2015 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@
 
 
 // provide missing instantiation of vil_resample_bicub<double,double>
-#include <vil/vil_resample_bicub.txx>
+#include <vil/vil_resample_bicub.hxx>
 VIL_RESAMPLE_BICUB_INSTANTIATE( double , double );
 
 

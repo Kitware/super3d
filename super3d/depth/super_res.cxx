@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
 #include <vil/vil_resample_bicub.h>
 #include <vil/vil_convert.h>
 
-#include <vil/vil_resample_bicub.txx>
+#include <vil/vil_resample_bicub.hxx>
 VIL_RESAMPLE_BICUB_INSTANTIATE( double , double );
 
 #define DEBUG

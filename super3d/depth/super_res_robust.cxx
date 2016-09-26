@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@
 #include <vil/vil_convert.h>
 #include <vil/algo/vil_greyscale_erode.h>
 #include <vil/algo/vil_median.h>
-#include <vil/vil_resample_bicub.txx>
+#include <vil/vil_resample_bicub.hxx>
 #include <super3d/image/warp_image.h>
 
 #include "super_res.h"

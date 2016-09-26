@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2010-2013 by Kitware, Inc.
+ * Copyright 2010-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@
  */
 
 #include "warp_image.txx"
-#include <vil/vil_bicub_interp.txx>
+#include <vil/vil_bicub_interp.hxx>
 
 #define INSTANTIATE( PixType )                                              \
 template bool super3d::warp_image( vil_image_view<PixType> const& src,        \
