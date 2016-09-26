@@ -28,18 +28,7 @@ set(imesh_algo_sources
    )
 aux_source_directory(Templates imesh_algo_sources)
 
-if(VXL_NETLIB_FOUND)
-  include_directories(${VXL_NETLIB_INCLUDE_DIR})
-  set(imesh_algo_headers ${imesh_algo_headers} imesh_generate_mesh.h)
-  set(imesh_algo_sources ${imesh_algo_sources} imesh_generate_mesh.cxx)
-endif(VXL_NETLIB_FOUND)
-
 super3d_install_headers(${imesh_algo_headers} SUBDIR imesh/algo)
 super3d_add_library(imesh_algo ${imesh_algo_headers} ${imesh_algo_sources})
 
-if(VXL_NETLIB_FOUND)
-  #target_link_libraries( imesh_algo imesh vpgl bpgl bpgl_algo vgl_algo vgl vnl_algo vnl vil netlib)
-  target_link_libraries( imesh_algo imesh vpgl vgl_algo vgl vnl_algo vnl vil netlib )
-else(VXL_NETLIB_FOUND)
-  target_link_libraries( imesh_algo imesh vpgl vgl_algo vgl vnl_algo vnl vil )
-endif(VXL_NETLIB_FOUND)
+target_link_libraries( imesh_algo imesh vpgl vgl_algo vgl vnl_algo vnl vil )

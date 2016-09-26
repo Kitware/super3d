@@ -11,13 +11,3 @@ super3d_build_test(imesh_algo_template
   LINK_LIBS
     imesh_algo
   )
-
-super3d_build_test(imesh_algo_all
-  SOURCES
-    test_driver.cxx
-    test_generate_mesh.cxx
-  LINK_LIBS
-    imesh imesh_algo
-    vnl vgl testlib
-  )
-super3d_add_test(imesh_algo_all test_generate_mesh)
