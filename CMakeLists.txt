@@ -56,6 +56,8 @@ link_directories(${Boost_LIBRARY_DIRS})
 find_package(VXL REQUIRED)
 set(VXL_PROVIDE_STANDARD_OPTIONS 1)
 include(${VXL_CMAKE_DIR}/UseVXL.cmake)
+include_directories( SYSTEM ${VXL_CORE_INCLUDE_DIRS} )
+include_directories( SYSTEM ${VXL_VCL_INCLUDE_DIRS} )
 include_directories(SYSTEM ${VXL_GEL_INCLUDE_DIR}/mrc)
 include_directories(SYSTEM ${VXL_RPL_INCLUDE_DIR})
 
