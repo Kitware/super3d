@@ -16,7 +16,7 @@
 #include "imesh_algo_config.h"
 #include "../imesh_mesh.h"
 
-#include <vcl_set.h>
+#include <set>
 #include <vgl/vgl_vector_3d.h>
 
 
@@ -24,17 +24,17 @@
 //  Backfacing triangles are not rendered or counted if \a backfacing == NULL
 // if \a backfacing is valid, backfacing exterior triangles are also added to this set
 SUPER3D_IMESH_ALGO_EXPORT
-vcl_set<unsigned int>
+std::set<unsigned int>
 imesh_detect_exterior_faces(const imesh_mesh& mesh,
                             const vgl_vector_3d<double>& dir,
                             unsigned int img_size = 1000,
-                            vcl_set<unsigned int> *backfacing = NULL);
+                            std::set<unsigned int> *backfacing = NULL);
 
 
 //: Return the set of triangles that are visible in some of the many sample view directions
 //  Does NOT render backfacing faces or count them as exterior
 SUPER3D_IMESH_ALGO_EXPORT
-vcl_set<unsigned int>
+std::set<unsigned int>
 imesh_detect_exterior_faces(const imesh_mesh& mesh,
                             unsigned int num_dir_samples = 8,
                             unsigned int img_size = 1000);
@@ -48,9 +48,9 @@ imesh_detect_exterior_faces(const imesh_mesh& mesh,
 SUPER3D_IMESH_ALGO_EXPORT
 void
 imesh_detect_exterior_faces(const imesh_mesh& mesh,
-                            vcl_set<unsigned int>& frontfacing,
-                            vcl_set<unsigned int>& backfacing,
-                            vcl_set<unsigned int>& bifacing,
+                            std::set<unsigned int>& frontfacing,
+                            std::set<unsigned int>& backfacing,
+                            std::set<unsigned int>& bifacing,
                             unsigned int num_dir_samples = 8,
                             unsigned int img_size = 1000);
 
