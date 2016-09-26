@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "warp_image.txx"
+#include "warp_image.hxx"
 #include <vil/vil_bicub_interp.hxx>
 
 #define INSTANTIATE( PixType )                                              \

@@ -21,15 +21,15 @@ set(cxx_files
   adjoint_image_op.cxx
   dense_optical_flow.cxx
   dual_rof_denoise.cxx
-  gaussian_pyramid_builder.txx
+  gaussian_pyramid_builder.hxx
   gaussian_pyramid_builder_instances.cxx
   middlebury_flow_io.cxx
   refine_homography.cxx
   super_res.cxx
   super_res_utils.cxx
-  warp_and_average.txx
+  warp_and_average.hxx
   warp_and_average_instances.cxx
-  warp_image.txx
+  warp_image.hxx
   warp_image.cxx
   warp_image_instances.cxx
 )

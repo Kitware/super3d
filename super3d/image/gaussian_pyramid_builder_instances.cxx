@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2010-2015 by Kitware, Inc.
+ * Copyright 2010-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gaussian_pyramid_builder.txx"
+#include "gaussian_pyramid_builder.hxx"
 
 #define GAUSSIAN_PYRAMID_INSTANTIATE(PixType)                                \
 template void                                                                \
