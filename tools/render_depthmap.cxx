@@ -91,7 +91,8 @@ save_cams(const std::string& filename,
 int main(int argc, char* argv[])
 {
   vul_arg<std::string> input_mesh( 0, "input mesh file (OBJ)", "" );
-  vul_arg<std::string> camera_file( 0, "input file containing camera sequence", "" );
+  vul_arg<std::string> file_list( 0, "list of image files to match to camera files", "" );
+  vul_arg<std::string> camera_dir( "-d", "directory containing input camera files", "" );
   vul_arg<std::string> image_size( "-s", "Image size (WIDTHxHEIGHT)","3072x2048" );
   vul_arg<double>      resolution_scale( "-r", "resolution scale ", 1.0 );
   vul_arg<bool>        byte_images( "-b", "Make byte images where [max, min] = [1,255] and 0 = infinity ", false);
@@ -123,8 +124,24 @@ int main(int argc, char* argv[])
   std::cout << "read mesh: "<<mesh.num_verts()
             <<" verts and "<<mesh.num_faces()<<" faces"<<std::endl;
 
+  std::ifstream ifs(file_list());
+  int frame_num = 0;
+  std::map<int, vpgl_perspective_camera<double> > cameras;
+  while (ifs)
+  {
+    std::string filename;
+    ifs >> filename;
+    filename = vul_file::strip_extension(vul_file::basename(filename));
+    std::cout << "Looking for "<< filename <<std::endl;
+    std::string camera_file = camera_dir + '/' + filename + '.krtd';
+    if(vul_file::exists(camera_file))
+    {
+      std::cout << "Loading " << camera_file <<std::endl;
+      vpgl_perspective_camera<double> camera = load_cam(camera_file);
+      cameras[frame_num++] = camera;
+    }
+  }
 
-  std::map<int, vpgl_perspective_camera<double> > cameras = load_cams(camera_file());
 
   vil_image_view<double> depth_map(width, height);
 
