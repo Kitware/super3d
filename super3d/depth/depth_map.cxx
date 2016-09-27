@@ -646,7 +646,8 @@ void write_points_to_vtp(std::vector<vnl_double_3> &points, const char *filename
   vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> verts = vtkSmartPointer<vtkCellArray>::New();
 
-  for (vtkIdType i = 0; i < points.size(); i++)
+  const vtkIdType num_points = static_cast<vtkIdType>(points.size());
+  for (vtkIdType i = 0; i < num_points; i++)
   {
     pts->InsertNextPoint(points[i].data_block());
     verts->InsertNextCell(1, &i);

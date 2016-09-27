@@ -47,6 +47,7 @@ class SUPER3D_DEPTH_EXPORT world_space
 {
 public:
   world_space(unsigned int pixel_width, unsigned int pixel_height);
+  virtual ~world_space() {}
 
   /// returns the corner points of an image slice at depth slice.
   /// depth slice is a value between 0 and 1 over the depth range

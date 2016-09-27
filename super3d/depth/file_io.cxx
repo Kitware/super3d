@@ -341,7 +341,7 @@ bool read_flow_file(vil_image_view<double> &flowimg, const char* filename)
   (int)fread(&width,  sizeof(int),   1, stream) != 1 ||
   (int)fread(&height, sizeof(int),   1, stream) != 1)
   {
-    std::cerr << "ReadFlowFile: problem reading file";
+    std::cerr << "read_flow_file: problem reading file" << std::endl;
     return false;
   }
 

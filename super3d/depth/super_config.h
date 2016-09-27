@@ -58,6 +58,7 @@ public:
     virtual void from_string(std::istringstream &) = 0;
     virtual std::string to_string() = 0;
     virtual cfg_type_base *clone() = 0;
+    virtual ~cfg_type_base() {}
   };
 
   template<class T>

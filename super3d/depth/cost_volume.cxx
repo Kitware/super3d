@@ -409,15 +409,12 @@ vxl_uint_64 compute_census(const vil_image_view<double> &img, int u, int v)
 {
   double val = img(u,v);
   vxl_uint_64 census = 0;
-  int mini = std::max(0, u-4);
-  int minj = std::max(0, v-3);
-  int maxi = std::min((int)img.ni()-1, u+4);
-  int maxj = std::min((int)img.nj()-1, v+3);
   for (int j = v - 3; j <= v + 3; j++)
   {
     for (int i = u - 4; i <= u + 4; i++)
     {
-      if (i < 0 || i >= img.ni() || j < 0 || j >= img.nj()) {
+      if (i < 0 || i >= static_cast<int>(img.ni()) ||
+          j < 0 || j >= static_cast<int>(img.nj())) {
         census = census << 1;
         continue;
       }
@@ -456,7 +453,8 @@ g_census compute_g_census(const vil_image_view<double> &grad, int u, int v)
   {
     for (int i = u - 4; i <= u + 4; i++)
     {
-      if (i < 0 || i >= grad.ni() || j < 0 || j >= grad.nj()) {
+      if (i < 0 || i >= static_cast<int>(grad.ni()) ||
+          j < 0 || j >= static_cast<int>(grad.nj())) {
         census.ori = census.ori << 1;
         census.mag = census.mag << 1;
         continue;
@@ -620,7 +618,7 @@ bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
 
   //write_points_to_vtp(points, "pointsincrop.vtp");
 
-  int index = 0.05 * depths.size();
+  //int index = 0.05 * depths.size();
   min_depth = depths[0];
   max_depth = depths[depths.size() - 1];
 

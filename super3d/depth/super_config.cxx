@@ -290,10 +290,10 @@ template SUPER3D_DEPTH_EXPORT bool config::set_if<unsigned int>(const std::strin
 template SUPER3D_DEPTH_EXPORT bool config::set_if<std::string>(const std::string &str, std::string &) const;
 template SUPER3D_DEPTH_EXPORT bool config::set_if<bool>(const std::string &str, bool &) const;
 
-template class SUPER3D_DEPTH_EXPORT config::cfg_type<double>;
-template class SUPER3D_DEPTH_EXPORT config::cfg_type<int>;
-template class SUPER3D_DEPTH_EXPORT config::cfg_type<unsigned int>;
-template class SUPER3D_DEPTH_EXPORT config::cfg_type<std::string>;
-template class SUPER3D_DEPTH_EXPORT config::cfg_type<bool>;
+template class config::cfg_type<double>;
+template class config::cfg_type<int>;
+template class config::cfg_type<unsigned int>;
+template class config::cfg_type<std::string>;
+template class config::cfg_type<bool>;
 
 } // end namespace super3d

@@ -145,7 +145,7 @@ double subsample(double dij,
                  double aij)
 {
   double eval[3];
-  unsigned int S = cost_volume.nplanes();
+  const int S = static_cast<int>(cost_volume.nplanes());
 
   for (int m = -1; m <= 1; m++)
   {

@@ -146,7 +146,6 @@ create_warps_simple(int sni, int snj, int scale_factor, super3d::config *cfg)
   bool bicubic_warping = cfg->get_value<bool>("bicubic_warping");
   double sensor_sigma = cfg->get_value<double>("sensor_sigma");
 
-  typedef super3d::adjoint_image_ops_func<double>::func_t func_t;
   std::vector<super3d::adjoint_image_ops_func<double> > warps;
 
   for (unsigned int i = 0; i < static_cast<unsigned int>(scale_factor); i++)
@@ -176,7 +175,6 @@ create_warps(int sni, int snj, int scale_factor, super3d::config *cfg)
   bool bicubic_warping = cfg->get_value<bool>("bicubic_warping");
   double sensor_sigma = cfg->get_value<double>("sensor_sigma");
 
-  typedef super3d::adjoint_image_ops_func<double>::func_t func_t;
   std::vector<super3d::adjoint_image_ops_func<double> > warps;
   for (double i = 0.0; i < scale_factor; i+=0.5)
   {

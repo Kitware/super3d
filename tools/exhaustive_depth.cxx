@@ -202,7 +202,9 @@ int main(int argc, char* argv[])
   unsigned int S = cfg->get_value<unsigned int>("num_slices");
   double theta0 = cfg->get_value<double>("theta_start");
   double theta_end = cfg->get_value<double>("theta_end");
+#ifdef HAVE_VISCL
   double beta = cfg->get_value<double>("beta");
+#endif
   double lambda = cfg->get_value<double>("lambda");
   double gw_alpha = cfg->get_value<double>("gw_alpha");
   double epsilon = cfg->get_value<double>("epsilon");

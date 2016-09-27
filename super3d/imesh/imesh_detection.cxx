@@ -88,8 +88,7 @@ imesh_detect_contour_generator(const imesh_mesh& mesh, const vgl_vector_3d<doubl
   std::vector<bool> contours = imesh_detect_contours(mesh,dir);
 
   std::vector<std::vector<unsigned int> > loops;
-  bool valid = imesh_trace_half_edge_loops(mesh.half_edges(),contours,loops);
-  assert(valid);
+  assert(imesh_trace_half_edge_loops(mesh.half_edges(),contours,loops));
 
   return loops;
 }
@@ -143,8 +142,7 @@ imesh_detect_contour_generator(const imesh_mesh& mesh, const vgl_point_3d<double
   std::vector<bool> contours = imesh_detect_contours(mesh,pt);
 
   std::vector<std::vector<unsigned int> > loops;
-  bool valid = imesh_trace_half_edge_loops(mesh.half_edges(),contours,loops);
-  assert(valid);
+  assert(imesh_trace_half_edge_loops(mesh.half_edges(),contours,loops));
 
   return loops;
 }
