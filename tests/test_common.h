@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2014 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,12 +40,12 @@
 #ifndef SUPER3D_TEST_TEST_COMMON_H
 #define SUPER3D_TEST_TEST_COMMON_H
 
-#include <boost/function.hpp>
 
 #include <exception>
 #include <iostream>
 #include <map>
 #include <string>
+#include <functional>
 
 #include <cstdlib>
 #include <cstdio>
@@ -123,7 +123,7 @@ typedef std::string testname_t;
 #define DECLARE_TEST_MAP()                                    \
   namespace                                                   \
   {                                                           \
-    typedef boost::function<void TEST_ARGS> test_function_t;  \
+    typedef std::function<void TEST_ARGS> test_function_t;    \
     typedef std::map<testname_t, test_function_t> test_map_t; \
   }                                                           \
   test_map_t __all_tests;                                     \

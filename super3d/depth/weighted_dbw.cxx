@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,10 @@
 #include "weighted_dbw.h"
 #include "super_config.h"
 
+#include <functional>
+
 #include <super3d/image/adjoint_flow_warp.h>
 #include <super3d/image/adjoint_resample.h>
-
-#include <boost/bind.hpp>
 
 #include <vil/algo/vil_gauss_filter.h>
 #include <vil/vil_math.h>
@@ -49,8 +49,8 @@ template <typename T>
 class image_op_2_func
 {
 public:
-  typedef boost::function<void (const vil_image_view<T>& src,
-                                vil_image_view<T>& dst)> func_t;
+  typedef std::function<void (const vil_image_view<T>& src,
+                              vil_image_view<T>& dst)> func_t;
 
   image_op_2_func(func_t op1, func_t op2)
   : op1_(op1),
@@ -107,34 +107,41 @@ create_dbw_from_flow(const vil_image_view<double> &flow,
   const unsigned int wni = ni * scale_factor;
   const unsigned int wnj = nj * scale_factor;
 
-  typedef boost::function<void (const vil_image_view<double>& src,
-                                vil_image_view<double>& dst)> func_t;
+  typedef std::function<void (const vil_image_view<double>& src,
+                              vil_image_view<double>& dst)> func_t;
 
-  func_t weight_f = boost::bind(vil_math_image_product<double, double, double>,
-                                _1, weights, _2);
+  func_t weight_f = std::bind(vil_math_image_product<double, double, double>,
+                              std::placeholders::_1, weights, std::placeholders::_2);
 
-  func_t warp_fwd = boost::bind(super3d::warp_forward_with_flow_bilin<double, double, double>,
-                                _1, flow, _2);
-  func_t warp_back = boost::bind(super3d::warp_back_with_flow_bilin<double, double, double>,
-                                 _1, flow, _2);
+  func_t warp_fwd = std::bind(super3d::warp_forward_with_flow_bilin<double, double, double>,
+                              std::placeholders::_1, flow, std::placeholders::_2);
+  func_t warp_back = std::bind(super3d::warp_back_with_flow_bilin<double, double, double>,
+                               std::placeholders::_1, flow, std::placeholders::_2);
   if(bicubic_warping)
   {
-    warp_fwd = boost::bind(super3d::warp_forward_with_flow_bicub<double, double, double>,
-                           _1, flow, _2);
-    warp_back = boost::bind(super3d::warp_back_with_flow_bicub<double, double, double>,
-                            _1, flow, _2);
+    warp_fwd = std::bind(super3d::warp_forward_with_flow_bicub<double, double, double>,
+                         std::placeholders::_1, flow, std::placeholders::_2);
+    warp_back = std::bind(super3d::warp_back_with_flow_bicub<double, double, double>,
+                          std::placeholders::_1, flow, std::placeholders::_2);
   }
 
-  func_t blur_sf = boost::bind(vil_gauss_filter_2d<double, double>, _1, _2, sensor_sigma,
-                               static_cast<unsigned int>(3.0 * sensor_sigma), vil_convolve_zero_extend);
+  typedef void (*filter_func_t)(const vil_image_view<double>&, vil_image_view<double> &,
+                                double, unsigned, vil_convolve_boundary_option boundary);
+  func_t blur_sf = std::bind(static_cast<filter_func_t>(vil_gauss_filter_2d<double, double>),
+                             std::placeholders::_1, std::placeholders::_2, sensor_sigma,
+                             static_cast<unsigned int>(3.0 * sensor_sigma), vil_convolve_zero_extend);
 
-  func_t down_s = boost::bind(super3d::down_sample<double>, _1, _2, scale_factor, 0, 0);
-  func_t up_s = boost::bind(super3d::up_sample<double>, _1, _2, scale_factor, 0, 0);
+  func_t down_s = std::bind(super3d::down_sample<double>, std::placeholders::_1,
+                            std::placeholders::_2, scale_factor, 0, 0);
+  func_t up_s = std::bind(super3d::up_sample<double>, std::placeholders::_1,
+                          std::placeholders::_2, scale_factor, 0, 0);
 
   if(down_sample_averaging)
   {
-    down_s = boost::bind(super3d::down_scale<double>, _1, _2, scale_factor);
-    up_s = boost::bind(super3d::up_scale<double>, _1, _2, scale_factor);
+    down_s = std::bind(super3d::down_scale<double>, std::placeholders::_1,
+                       std::placeholders::_2, scale_factor);
+    up_s = std::bind(super3d::up_scale<double>, std::placeholders::_1,
+                     std::placeholders::_2, scale_factor);
   }
 
   image_op_2_func<double> forward_ww(weight_f, warp_fwd, sni, snj, np);

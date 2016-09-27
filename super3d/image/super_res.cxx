@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2015 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -179,7 +179,7 @@ super_resolve(const std::vector<vil_image_view<double> > &frames,
     u.fill(0.0);
   }
 
-  boost::shared_ptr<unsigned int> itr(new unsigned int);
+  std::shared_ptr<unsigned int> itr(new unsigned int);
   *itr = 1;
 
   if (srm)
@@ -223,7 +223,7 @@ super_resolve(const std::vector<vil_image_view<double> > &frames,
         srm->callback_(data);
       }
 
-      boost::lock_guard<boost::mutex> lock(srm->m_data_);
+      std::lock_guard<std::mutex> lock(srm->m_data_);
       primal_step_u(q, warps, p, u, u_bar, srp);
       (*itr)++;
     }
@@ -236,16 +236,16 @@ super_resolve(const std::vector<vil_image_view<double> > &frames,
 }
 
 void super_resolution_monitor::set_monitored_data(vil_image_view<double> *super_img,
-                                                  const boost::shared_ptr<unsigned int> &iter)
+                                                  const std::shared_ptr<unsigned int> &iter)
 {
-  boost::lock_guard<boost::mutex> lock(m_data_);
+  std::lock_guard<std::mutex> lock(m_data_);
   current_result_ = super_img;
   num_iterations_ = iter;
 }
 
 void super_resolution_monitor::get_update(update_data &update)
 {
-  boost::lock_guard<boost::mutex> lock(m_data_);
+  std::lock_guard<std::mutex> lock(m_data_);
   update.current_result.deep_copy(*current_result_);
   update.num_iterations = *num_iterations_;
 }

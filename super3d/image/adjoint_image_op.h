@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2015 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 #include <vector>
 
 #include <vil/vil_image_view.h>
-#include <boost/function.hpp>
+#include <functional>
 
 
 namespace super3d
@@ -160,8 +160,8 @@ class adjoint_image_ops_func
  : public adjoint_image_op<T>
 {
 public:
-  typedef boost::function<void (const vil_image_view<T>& src,
-                                vil_image_view<T>& dst)> func_t;
+  typedef std::function<void (const vil_image_view<T>& src,
+                              vil_image_view<T>& dst)> func_t;
 
   adjoint_image_ops_func(func_t forward, func_t backward,
                          unsigned ni, unsigned nj, unsigned np)

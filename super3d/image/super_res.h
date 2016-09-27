@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2015 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,8 @@
 
 #include <vil/vil_image_view.h>
 #include <vector>
-#include <boost/function.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/locks.hpp>
+#include <functional>
+#include <mutex>
 
 #include "adjoint_image_op.h"
 
@@ -84,9 +83,9 @@ public:
     unsigned int num_iterations;
   };
 
-  super_resolution_monitor(boost::function<void (update_data)> callback,
+  super_resolution_monitor(std::function<void (update_data)> callback,
                            unsigned int interval,
-                           boost::shared_ptr<bool> interrupted) : callback_(callback),
+                           std::shared_ptr<bool> interrupted) : callback_(callback),
                                                                   interval_(interval),
                                                                   interrupted_(interrupted),
                                                                   current_result_(NULL) {}
@@ -98,7 +97,7 @@ private:
 
     /// Set the current image and iteration
   void set_monitored_data(vil_image_view<double> *super_img,
-                          const boost::shared_ptr<unsigned int> &iter);
+                          const std::shared_ptr<unsigned int> &iter);
 
   //Only super_resolve can set the monitored data
   friend void super_resolve(const std::vector<vil_image_view<double> > &frames,
@@ -108,15 +107,15 @@ private:
                             const super_res_params &srp,
                             super_resolution_monitor *srm);
 
-  boost::function<void (update_data)> callback_;
+  std::function<void (update_data)> callback_;
   unsigned int interval_;
-  boost::shared_ptr<bool const> interrupted_;
+  std::shared_ptr<bool const> interrupted_;
 
-  boost::mutex m_data_;
+  std::mutex m_data_;
 
   //Cannot rely on internal pointers because data is swapped in u's update
   vil_image_view<double> *current_result_;
-  boost::shared_ptr<unsigned int> num_iterations_;
+  std::shared_ptr<unsigned int> num_iterations_;
 };
 
 

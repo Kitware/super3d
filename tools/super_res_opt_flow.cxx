@@ -41,7 +41,6 @@
 
 #include <fstream>
 #include <iostream>
-#include <boost/bind.hpp>
 
 #include <vil/vil_crop.h>
 #include <vil/vil_bicub_interp.h>
@@ -60,8 +59,6 @@
 #include <super3d/image/warp_image.h>
 #include <super3d/image/warp_and_average.h>
 #include <super3d/image/refine_homography.h>
-
-#include <boost/scoped_ptr.hpp>
 
 #ifdef HAVE_VISCL
 #include "super3d/depth_cl/super_res.h"
@@ -110,7 +107,7 @@ void create_low_res(std::vector<vil_image_view<double> > &frames,
 int main(int argc, char* argv[])
 {
   try  {
-    boost::scoped_ptr<super3d::config> cfg(new super3d::config);
+    std::unique_ptr<super3d::config> cfg(new super3d::config);
     cfg->read_config(argv[1]);
     cfg->read_argument_updates(argc, argv);
 

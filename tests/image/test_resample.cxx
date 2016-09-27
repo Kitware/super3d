@@ -29,9 +29,9 @@
  */
 
 #include <iostream>
+#include <functional>
 
 #include <vil/vil_math.h>
-#include <boost/bind.hpp>
 
 #include <super3d/image/adjoint_resample.h>
 #include <super3d/image/adjoint_image_utils.h>
@@ -53,8 +53,10 @@ test_resampler()
   const unsigned scale = 2;
 
   typedef adjoint_image_ops_func<float>::func_t func_t;
-  func_t forward = boost::bind(down_sample<float>, _1, _2, scale, 0, 0);
-  func_t backward = boost::bind(up_sample<float>, _1, _2, scale, 0, 0);
+  func_t forward = std::bind(down_sample<float>, std::placeholders::_1,
+                             std::placeholders::_2, scale, 0, 0);
+  func_t backward = std::bind(up_sample<float>, std::placeholders::_1,
+                              std::placeholders::_2, scale, 0, 0);
 
   adjoint_image_ops_func<float> adj(forward, backward, ni, nj, 3);
 

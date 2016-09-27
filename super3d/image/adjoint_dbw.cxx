@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2015 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 #include "adjoint_resample.h"
 #include "adjoint_image_op.h"
 
-#include <boost/bind.hpp>
+#include <functional>
 
 #include <vil/algo/vil_gauss_filter.h>
 
@@ -47,8 +47,8 @@ template <typename T>
 class image_op_2_func
 {
 public:
-  typedef boost::function<void (const vil_image_view<T>& src,
-                                vil_image_view<T>& dst)> func_t;
+  typedef std::function<void (const vil_image_view<T>& src,
+                              vil_image_view<T>& dst)> func_t;
 
   image_op_2_func(func_t op1, func_t op2)
   : op1_(op1),
@@ -121,30 +121,35 @@ create_dbw_from_flow(const vil_image_view<double> &flow,
   const unsigned int wni = ni * scale_factor;
   const unsigned int wnj = nj * scale_factor;
 
-  typedef boost::function<void (const vil_image_view<double>& src,
-                                vil_image_view<double>& dst)> func_t;
-  func_t warp_fwd = boost::bind(warp_forward_with_flow_bilin<double, double, double>,
-                                _1, flow, _2);
-  func_t warp_back = boost::bind(warp_back_with_flow_bilin<double, double, double>,
-                                 _1, flow, _2);
+  typedef std::function<void (const vil_image_view<double>& src,
+                              vil_image_view<double>& dst)> func_t;
+  func_t warp_fwd = std::bind(warp_forward_with_flow_bilin<double, double, double>,
+                              std::placeholders::_1, flow, std::placeholders::_2);
+  func_t warp_back = std::bind(warp_back_with_flow_bilin<double, double, double>,
+                               std::placeholders::_1, flow, std::placeholders::_2);
   if(bicubic_warping)
   {
-    warp_fwd = boost::bind(warp_forward_with_flow_bicub<double, double, double>,
-                           _1, flow, _2);
-    warp_back = boost::bind(warp_back_with_flow_bicub<double, double, double>,
-                            _1, flow, _2);
+    warp_fwd = std::bind(warp_forward_with_flow_bicub<double, double, double>,
+                         std::placeholders::_1, flow, std::placeholders::_2);
+    warp_back = std::bind(warp_back_with_flow_bicub<double, double, double>,
+                          std::placeholders::_1, flow, std::placeholders::_2);
   }
 
-  func_t blur_sf = boost::bind(vil_gauss_filter_2d_overload, _1, _2, smoothing_sigma,
-                               static_cast<unsigned int>(3.0 * smoothing_sigma), vil_convolve_zero_extend);
+  func_t blur_sf = std::bind(vil_gauss_filter_2d_overload,
+                             std::placeholders::_1, std::placeholders::_2, smoothing_sigma,
+                             static_cast<unsigned int>(3.0 * smoothing_sigma), vil_convolve_zero_extend);
 
-  func_t down_s = boost::bind(down_sample<double>, _1, _2, scale_factor, 0, 0);
-  func_t up_s = boost::bind(up_sample<double>, _1, _2, scale_factor, 0, 0);
+  func_t down_s = std::bind(down_sample<double>, std::placeholders::_1,
+                            std::placeholders::_2, scale_factor, 0, 0);
+  func_t up_s = std::bind(up_sample<double>, std::placeholders::_1,
+                          std::placeholders::_2, scale_factor, 0, 0);
 
   if(down_sample_averaging)
   {
-    down_s = boost::bind(down_scale<double>, _1, _2, scale_factor);
-    up_s = boost::bind(up_scale<double>, _1, _2, scale_factor);
+    down_s = std::bind(down_scale<double>, std::placeholders::_1,
+                       std::placeholders::_2, scale_factor);
+    up_s = std::bind(up_scale<double>, std::placeholders::_1,
+                     std::placeholders::_2, scale_factor);
   }
 
   image_op_2_func<double> forward_bw(warp_fwd, blur_sf, wni, wnj, np);

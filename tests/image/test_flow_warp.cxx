@@ -31,10 +31,10 @@
 
 #include <iostream>
 #include <limits>
+#include <functional>
 
 #include <testlib/testlib_test.h>
 
-#include <boost/bind.hpp>
 
 #include <super3d/image/adjoint_flow_warp.h>
 #include <super3d/image/adjoint_image_utils.h>
@@ -58,8 +58,10 @@ test_flow_warp_bilin()
   fill_random(flow, -10.0f, 10.0f);
 
   typedef adjoint_image_ops_func<float>::func_t func_t;
-  func_t forward = boost::bind(warp_forward_with_flow_bilin<float,float,float>, _1, flow, _2);
-  func_t backward = boost::bind(warp_back_with_flow_bilin<float,float,float>, _1, flow, _2);
+  func_t forward = std::bind(warp_forward_with_flow_bilin<float,float,float>,
+                             std::placeholders::_1, flow, std::placeholders::_2);
+  func_t backward = std::bind(warp_back_with_flow_bilin<float,float,float>,
+                              std::placeholders::_1, flow, std::placeholders::_2);
 
   adjoint_image_ops_func<float> adj(forward, backward, ni, nj, 3);
   TEST("Bilin: forward and backward warping adjoint (same size images)", true, adj.is_adjoint());
@@ -80,8 +82,10 @@ test_flow_warp_bicub()
   fill_random(flow, -10.0f, 10.0f);
 
   typedef adjoint_image_ops_func<float>::func_t func_t;
-  func_t forward = boost::bind(warp_forward_with_flow_bicub<float,float,float>, _1, flow, _2);
-  func_t backward = boost::bind(warp_back_with_flow_bicub<float,float,float>, _1, flow, _2);
+  func_t forward = std::bind(warp_forward_with_flow_bicub<float,float,float>,
+                             std::placeholders::_1, flow, std::placeholders::_2);
+  func_t backward = std::bind(warp_back_with_flow_bicub<float,float,float>,
+                              std::placeholders::_1, flow, std::placeholders::_2);
 
   adjoint_image_ops_func<float> adj(forward, backward, ni, nj, 3);
   TEST("Bicub: forward and backward warping adjoint (same size images)", true, adj.is_adjoint());
@@ -102,8 +106,10 @@ test_zero_flow_bilin()
   flow.fill(0.0f);
 
   typedef adjoint_image_ops_func<float>::func_t func_t;
-  func_t forward = boost::bind(warp_forward_with_flow_bilin<float,float,float>, _1, flow, _2);
-  func_t backward = boost::bind(warp_back_with_flow_bilin<float,float,float>, _1, flow, _2);
+  func_t forward = std::bind(warp_forward_with_flow_bilin<float,float,float>,
+                             std::placeholders::_1, flow, std::placeholders::_2);
+  func_t backward = std::bind(warp_back_with_flow_bilin<float,float,float>,
+                              std::placeholders::_1, flow, std::placeholders::_2);
 
   adjoint_image_ops_func<float> adj(forward, backward, ni, nj, 3);
   TEST("Bilin: forward and backward warping with zero flow adjoint", true, adj.is_adjoint());
@@ -128,8 +134,10 @@ test_zero_flow_bicub()
   flow.fill(0.0f);
 
   typedef adjoint_image_ops_func<float>::func_t func_t;
-  func_t forward = boost::bind(warp_forward_with_flow_bicub<float,float,float>, _1, flow, _2);
-  func_t backward = boost::bind(warp_back_with_flow_bicub<float,float,float>, _1, flow, _2);
+  func_t forward = std::bind(warp_forward_with_flow_bicub<float,float,float>,
+                             std::placeholders::_1, flow, std::placeholders::_2);
+  func_t backward = std::bind(warp_back_with_flow_bicub<float,float,float>,
+                              std::placeholders::_1, flow, std::placeholders::_2);
 
   adjoint_image_ops_func<float> adj(forward, backward, ni, nj, 3);
   TEST("Bicub: forward and backward warping with zero flow adjoint", true, adj.is_adjoint());
@@ -154,7 +162,7 @@ test_zero_flow_bicub()
 } // end anonymous namespace
 
 int
-test_flow_warp( int /*argc*/, char */*argv*/[] )
+test_flow_warp( int /*argc*/, char * /*argv*/[] )
 {
   testlib_test_start( "flow_warp_bilin" );
 

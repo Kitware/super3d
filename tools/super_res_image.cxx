@@ -36,9 +36,6 @@
 #include <super3d/image/adjoint_flow_warp.h>
 #include <cstdio>
 
-#include <boost/bind.hpp>
-#include <boost/scoped_ptr.hpp>
-
 #include <vil/vil_load.h>
 #include <vil/vil_save.h>
 #include <vil/vil_math.h>
@@ -62,7 +59,7 @@ void create_downsampled_frames(const vil_image_view<double> &high_res,
 int main(int argc, char* argv[])
 {
   try  {
-    boost::scoped_ptr<super3d::config> cfg(new super3d::config);
+    std::unique_ptr<super3d::config> cfg(new super3d::config);
     cfg->read_config(argv[1]);
     double scale_factor = cfg->get_value<double>("scale_factor");
     std::string img_name = cfg->get_value<std::string>("single_frame");

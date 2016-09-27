@@ -31,7 +31,6 @@
 #include "refine_depth.h"
 #include "dual_rof.h"
 
-#include <boost/make_shared.hpp>
 #include <viscl/core/manager.h>
 
 #include <cmath>

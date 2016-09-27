@@ -69,7 +69,7 @@ private:
   viscl::cl_kernel_t init_depth_k, search_k;
 };
 
-typedef boost::shared_ptr<refine_depth_cl> refine_depth_cl_t;
+typedef std::shared_ptr<refine_depth_cl> refine_depth_cl_t;
 
 } // end namespace cl
 
