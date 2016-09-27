@@ -29,6 +29,6 @@ set(imesh_algo_sources
 aux_source_directory(Templates imesh_algo_sources)
 
 super3d_install_headers(${imesh_algo_headers} SUBDIR imesh/algo)
-super3d_add_library(imesh_algo ${imesh_algo_headers} ${imesh_algo_sources})
+super3d_add_library(super3d_imesh_algo ${imesh_algo_headers} ${imesh_algo_sources})
 
-target_link_libraries( imesh_algo imesh vpgl vgl_algo vgl vnl_algo vnl vil )
+target_link_libraries( super3d_imesh_algo super3d_imesh vpgl vgl_algo vgl vnl_algo vnl vil )
