@@ -36,6 +36,7 @@
 #include <vul/vul_arg.h>
 #include <vul/vul_file.h>
 #include <vul/vul_sprintf.h>
+#include <vnl/vnl_inverse.h>
 #include <super3d/imesh/imesh_mesh.h>
 #include <super3d/imesh/imesh_fileio.h>
 #include <super3d/imesh/algo/imesh_project.h>
@@ -90,6 +91,28 @@ save_cams(const std::string& filename,
 }
 
 
+/// Convert a depth map into a height map
+void depth_map_to_height_map(const vpgl_perspective_camera<double>& camera,
+                             const vil_image_view<double>& depth_map,
+                                   vil_image_view<double>& height_map)
+{
+  const vnl_matrix_fixed<double,3,4>& P = camera.get_matrix();
+  const vnl_vector_fixed<double,3> v = vnl_inverse(P.extract(3,3)).get_row(2);
+  const double o = dot_product(v, -P.get_column(3));
+  assert(depth_map.nplanes() == 1);
+  height_map.set_size(depth_map.ni(), depth_map.nj(), 1);
+  for (unsigned j=0; j < depth_map.nj(); ++j)
+  {
+    for (unsigned i=0; i < depth_map.ni(); ++i)
+    {
+      const double& d = depth_map(i,j);
+      vnl_vector_fixed<double,3> pt(i, j, 1);
+      height_map(i,j) = d * dot_product(v, pt) + o;
+    }
+  }
+}
+
+
 int main(int argc, char* argv[])
 {
   vul_arg<std::string> input_mesh( 0, "input mesh file (OBJ)", "" );
@@ -100,6 +123,7 @@ int main(int argc, char* argv[])
   vul_arg<bool>        byte_images( "-b", "Make byte images where [max, min] = [1,255] and 0 = infinity ", false);
 
   vul_arg<std::string> output_dir( "-o", "Output directory", "depthmaps" );
+  vul_arg<std::string> height_dir( "-h", "Output height map directory", "" );
   vul_arg<std::string> output_camera_file( "--output-camera-file", "Save the scaled cameras to this file", "" );
 
   vul_arg_parse( argc, argv );
@@ -146,10 +170,15 @@ int main(int argc, char* argv[])
 
 
   vil_image_view<double> depth_map(width, height);
+  vil_image_view<double> height_map(width, height);
 
   if (!vul_file::is_directory(output_dir()))
   {
     vul_file::make_directory_path(output_dir());
+  }
+  if (height_dir() != "" && !vul_file::is_directory(height_dir()))
+  {
+    vul_file::make_directory_path(height_dir());
   }
 
   typedef std::map<std::string, vpgl_perspective_camera<double> >::const_iterator camera_iterator;
@@ -172,7 +201,7 @@ int main(int argc, char* argv[])
       double min_d, max_d;
       super3d::finite_value_range(depth_map, min_d, max_d);
       std::cout << "min depth: "<<min_d<<" max depth: "<<max_d<<std::endl;
-      std::cout << "Saving byte image to " << name << std::endl;
+      std::cout << "Saving byte depth image to " << name << std::endl;
       vil_image_view<vxl_byte> byte_image;
       vil_convert_stretch_range_limited(depth_map, byte_image, min_d, max_d, 1, 255);
       vil_math_scale_and_offset_values(byte_image, -1, 255);
@@ -180,9 +209,31 @@ int main(int argc, char* argv[])
     }
     else
     {
-      std::cout << "Saving double image to " << name << std::endl;
+      std::cout << "Saving double depth image to " << name << std::endl;
       vil_save(depth_map, name.c_str());
     }
+
+    if(height_dir() != "")
+    {
+      depth_map_to_height_map(camera, depth_map, height_map);
+      std::string height_name = height_dir() + "/" + citr->first + "-height.tiff";
+      if (byte_images())
+      {
+        double min_h, max_h;
+        super3d::finite_value_range(height_map, min_h, max_h);
+        std::cout << "min height: "<<min_h<<" max height: "<<max_h<<std::endl;
+        std::cout << "Saving byte height image to " << height_name << std::endl;
+        vil_image_view<vxl_byte> byte_image;
+        vil_convert_stretch_range_limited(height_map, byte_image, min_h, max_h, 1, 255);
+        vil_save(byte_image, height_name.c_str());
+      }
+      else
+      {
+        std::cout << "Saving double height image to " << height_name << std::endl;
+        vil_save(height_map, height_name.c_str());
+      }
+    }
+
   }
   // write out scaled cameras if requested
   if (output_camera_file.set())
