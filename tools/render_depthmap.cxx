@@ -34,10 +34,12 @@
 #include <vil/vil_convert.h>
 #include <vil/vil_save.h>
 #include <vul/vul_arg.h>
+#include <vul/vul_file.h>
 #include <vul/vul_sprintf.h>
 #include <super3d/imesh/imesh_mesh.h>
 #include <super3d/imesh/imesh_fileio.h>
 #include <super3d/imesh/algo/imesh_project.h>
+#include <super3d/depth/file_io.h>
 #include <vpgl/vpgl_perspective_camera.h>
 
 #include <super3d/depth/multiscale.h>
@@ -75,9 +77,9 @@ load_cams(const std::string& filename)
 /// Save a camera mapping to the same ASCII file format as above
 void
 save_cams(const std::string& filename,
-          const std::map<int, vpgl_perspective_camera<double> >& cameras)
+          const std::map<std::string, vpgl_perspective_camera<double> >& cameras)
 {
-  typedef std::map<int, vpgl_perspective_camera<double> >::const_iterator camera_iterator;
+  typedef std::map<std::string, vpgl_perspective_camera<double> >::const_iterator camera_iterator;
   std::ofstream ofs(filename.c_str());
   for (camera_iterator citr=cameras.begin(); citr!=cameras.end(); ++citr)
   {
@@ -93,11 +95,11 @@ int main(int argc, char* argv[])
   vul_arg<std::string> input_mesh( 0, "input mesh file (OBJ)", "" );
   vul_arg<std::string> file_list( 0, "list of image files to match to camera files", "" );
   vul_arg<std::string> camera_dir( "-d", "directory containing input camera files", "" );
-  vul_arg<std::string> image_size( "-s", "Image size (WIDTHxHEIGHT)","3072x2048" );
+  vul_arg<std::string> image_size( "-s", "Image size (WIDTHxHEIGHT)","1920x1080" );
   vul_arg<double>      resolution_scale( "-r", "resolution scale ", 1.0 );
   vul_arg<bool>        byte_images( "-b", "Make byte images where [max, min] = [1,255] and 0 = infinity ", false);
 
-  vul_arg<std::string> output_pattern( "-o", "Output file pattern", "depth-%05d.tiff" );
+  vul_arg<std::string> output_dir( "-o", "Output directory", "depthmaps" );
   vul_arg<std::string> output_camera_file( "--output-camera-file", "Save the scaled cameras to this file", "" );
 
   vul_arg_parse( argc, argv );
@@ -122,31 +124,36 @@ int main(int argc, char* argv[])
     std::cout << "unable to load mesh file: "<<input_mesh()<<std::endl;
   }
   std::cout << "read mesh: "<<mesh.num_verts()
-            <<" verts and "<<mesh.num_faces()<<" faces"<<std::endl;
+            << " verts and "<<mesh.num_faces()<<" faces"<<std::endl;
 
   std::ifstream ifs(file_list());
-  int frame_num = 0;
-  std::map<int, vpgl_perspective_camera<double> > cameras;
+  std::map<std::string, vpgl_perspective_camera<double> > cameras;
   while (ifs)
   {
     std::string filename;
     ifs >> filename;
     filename = vul_file::strip_extension(vul_file::basename(filename));
-    std::cout << "Looking for "<< filename <<std::endl;
-    std::string camera_file = camera_dir + '/' + filename + '.krtd';
+    std::cout << "Looking for "<< filename;
+    std::string camera_file = camera_dir() + "/" + filename + ".krtd";
     if(vul_file::exists(camera_file))
     {
-      std::cout << "Loading " << camera_file <<std::endl;
-      vpgl_perspective_camera<double> camera = load_cam(camera_file);
-      cameras[frame_num++] = camera;
+      std::cout << " -- Loading " << camera_file;
+      vpgl_perspective_camera<double> camera = super3d::load_cam(camera_file);
+      cameras[filename] = camera;
     }
+    std::cout << std::endl;
   }
 
 
   vil_image_view<double> depth_map(width, height);
 
-  typedef std::map<int, vpgl_perspective_camera<double> >::const_iterator camera_iterator;
-  std::map<int, vpgl_perspective_camera<double> > scaled_cameras;
+  if (!vul_file::is_directory(output_dir()))
+  {
+    vul_file::make_directory_path(output_dir());
+  }
+
+  typedef std::map<std::string, vpgl_perspective_camera<double> >::const_iterator camera_iterator;
+  std::map<std::string, vpgl_perspective_camera<double> > scaled_cameras;
   for (camera_iterator citr=cameras.begin(); citr!=cameras.end(); ++citr)
   {
     vpgl_perspective_camera<double> camera = citr->second;
@@ -159,13 +166,13 @@ int main(int argc, char* argv[])
     imesh_project_depth(mesh,
                         camera,
                         depth_map);
-    std::string name = vul_sprintf(output_pattern().c_str(), citr->first);
+    std::string name = output_dir() + "/" + citr->first + "-depth.tiff";
     if (byte_images())
     {
       double min_d, max_d;
       super3d::finite_value_range(depth_map, min_d, max_d);
       std::cout << "min depth: "<<min_d<<" max depth: "<<max_d<<std::endl;
-      std::cout << "Saving byte image to" << name << std::endl;
+      std::cout << "Saving byte image to " << name << std::endl;
       vil_image_view<vxl_byte> byte_image;
       vil_convert_stretch_range_limited(depth_map, byte_image, min_d, max_d, 1, 255);
       vil_math_scale_and_offset_values(byte_image, -1, 255);
