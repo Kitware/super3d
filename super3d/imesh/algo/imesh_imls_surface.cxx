@@ -164,7 +164,7 @@ void imesh_imls_surface::compute_enclosing_phi()
 
 //: recursively compute the area weighted centroids
 void imesh_imls_surface::
-compute_centroids_rec(const std::auto_ptr<imesh_kd_tree_node>& node,
+compute_centroids_rec(const std::unique_ptr<imesh_kd_tree_node>& node,
                       const std::set<unsigned int>& no_normal_faces)
 {
   const unsigned int& i = node->index_;
@@ -208,7 +208,7 @@ compute_centroids_rec(const std::auto_ptr<imesh_kd_tree_node>& node,
 
 //: recursively compute the unweighted integrals
 void imesh_imls_surface::
-compute_unweighed_rec(const std::auto_ptr<imesh_kd_tree_node>& node)
+compute_unweighed_rec(const std::unique_ptr<imesh_kd_tree_node>& node)
 {
   const unsigned int& i = node->index_;
   if (node->is_leaf()) {

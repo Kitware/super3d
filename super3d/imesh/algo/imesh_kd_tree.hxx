@@ -26,7 +26,7 @@
 template <class F>
 unsigned int
 imesh_closest_index(const vgl_point_3d<double>& query,
-                    const std::auto_ptr<imesh_kd_tree_node>& kd_root,
+                    const std::unique_ptr<imesh_kd_tree_node>& kd_root,
                     F dist,
                     std::vector<imesh_kd_tree_queue_entry>* dists = 0)
 {

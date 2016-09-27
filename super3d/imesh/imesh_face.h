@@ -318,7 +318,7 @@ class imesh_regular_face_array : public imesh_face_array_base
 //: Merge the two face arrays
 //  Shift the mesh indices in \param f2 by \param ind_shift
 SUPER3D_IMESH_EXPORT
-std::auto_ptr<imesh_face_array_base>
+std::unique_ptr<imesh_face_array_base>
 imesh_merge(const imesh_face_array_base& f1,
             const imesh_face_array_base& f2,
             unsigned int ind_shift=0);

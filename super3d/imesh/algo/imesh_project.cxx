@@ -168,7 +168,7 @@ imesh_render_faces(const imesh_mesh& mesh,
                    vil_image_view<bool>& image)
 {
   const imesh_face_array_base& faces = mesh.faces();
-  std::auto_ptr<imesh_regular_face_array<3> > tri_data;
+  std::unique_ptr<imesh_regular_face_array<3> > tri_data;
   const imesh_regular_face_array<3>* tris;
   if (faces.regularity() != 3) {
     tri_data = imesh_triangulate(faces);
@@ -206,7 +206,7 @@ imesh_render_faces_interp(const imesh_mesh& mesh,
                           vil_image_view<double>& image)
 {
   const imesh_face_array_base& faces = mesh.faces();
-  std::auto_ptr<imesh_regular_face_array<3> > tri_data;
+  std::unique_ptr<imesh_regular_face_array<3> > tri_data;
   const imesh_regular_face_array<3>* tris;
   if (faces.regularity() != 3) {
     tri_data = imesh_triangulate(faces);
@@ -247,7 +247,7 @@ void imesh_project(const imesh_mesh& mesh,
                    vgl_box_2d<unsigned int>* bbox)
 {
   const imesh_face_array_base& faces = mesh.faces();
-  std::auto_ptr<imesh_regular_face_array<3> > tri_data;
+  std::unique_ptr<imesh_regular_face_array<3> > tri_data;
   const imesh_regular_face_array<3>* tri_ptr;
   if (faces.regularity() != 3) {
     tri_data = imesh_triangulate(faces);

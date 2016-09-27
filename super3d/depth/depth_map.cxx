@@ -226,7 +226,7 @@ void fill_missing_depths(vil_image_view<double>& depth_map,
 /// \retval index_image Image of indices into the array of mesh vertices
 ///                     The index is unsigned(-1) for infinite depths.
 /// \return An array of mesh vertices covering all finite depth pixels
-std::auto_ptr<imesh_vertex_array<3> >
+std::unique_ptr<imesh_vertex_array<3> >
 depth_map_to_vertices(const vpgl_perspective_camera<double>& camera,
                       const vil_image_view<double>& depth_map,
                       vil_image_view<unsigned>& index_image)
@@ -241,7 +241,7 @@ depth_map_to_vertices(const vpgl_perspective_camera<double>& camera,
 
   index_image.fill(missing);
 
-  std::auto_ptr<imesh_vertex_array<3> > verts(new imesh_vertex_array<3>);
+  std::unique_ptr<imesh_vertex_array<3> > verts(new imesh_vertex_array<3>);
 
   vnl_matrix_fixed<double,3,3> M_inv = vnl_inverse(camera.get_matrix().extract(3,3));
   vnl_double_3 p4 = camera.get_matrix().get_column(3);
@@ -279,7 +279,7 @@ depth_map_to_vertices(const vpgl_perspective_camera<double>& camera,
 /// \param x_scale Amount to scale the unit horizontal distance between pixels
 /// \param y_scale Amount to scale the unit vertical distance between pixels
 /// \return An array of mesh vertices covering all finite height pixels
-std::auto_ptr<imesh_vertex_array<3> >
+std::unique_ptr<imesh_vertex_array<3> >
 height_map_to_vertices(const vil_image_view<double>& height_map,
                        vil_image_view<unsigned>& index_image,
                        double z_scale,
@@ -296,7 +296,7 @@ height_map_to_vertices(const vil_image_view<double>& height_map,
 
   index_image.fill(missing);
 
-  std::auto_ptr<imesh_vertex_array<3> > verts(new imesh_vertex_array<3>);
+  std::unique_ptr<imesh_vertex_array<3> > verts(new imesh_vertex_array<3>);
 
   std::ptrdiff_t istepH=height_map.istep(),  jstepH=height_map.jstep();
   std::ptrdiff_t istepI=index_image.istep(), jstepI=index_image.jstep();
@@ -327,7 +327,7 @@ height_map_to_vertices(const vil_image_view<double>& height_map,
 /// \param index_image Image of indices into an array of mesh vertices
 ///                    The index is unsigned(-1) for missing vertices
 /// \return An array of mesh faces (triangles) using the indices
-std::auto_ptr<imesh_regular_face_array<3> >
+std::unique_ptr<imesh_regular_face_array<3> >
 triangulate_index_image(const vil_image_view<unsigned>& index_image)
 {
   unsigned ni = index_image.ni(), nj = index_image.nj();
@@ -336,7 +336,7 @@ triangulate_index_image(const vil_image_view<unsigned>& index_image)
   // a special constant to represent missing pixels
   const unsigned missing = static_cast<unsigned>(-1);
 
-  std::auto_ptr<imesh_regular_face_array<3> > faces(new imesh_regular_face_array<3>);
+  std::unique_ptr<imesh_regular_face_array<3> > faces(new imesh_regular_face_array<3>);
 
   std::ptrdiff_t istepI=index_image.istep(), jstepI=index_image.jstep();
 
@@ -393,16 +393,13 @@ depth_map_to_mesh(const vpgl_perspective_camera<double>& camera,
 {
   vil_image_view<unsigned> index_img;
 
-  std::auto_ptr<imesh_vertex_array<3> > verts =
+  std::unique_ptr<imesh_vertex_array<3> > verts =
       depth_map_to_vertices(camera, depth_map, index_img);
 
-  std::auto_ptr<imesh_regular_face_array<3> > faces =
+  std::unique_ptr<imesh_regular_face_array<3> > faces =
       triangulate_index_image(index_img);
 
-
-  std::auto_ptr<imesh_face_array_base> nf(faces);
-  std::auto_ptr<imesh_vertex_array_base > nv(verts);
-  return imesh_mesh(nv,nf);
+  return imesh_mesh(std::move(verts), std::move(faces));
 }
 
 
@@ -420,16 +417,13 @@ height_map_to_mesh(const vil_image_view<double>& height_map,
 {
   vil_image_view<unsigned> index_img;
 
-  std::auto_ptr<imesh_vertex_array<3> > verts =
+  std::unique_ptr<imesh_vertex_array<3> > verts =
       height_map_to_vertices(height_map, index_img, z_scale, x_scale, y_scale);
 
-  std::auto_ptr<imesh_regular_face_array<3> > faces =
+  std::unique_ptr<imesh_regular_face_array<3> > faces =
       triangulate_index_image(index_img);
 
-
-  std::auto_ptr<imesh_face_array_base> nf(faces);
-  std::auto_ptr<imesh_vertex_array_base > nv(verts);
-  return imesh_mesh(nv,nf);
+  return imesh_mesh(std::move(verts), std::move(faces));
 }
 
 

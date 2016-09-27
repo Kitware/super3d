@@ -97,7 +97,7 @@ imesh_pca_mesh& imesh_pca_mesh::operator=(const imesh_pca_mesh& other)
     this->imesh_mesh::operator=(other);
     std_devs_ = other.std_devs_;
     pc_ = other.pc_;
-    mean_verts_ = std::auto_ptr<imesh_vertex_array_base>((other.mean_verts_.get()) ?
+    mean_verts_ = std::unique_ptr<imesh_vertex_array_base>((other.mean_verts_.get()) ?
                                                         other.mean_verts_->clone() : 0);
     params_ = other.params_;
   }
@@ -346,9 +346,9 @@ void imesh_write_pca(const std::string& mesh_file,
   for (unsigned int i=0; i<num_data; ++i)
     mean[i] = mverts[i/3][i%3];
 
-  std::auto_ptr<imesh_vertex_array_base> verts(mverts.clone());
-  std::auto_ptr<imesh_face_array_base> faces(pmesh.faces().clone());
-  imesh_mesh mean_mesh(verts,faces);
+  std::unique_ptr<imesh_vertex_array_base> verts(mverts.clone());
+  std::unique_ptr<imesh_face_array_base> faces(pmesh.faces().clone());
+  imesh_mesh mean_mesh(std::move(verts), std::move(faces));
 
   imesh_write_pca(pca_file,mean,std_dev,pc);
   imesh_write_obj(mesh_file,mean_mesh);

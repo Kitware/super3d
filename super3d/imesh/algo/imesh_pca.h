@@ -100,7 +100,7 @@ class SUPER3D_EXPORT imesh_pca_mesh : public imesh_mesh
 
   vnl_vector<double> std_devs_;
   vnl_matrix<double> pc_;
-  std::auto_ptr<imesh_vertex_array_base> mean_verts_;
+  std::unique_ptr<imesh_vertex_array_base> mean_verts_;
 
   vnl_vector<double> params_;
 };

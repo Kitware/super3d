@@ -20,12 +20,12 @@
 
 //: Subdivide mesh faces into triangle
 SUPER3D_IMESH_EXPORT
-std::auto_ptr<imesh_regular_face_array<3> >
+std::unique_ptr<imesh_regular_face_array<3> >
 imesh_triangulate(const imesh_face_array_base& faces);
 
 //: Subdivide quadrilaterals into triangle
 SUPER3D_IMESH_EXPORT
-std::auto_ptr<imesh_regular_face_array<3> >
+std::unique_ptr<imesh_regular_face_array<3> >
 imesh_triangulate(const imesh_regular_face_array<4>& faces);
 
 
