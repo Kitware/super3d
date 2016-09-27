@@ -73,9 +73,13 @@ void Picker::SetUpChart(vtkRenderer *chart_renderer,
                         const char *depth_filename)
 {
   costvol = fopen(costvol_filename, "rb");
-  fread(&dims[0], sizeof(unsigned int), 1, costvol);
-  fread(&dims[1], sizeof(unsigned int), 1, costvol);
-  fread(&dims[2], sizeof(unsigned int), 1, costvol);
+  if (fread(&dims[0], sizeof(unsigned int), 1, costvol) != 1 ||
+      fread(&dims[1], sizeof(unsigned int), 1, costvol) != 1 ||
+      fread(&dims[2], sizeof(unsigned int), 1, costvol) != 1)
+  {
+    std::cerr << "failed to load cost volume" << std::endl;
+    return;
+  }
 
   std::cout << dims[0] << " " << dims[1] << " " << dims[2] << "\n";
   // Now the chart

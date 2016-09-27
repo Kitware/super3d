@@ -521,9 +521,13 @@ void load_cost_volume(vil_image_view<double> &cost_volume,
   FILE *file = fopen(file_name, "rb");
 
   unsigned int ni, nj, np;
-  fread(&ni, sizeof(unsigned int), 1, file);
-  fread(&nj, sizeof(unsigned int), 1, file);
-  fread(&np, sizeof(unsigned int), 1, file);
+  if (fread(&ni, sizeof(unsigned int), 1, file) != 1 ||
+      fread(&nj, sizeof(unsigned int), 1, file) != 1 ||
+      fread(&np, sizeof(unsigned int), 1, file) != 1 )
+  {
+    std::cerr << "Error loading cost volume" << std::endl;
+    return;
+  }
 
   g_weight.set_size(ni, nj, 1);
   cost_volume = vil_image_view<double>(ni, nj, 1, np);
@@ -534,14 +538,22 @@ void load_cost_volume(vil_image_view<double> &cost_volume,
     {
       for (unsigned int s = 0; s < np; s++)
       {
-        fread(&cost_volume(i,j,s), sizeof(double), 1, file);
+        if (fread(&cost_volume(i,j,s), sizeof(double), 1, file) != 1)
+        {
+          std::cerr << "Error loading cost volume" << std::endl;
+          return;
+        }
       }
     }
   }
 
   for (unsigned int i = 0; i < ni; i++)
     for (unsigned int j = 0; j < nj; j++)
-      fread(&g_weight(i,j), sizeof(double), 1, file);
+      if (fread(&g_weight(i,j), sizeof(double), 1, file) != 1)
+      {
+        std::cerr << "Error loading cost volume" << std::endl;
+        return;
+      }
 
   fclose(file);
 }
@@ -559,7 +571,11 @@ read_cost_volume_at(FILE *file,
   fseek(file, offset, SEEK_SET);
   for (unsigned int s = 0; s < dims[2]; s++)
   {
-    fread(&values(s), sizeof(double), 1, file);
+    if (fread(&values(s), sizeof(double), 1, file) != 1)
+    {
+      std::cerr << "Error loading cost volume at location" << std::endl;
+      return;
+    }
   }
 }
 

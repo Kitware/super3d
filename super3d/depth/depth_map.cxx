@@ -517,15 +517,23 @@ void load_depth(vil_image_view<double> &depth, const char *filename)
 
   FILE *file = fopen(filename, "rb");
   unsigned int ni, nj;
-  fread(&ni, sizeof(unsigned int), 1, file);
-  fread(&nj, sizeof(unsigned int), 1, file);
+  if (fread(&ni, sizeof(unsigned int), 1, file) != 1 ||
+      fread(&nj, sizeof(unsigned int), 1, file) != 1)
+  {
+    std::cerr << "error loading depth map" <<std::endl;
+    return;
+  }
   depth.set_size(ni, nj, 1);
 
   for (unsigned int i = 0; i < ni; i++)
   {
     for (unsigned int j = 0; j < nj; j++)
     {
-      fread(&depth(i,j), sizeof(double), 1, file);
+      if (fread(&depth(i,j), sizeof(double), 1, file) != 1)
+      {
+        std::cerr << "error loading depth map" <<std::endl;
+        return;
+      }
     }
   }
 

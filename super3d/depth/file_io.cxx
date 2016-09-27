@@ -352,7 +352,11 @@ bool read_flow_file(vil_image_view<double> &flowimg, const char* filename)
     for (int x = 0; x < width; x++) {
       for (int p = 0; p < nBands; p++) {
         float val;
-        fread(&val, sizeof(float), 1, stream);
+        if( fread(&val, sizeof(float), 1, stream) != 1)
+        {
+          std::cerr << "read_flow_file: error reading file" << std::endl;
+          return false;
+        }
         flowimg(x,y,p) = val;
       }
     }

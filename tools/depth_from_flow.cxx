@@ -290,21 +290,33 @@ void load_flows(std::vector<vil_image_view<double> > &flows, const char *filenam
 {
   FILE *file = fopen(filename, "rb");
 
-  unsigned int nflows;;
-  fread(&nflows, sizeof(unsigned int), 1, file);
+  unsigned int nflows;
+  if (fread(&nflows, sizeof(unsigned int), 1, file) != 1)
+  {
+    std::cerr << "failed to load flows" << std::endl;
+    return;
+  }
   flows.resize(nflows);
   for (unsigned int f = 0; f < nflows; f++)
   {
     unsigned int ni, nj;
-    fread(&ni, sizeof(unsigned int), 1, file);
-    fread(&nj, sizeof(unsigned int), 1, file);
+    if (fread(&ni, sizeof(unsigned int), 1, file) != 1 ||
+        fread(&nj, sizeof(unsigned int), 1, file) != 1)
+    {
+      std::cerr << "failed to load flows" << std::endl;
+      return;
+    }
     flows[f].set_size(ni, nj, 2);
     for (unsigned int i = 0; i < ni; i++)
     {
       for (unsigned int j = 0; j < nj; j++)
       {
-        fread(&flows[f](i,j,0), sizeof(double), 1, file);
-        fread(&flows[f](i,j,1), sizeof(double), 1, file);
+        if (fread(&flows[f](i,j,0), sizeof(double), 1, file) != 1 ||
+            fread(&flows[f](i,j,1), sizeof(double), 1, file) != 1)
+        {
+          std::cerr << "failed to load flows" << std::endl;
+          return;
+        }
       }
     }
   }
