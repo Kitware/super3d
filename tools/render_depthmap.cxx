@@ -40,6 +40,7 @@
 #include <super3d/imesh/imesh_mesh.h>
 #include <super3d/imesh/imesh_fileio.h>
 #include <super3d/imesh/algo/imesh_project.h>
+#include <super3d/imesh/algo/imesh_render.h>
 #include <super3d/depth/file_io.h>
 #include <vpgl/vpgl_perspective_camera.h>
 
@@ -124,6 +125,7 @@ int main(int argc, char* argv[])
 
   vul_arg<std::string> output_dir( "-o", "Output directory", "depthmaps" );
   vul_arg<std::string> height_dir( "-h", "Output height map directory", "" );
+  vul_arg<std::string> label_dir( "-l", "Output label map directory", "" );
   vul_arg<std::string> output_camera_file( "--output-camera-file", "Save the scaled cameras to this file", "" );
 
   vul_arg_parse( argc, argv );
@@ -171,6 +173,7 @@ int main(int argc, char* argv[])
 
   vil_image_view<double> depth_map(width, height);
   vil_image_view<double> height_map(width, height);
+  vil_image_view<vxl_uint_16> label_map(width, height);
 
   if (!vul_file::is_directory(output_dir()))
   {
@@ -180,6 +183,12 @@ int main(int argc, char* argv[])
   {
     vul_file::make_directory_path(height_dir());
   }
+  if (label_dir() != "" && !vul_file::is_directory(label_dir()))
+  {
+    vul_file::make_directory_path(label_dir());
+  }
+
+  vxl_uint_16 max_label = mesh.faces().groups().size();
 
   typedef std::map<std::string, vpgl_perspective_camera<double> >::const_iterator camera_iterator;
   std::map<std::string, vpgl_perspective_camera<double> > scaled_cameras;
@@ -192,9 +201,14 @@ int main(int argc, char* argv[])
     }
     scaled_cameras[citr->first] = camera;
     std::cout << "Rendering depth map from camera " << citr->first << std::endl;
-    imesh_project_depth(mesh,
-                        camera,
-                        depth_map);
+    if (label_dir() != "")
+    {
+      imesh_render_mesh_labels(mesh, camera, label_map, depth_map);
+    }
+    else
+    {
+      imesh_project_depth(mesh, camera, depth_map);
+    }
     std::string name = output_dir() + "/" + citr->first + "-depth.tiff";
     if (byte_images())
     {
@@ -234,6 +248,24 @@ int main(int argc, char* argv[])
       }
     }
 
+    if (label_dir() != "")
+    {
+      std::string label_name = label_dir() + "/" + citr->first + "-labels.tiff";
+      if (byte_images())
+      {
+        std::cout << "Saving mapped label image to " << label_name << std::endl;
+        vil_image_view<vxl_byte> byte_image;
+        vil_convert_stretch_range_limited(label_map, byte_image, vxl_uint_16(0), max_label, 0, 255);
+        vil_save(byte_image, label_name.c_str());
+      }
+      else
+      {
+        std::cout << "Saving unscaled label image to " << label_name << std::endl;
+        vil_save(label_map, label_name.c_str());
+      }
+
+      imesh_render_mesh_labels(mesh, camera, label_map, depth_map);
+    }
   }
   // write out scaled cameras if requested
   if (output_camera_file.set())
