@@ -19,12 +19,10 @@
 #include <vgl/vgl_point_2d.h>
 
 //for brdb smart pointer
-#include <vbl/vbl_ref_count.h>
-#include <vbl/vbl_smart_ptr.h>
 #include <vsl/vsl_binary_io.h>
 
 //: A simple mesh
-class SUPER3D_IMESH_EXPORT imesh_mesh : public vbl_ref_count
+class SUPER3D_IMESH_EXPORT imesh_mesh
 {
  public:
   //: Default Constructor
@@ -159,8 +157,8 @@ class SUPER3D_IMESH_EXPORT imesh_mesh : public vbl_ref_count
   tex_coord_type tex_coord_status_;
 };
 
-//smartptr
-typedef vbl_smart_ptr<imesh_mesh> imesh_mesh_sptr;
+//shared pointer typedef
+typedef std::shared_ptr<imesh_mesh> imesh_mesh_sptr;
 
 //--- IO read/write for sptrs--------------------------------------------------
 //: Binary write boxm2_scene scene to stream

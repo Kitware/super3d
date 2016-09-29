@@ -10,8 +10,7 @@
 
 //: Copy Constructor
 imesh_mesh::imesh_mesh(const imesh_mesh& other)
-  : vbl_ref_count(),
-    verts_((other.verts_.get()) ? other.verts_->clone() : 0),
+  : verts_((other.verts_.get()) ? other.verts_->clone() : 0),
     faces_((other.faces_.get()) ? other.faces_->clone() : 0),
     half_edges_(other.half_edges_),
     tex_coords_(other.tex_coords_),
