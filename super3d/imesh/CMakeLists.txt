@@ -27,7 +27,7 @@ set(imesh_sources
 
 super3d_install_headers(${imesh_headers} SUBDIR imesh)
 super3d_add_library(super3d_imesh ${imesh_headers} ${imesh_sources})
-target_link_libraries(super3d_imesh vgl vul)
+target_link_libraries(super3d_imesh vgl)
 
 # Algorithms
 add_subdirectory(algo)

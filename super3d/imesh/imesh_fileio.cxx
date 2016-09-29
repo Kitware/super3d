@@ -6,14 +6,18 @@
 #include <fstream>
 #include <sstream>
 #include <limits>
-#include <vul/vul_file.h>
 #include <vgl/vgl_point_2d.h>
 
 
 //: Read a mesh from a file, determine type from extension
 bool imesh_read(const std::string& filename, imesh_mesh& mesh)
 {
-  std::string ext = vul_file::extension(filename);
+  std::string::size_type dot_index = filename.rfind('.');
+  std::string ext;
+  if (dot_index != std::string::npos)
+  {
+    ext = filename.substr(dot_index, std::string::npos);
+  }
   if (ext == ".ply2")
     return imesh_read_ply2(filename,mesh);
   if (ext == ".ply")
