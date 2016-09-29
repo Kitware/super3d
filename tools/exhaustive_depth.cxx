@@ -44,6 +44,7 @@
 #include <super3d/imesh/imesh_fileio.h>
 
 // VXL includes
+#include <vul/vul_timer.h>
 #include <vil/vil_convert.h>
 #include <vil/vil_save.h>
 #include <vil/vil_crop.h>
