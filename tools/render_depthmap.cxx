@@ -29,6 +29,12 @@
  */
 
 
+// stl includes
+#include <iostream>
+#include <fstream>
+#include <map>
+
+
 // VXL includes
 #include <vil/vil_image_view.h>
 #include <vil/vil_convert.h>
@@ -42,12 +48,6 @@
 
 #include <super3d/depth/multiscale.h>
 #include <super3d/depth/depth_map.h>
-
-
-// stl includes
-#include <iostream>
-#include <map>
-
 
 
 /// Load a camera file with sequence of cameras in ASCII format: i K R t

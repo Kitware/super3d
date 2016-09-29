@@ -39,6 +39,7 @@
 #include <super3d/image/adjoint_resample.h>
 #include <super3d/image/adjoint_dbw.h>
 
+#include <fstream>
 #include <iostream>
 #include <boost/bind.hpp>
 

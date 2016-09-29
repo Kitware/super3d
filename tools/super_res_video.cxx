@@ -40,6 +40,7 @@
 #include <super3d/image/adjoint_flow_warp.h>
 #include <super3d/image/adjoint_resample.h>
 
+#include <fstream>
 #include <iostream>
 #include <boost/bind.hpp>
 #include <boost/scoped_ptr.hpp>
