@@ -7,9 +7,9 @@
 // \author Matt Leotta (mleotta@lems.brown.edu)
 // \date May 2, 2008
 
-#include <vcl_vector.h>
-#include <vcl_memory.h>
-#include <vcl_cassert.h>
+#include <vector>
+#include <memory>
+#include <cassert>
 
 #include "imesh_config.h"
 #include "imesh_vertex.h"
@@ -18,13 +18,9 @@
 
 #include <vgl/vgl_point_2d.h>
 
-//for brdb smart pointer
-#include <vbl/vbl_ref_count.h>
-#include <vbl/vbl_smart_ptr.h>
-#include <vsl/vsl_binary_io.h>
 
 //: A simple mesh
-class SUPER3D_IMESH_EXPORT imesh_mesh : public vbl_ref_count
+class SUPER3D_IMESH_EXPORT imesh_mesh
 {
  public:
   //: Default Constructor
@@ -32,8 +28,8 @@ class SUPER3D_IMESH_EXPORT imesh_mesh : public vbl_ref_count
 
   //: Constructor from vertex and face arrays
   //  Takes ownership of these arrays
-  imesh_mesh(vcl_auto_ptr<imesh_vertex_array_base> verts, vcl_auto_ptr<imesh_face_array_base> faces)
-  : verts_(verts), faces_(faces), tex_coord_status_(TEX_COORD_NONE) {}
+  imesh_mesh(std::unique_ptr<imesh_vertex_array_base> verts, std::unique_ptr<imesh_face_array_base> faces)
+  : verts_(std::move(verts)), faces_(std::move(faces)), tex_coord_status_(TEX_COORD_NONE) {}
 
   //: Copy Constructor
   imesh_mesh(const imesh_mesh& other);
@@ -80,10 +76,10 @@ class SUPER3D_IMESH_EXPORT imesh_mesh : public vbl_ref_count
   imesh_face_array_base& faces() { return *faces_; }
 
   //: Set the vertices
-  void set_vertices(vcl_auto_ptr<imesh_vertex_array_base> verts) { verts_ = verts; }
+  void set_vertices(std::unique_ptr<imesh_vertex_array_base> verts) { verts_ = std::move(verts); }
 
   //: Set the faces
-  void set_faces(vcl_auto_ptr<imesh_face_array_base> faces) { faces_ = faces; }
+  void set_faces(std::unique_ptr<imesh_face_array_base> faces) { faces_ = std::move(faces); }
 
   //: Returns true if the mesh has computed half edges
   bool has_half_edges() const { return half_edges_.size() > 0; }
@@ -118,20 +114,20 @@ class SUPER3D_IMESH_EXPORT imesh_mesh : public vbl_ref_count
   tex_coord_type has_tex_coords() const { return tex_coord_status_; }
 
   //: Return the texture coordinates
-  const vcl_vector<vgl_point_2d<double> >& tex_coords() const { return tex_coords_; }
+  const std::vector<vgl_point_2d<double> >& tex_coords() const { return tex_coords_; }
 
   //: Set the texture coordinates
-  void set_tex_coords(const vcl_vector<vgl_point_2d<double> >& tc);
+  void set_tex_coords(const std::vector<vgl_point_2d<double> >& tc);
 
   //: set the texture sources
-  void set_tex_source(const vcl_string ts) { tex_source_ = ts; }
-  const vcl_string& tex_source() const { return tex_source_; }
+  void set_tex_source(const std::string ts) { tex_source_ = ts; }
+  const std::string& tex_source() const { return tex_source_; }
 
   //: Return a vector indicating which faces have texture
-  const vcl_vector<bool>& valid_tex_faces() const { return valid_tex_faces_; }
+  const std::vector<bool>& valid_tex_faces() const { return valid_tex_faces_; }
 
   //: Set the vector indicating which faces have texture
-  void set_valid_tex_faces(const vcl_vector<bool>& valid);
+  void set_valid_tex_faces(const std::vector<bool>& valid);
 
   //: Label all faces with positive (counter clockwise orientation) area as valid
   //  This requirement refers to the texture map coordinates
@@ -143,32 +139,23 @@ class SUPER3D_IMESH_EXPORT imesh_mesh : public vbl_ref_count
 
 
  private:
-  vcl_auto_ptr<imesh_vertex_array_base> verts_;
-  vcl_auto_ptr<imesh_face_array_base> faces_;
+  std::unique_ptr<imesh_vertex_array_base> verts_;
+  std::unique_ptr<imesh_face_array_base> faces_;
   imesh_half_edge_set half_edges_;
 
   //: vector of texture coordinates
-  vcl_vector<vgl_point_2d<double> > tex_coords_;
+  std::vector<vgl_point_2d<double> > tex_coords_;
 
   //: vector of texture sources
-  vcl_string tex_source_;
+  std::string tex_source_;
 
   //: indicate which faces have texture data
-  vcl_vector<bool> valid_tex_faces_;
+  std::vector<bool> valid_tex_faces_;
   //: the type of texture coordinates
   tex_coord_type tex_coord_status_;
 };
 
-//smartptr
-typedef vbl_smart_ptr<imesh_mesh> imesh_mesh_sptr;
-
-//--- IO read/write for sptrs--------------------------------------------------
-//: Binary write boxm2_scene scene to stream
-SUPER3D_IMESH_EXPORT void vsl_b_write(vsl_b_ostream& os, imesh_mesh_sptr& sptr);
-SUPER3D_IMESH_EXPORT void vsl_b_write(vsl_b_ostream& os, imesh_mesh_sptr const& sptr);
-
-//: Binary load boxm2_scene scene from stream.
-SUPER3D_IMESH_EXPORT void vsl_b_read(vsl_b_istream& is, imesh_mesh_sptr& sptr);
-SUPER3D_IMESH_EXPORT void vsl_b_read(vsl_b_istream& is, imesh_mesh_sptr const& sptr);
+//shared pointer typedef
+typedef std::shared_ptr<imesh_mesh> imesh_mesh_sptr;
 
 #endif // imesh_mesh_h_

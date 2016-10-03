@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ using namespace super3d;
 bool callback_called = false;
 
 //Create the warps for downsampled images
-vcl_vector<adjoint_image_ops_func<double> >
+std::vector<adjoint_image_ops_func<double> >
 create_warps(int sni, int snj,
              unsigned int scale_factor,
              bool down_sample_averaging,
@@ -61,7 +61,7 @@ create_warps(int sni, int snj,
   int dni = sni / scale_factor;
   int dnj = snj / scale_factor;
 
-  vcl_vector<adjoint_image_ops_func<double> > warps;
+  std::vector<adjoint_image_ops_func<double> > warps;
 
   double sigma = 0.25 * sqrt(scale_factor * scale_factor - 1.0);
 
@@ -85,8 +85,8 @@ create_warps(int sni, int snj,
 //that we will use to reconstruct to the original image
 void
 create_downsampled_frames(const vil_image_view<double> &high_res,
-                          const vcl_vector<adjoint_image_ops_func<double> > &warps,
-                          vcl_vector<vil_image_view<double> > &frames)
+                          const std::vector<adjoint_image_ops_func<double> > &warps,
+                          std::vector<vil_image_view<double> > &frames)
 {
   frames.clear();
   for (unsigned i = 0; i< warps.size(); ++i)
@@ -109,14 +109,14 @@ void test_super_res(const vil_image_view<double> &img,
                     super_resolution_monitor *srm)
 {
   //Creating downsampled frames
-  vcl_vector<vil_image_view<double> > frames;
+  std::vector<vil_image_view<double> > frames;
 
-  vcl_vector<adjoint_image_ops_func<double> > warps;
+  std::vector<adjoint_image_ops_func<double> > warps;
   warps = create_warps(img.ni(), img.nj(), static_cast<unsigned int>(srp.scale_factor),
                       down_sample_averaging, bicubic_warping);
   create_downsampled_frames(img, warps, frames);
 
-  vcl_cout << "Computing super resolution\n";
+  std::cout << "Computing super resolution\n";
 
   vil_image_view<double> super_u;
   super_resolve(frames, warps, super_u, iterations, srp, srm);
@@ -148,13 +148,13 @@ int test_super_res( int argc, char* argv[] )
 {
   if( argc < 2 )
   {
-    vcl_cerr << "Need the data directory as an argument!\n";
+    std::cerr << "Need the data directory as an argument!\n";
     return EXIT_FAILURE;
   }
 
   // load the input test image
-  vcl_string dir = argv[1];
-  vcl_string src_path = dir + "/ocean_city.png";
+  std::string dir = argv[1];
+  std::string src_path = dir + "/ocean_city.png";
   vil_image_view<vxl_byte> input = vil_load(src_path.c_str());
   vil_image_view<double> dbl_input;
   vil_convert_cast<vxl_byte, double>(input, dbl_input);

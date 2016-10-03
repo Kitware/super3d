@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
     vil_image_resource_sptr im = vil_load_image_resource(nitf_paths[i].string().c_str());
     if(!im)
     {
-      vcl_cerr << "Unable to load image" << vcl_endl;
+      std::cerr << "Unable to load image" << std::endl;
       return EXIT_FAILURE;
     }
     std::cout << "loaded as format: "<< im->file_format()

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,11 +42,11 @@
 
 int main(int argc, char *argv[])
 {
-  vul_arg<vcl_string> homog_file("-h", "homog file", "");
-  vul_arg<vcl_string> camera_file("-c", "camera file", "");
-  vul_arg<vcl_string> nvm_file("-n", "n view match file", "");
-  vul_arg<vcl_string> frame_file("-i", "image list", "");
-  vul_arg<vcl_string> frames_str("-f", "frames to extract", "");
+  vul_arg<std::string> homog_file("-h", "homog file", "");
+  vul_arg<std::string> camera_file("-c", "camera file", "");
+  vul_arg<std::string> nvm_file("-n", "n view match file", "");
+  vul_arg<std::string> frame_file("-i", "image list", "");
+  vul_arg<std::string> frames_str("-f", "frames to extract", "");
 
   vul_arg_parse( argc, argv );
 
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 
   if (homog_file.set())
   {
-    vcl_vector<vnl_double_3x3> homogs;
+    std::vector<vnl_double_3x3> homogs;
     std::ifstream infile(homog_file().c_str());
     vnl_double_3x3 h;
     while (infile >> h)

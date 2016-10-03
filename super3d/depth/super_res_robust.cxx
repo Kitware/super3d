@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@
 #include <vil/vil_convert.h>
 #include <vil/algo/vil_greyscale_erode.h>
 #include <vil/algo/vil_median.h>
-#include <vil/vil_resample_bicub.txx>
+#include <vil/vil_resample_bicub.hxx>
 #include <super3d/image/warp_image.h>
 
 #include "super_res.h"
@@ -118,8 +118,8 @@ void dual_step_pr(const vil_image_view<double> &u,
 }
 
 //*****************************************************************************
-void dual_step_pl(const vcl_vector< vil_image_view<double> >&As,
-                  vcl_vector< vil_image_view<double> >&pl,
+void dual_step_pl(const std::vector< vil_image_view<double> >&As,
+                  std::vector< vil_image_view<double> >&pl,
                   const super3d::super_res_params &srp)
 {
   if( srp.illumination_prior )
@@ -140,11 +140,11 @@ void dual_step_pl(const vcl_vector< vil_image_view<double> >&As,
 
 void dual_step_qa(
   const vil_image_view<double> &u,
-  const vcl_vector<vil_image_view<double> > &frames,
-  vcl_vector<vil_image_view<double> > &qa,
-  const vcl_vector< vil_image_view<double> > &As,
-  const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
-  const vcl_vector<vil_image_view<double> > &weights,
+  const std::vector<vil_image_view<double> > &frames,
+  std::vector<vil_image_view<double> > &qa,
+  const std::vector< vil_image_view<double> > &As,
+  const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
+  const std::vector<vil_image_view<double> > &weights,
   const super3d::super_res_params &srp)
 {
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
@@ -217,8 +217,8 @@ void dual_step_qa(
 
           double &qfijk = qa[f](i, j, k);
           qfijk = (qfijk +  diff * val)/denom;
-          qfijk = vcl_max(qfijk, -sf_2);
-          qfijk = vcl_min(qfijk, sf_2);
+          qfijk = std::max(qfijk, -sf_2);
+          qfijk = std::min(qfijk, sf_2);
         }
       }
     }
@@ -230,10 +230,10 @@ void dual_step_qa(
 
 void dual_step_qg(
   const vil_image_view<double> &u,
-  const vcl_vector<vil_image_view<double> > &gradient_frames,
-  vcl_vector<vil_image_view<double> > &qg,
-  const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
-  const vcl_vector<vil_image_view<double> > &weights,
+  const std::vector<vil_image_view<double> > &gradient_frames,
+  std::vector<vil_image_view<double> > &qg,
+  const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
+  const std::vector<vil_image_view<double> > &weights,
   const super3d::super_res_params &srp)
 {
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
@@ -282,8 +282,8 @@ void dual_step_qg(
           }
 
           qfijk = (qfijk + diff * val)/denom;
-          qfijk = vcl_max(qfijk, -sf_2);
-          qfijk = vcl_min(qfijk, sf_2);
+          qfijk = std::max(qfijk, -sf_2);
+          qfijk = std::min(qfijk, sf_2);
         }
       }
     }
@@ -292,12 +292,12 @@ void dual_step_qg(
 
 //*****************************************************************************
 void primal_step_A(
-  const vcl_vector<vil_image_view<double> > &frames,
-  const vcl_vector<vil_image_view<double> > &qa,
-  const vcl_vector< vil_image_view<double> >& pl,
-  vcl_vector<vil_image_view<double> > &As,
-  const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
-  const vcl_vector<vil_image_view<double> > &weights,
+  const std::vector<vil_image_view<double> > &frames,
+  const std::vector<vil_image_view<double> > &qa,
+  const std::vector< vil_image_view<double> >& pl,
+  std::vector<vil_image_view<double> > &As,
+  const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
+  const std::vector<vil_image_view<double> > &weights,
   const super_res_params &srp)
 {
   if( !srp.illumination_prior )
@@ -338,11 +338,11 @@ void primal_step_A(
 //*****************************************************************************
 void primal_step_Y(
   vil_image_view<double> &u,
-  const vcl_vector<vil_image_view<double> > &qa,
-  const vcl_vector<vil_image_view<double> > &qg,
+  const std::vector<vil_image_view<double> > &qa,
+  const std::vector<vil_image_view<double> > &qg,
   const vil_image_view<double> &pr,
-  const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
-  const vcl_vector<vil_image_view<double> > &weights,
+  const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
+  const std::vector<vil_image_view<double> > &weights,
   const super3d::super_res_params &srp)
 {
   const double sf_2 = 1.0 / (srp.scale_factor * srp.scale_factor);
@@ -405,13 +405,13 @@ void primal_step_Y(
 //*****************************************************************************
 
 void super_resolve_robust(
-  const vcl_vector<vil_image_view<double> > &frames,
-  const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
+  const std::vector<vil_image_view<double> > &frames,
+  const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
   vil_image_view<double> &Y,
   super_res_params srp,
   unsigned int iterations,
-  vcl_vector< vil_image_view<double> > &As,
-  const vcl_string &output_image,
+  std::vector< vil_image_view<double> > &As,
+  const std::string &output_image,
   super_res_monitor *srm)
 {
   if (frames.empty())
@@ -426,7 +426,7 @@ void super_resolve_robust(
   {
     if (frames[i].nplanes() != np)
     {
-      vcl_cerr << "All frames must have the same number of planes.\n";
+      std::cerr << "All frames must have the same number of planes.\n";
       return;
     }
   }
@@ -474,29 +474,29 @@ void super_resolve_robust(
     srp.illumination_prior=true;
     break;
   default:
-    vcl_cerr << "unknown tv method.\n";
+    std::cerr << "unknown tv method.\n";
     return;
   }
 
   vil_image_view<double> pr(srp.s_ni, srp.s_nj, 2*np);
   pr.fill(0.0);
 
-  vcl_vector<vil_image_view<double> > qa(frames.size());
-  vcl_vector<vil_image_view<double> > hat_qa(frames.size());
-  vcl_vector<vil_image_view<double> > qg(frames.size());
-  vcl_vector<vil_image_view<double> > pl(frames.size()*2);
-  vcl_vector<vil_image_view<double> > weights;
+  std::vector<vil_image_view<double> > qa(frames.size());
+  std::vector<vil_image_view<double> > hat_qa(frames.size());
+  std::vector<vil_image_view<double> > qg(frames.size());
+  std::vector<vil_image_view<double> > pl(frames.size()*2);
+  std::vector<vil_image_view<double> > weights;
 
   vil_image_view<double> Yref_median;
-  vcl_vector<vil_image_view<double> > frames_median;
+  std::vector<vil_image_view<double> > frames_median;
   vil_image_view<double> Y_baseline;
-  vcl_vector<vil_image_view<double> > frames_residue;
+  std::vector<vil_image_view<double> > frames_residue;
 
   for (unsigned int i = 0; i < frames.size(); i++)
   {
     unsigned int low_ni = warps[i].dst_ni();
     unsigned int low_nj = warps[i].dst_nj();
-    vcl_cout << low_ni << " " << low_nj << "\n";
+    std::cout << low_ni << " " << low_nj << "\n";
 
     qa[i].set_size(low_ni, low_nj, np);
     qa[i].fill(0.0);
@@ -620,7 +620,7 @@ void super_resolve_robust(
   last.deep_copy(u);
   unsigned int i = 0;
 
-  vcl_vector< vil_image_view<double> > frames_gradient;
+  std::vector< vil_image_view<double> > frames_gradient;
   if( srp.gradient_data )
   {
     for( unsigned int i=0; i<frames.size(); i++ )
@@ -633,7 +633,7 @@ void super_resolve_robust(
 
   do
   {
-    vcl_cout << "Iteration: " << i;
+    std::cout << "Iteration: " << i;
 
     switch( srp.tv_method )
     {
@@ -667,7 +667,7 @@ void super_resolve_robust(
 
     case super3d::super_res_params::IMAGEDATA_GRADIENTDATA_IMAGEPRIOR_ILLUMINATIONPRIOR:
     default:
-      vcl_cerr << "unknown tv method.\n";
+      std::cerr << "unknown tv method.\n";
       return;
     }
 
@@ -702,11 +702,11 @@ void super_resolve_robust(
         {
           vil_image_view<double> Yall(u.ni(), u.nj(), u.nplanes());
           vil_math_image_sum( Y_baseline, u, Yall );
-          vil_convert_stretch_range_limited(Yall, outd, vcl_max(0.0,minv), vcl_min(1.0,maxv), 0.0, 255.0);
+          vil_convert_stretch_range_limited(Yall, outd, std::max(0.0,minv), std::min(1.0,maxv), 0.0, 255.0);
         }
         else
         {
-          vil_convert_stretch_range_limited(u, outd, vcl_max(0.0,minv), vcl_min(1.0,maxv), 0.0, 255.0);
+          vil_convert_stretch_range_limited(u, outd, std::max(0.0,minv), std::min(1.0,maxv), 0.0, 255.0);
         }
         vil_convert_cast(outd, output);
         vil_save(output, output_image.c_str());
@@ -752,8 +752,8 @@ void super_resolve_robust(
       }
 
       ssd = vil_math_ssd(last, u, double());
-      vcl_cout << " SSD: " << ssd << " " << minv << " " << maxv << "\n";
-      vcl_swap(last, u);
+      std::cout << " SSD: " << ssd << " " << minv << " " << maxv << "\n";
+      std::swap(last, u);
     }
 
   } while (++i < iterations);
@@ -780,7 +780,7 @@ void read_super_res_params( const boost::scoped_ptr<config>& cfg,
     srp.tau = cfg->get_value<double>("tau");
 
     // additional parameters
-    vcl_string tv_method_str = cfg->get_value<vcl_string>("tv_method");
+    std::string tv_method_str = cfg->get_value<std::string>("tv_method");
     if( tv_method_str.compare("SUPER3D_BASELINE") == 0 )
     {
       srp.tv_method = super3d::super_res_params::SUPER3D_BASELINE;
@@ -807,12 +807,12 @@ void read_super_res_params( const boost::scoped_ptr<config>& cfg,
     }
     else
     {
-      vcl_cerr << "unknown tv method\n";
+      std::cerr << "unknown tv method\n";
       return;
     }
-    vcl_cout << "tv method : " << tv_method_str << vcl_endl;
+    std::cout << "tv method : " << tv_method_str << std::endl;
 
-    vcl_string str = cfg->get_value<vcl_string>("cost_function");
+    std::string str = cfg->get_value<std::string>("cost_function");
     if( str.compare("HUBER_NORM") == 0 )
     {
       srp.cost_function = super3d::super_res_params::HUBER_NORM;
@@ -827,10 +827,10 @@ void read_super_res_params( const boost::scoped_ptr<config>& cfg,
     }
     else
     {
-      vcl_cerr << "unknown cost function\n";
+      std::cerr << "unknown cost function\n";
       return;
     }
-    vcl_cout << "cost function : " << str << vcl_endl;
+    std::cout << "cost function : " << str << std::endl;
 
     if (cfg->is_set("alpha_a"))
       srp.alpha_a = cfg->get_value<double>("alpha_a");

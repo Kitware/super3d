@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,16 +42,16 @@
 
 #include <vil/algo/vil_gauss_filter.h>
 
-#include <vcl_iostream.h>
-#include <vcl_limits.h>
+#include <iostream>
+#include <limits>
 
 
 void refine_homography(const vil_image_view<double> &fixed, const vil_image_view<double> &moving,
                        vnl_double_3x3 &H, double grad_thresh, unsigned int num_iters,
                        unsigned int search_radius, double normal_cutoff, double sigma)
 {
-  vcl_vector<match> matches;
-  vcl_vector<edgel> e_fixed, e_moving;
+  std::vector<match> matches;
+  std::vector<edgel> e_fixed, e_moving;
   vil_image_view<unsigned int> index_map;
 
   extract_driving_edgels(moving, grad_thresh, sigma, e_moving);
@@ -86,7 +86,7 @@ edgel::edgel(double x, double y, double angle, double m) : pos(x, y), mag(m)
 void extract_driving_edgels(const vil_image_view<double> &img,
                             double grad_thresh,
                             double sigma,
-                            vcl_vector<edgel> &edgels)
+                            std::vector<edgel> &edgels)
 {
   vil_image_view<double> grad_x, grad_y;
   if (sigma > 0.0)
@@ -106,9 +106,9 @@ void extract_driving_edgels(const vil_image_view<double> &img,
   const unsigned int ni = grad.ni();
   const unsigned int nj = grad.nj();
 
-  const vcl_ptrdiff_t istep = grad.istep();
-  const vcl_ptrdiff_t jstep = grad.jstep();
-  const vcl_ptrdiff_t pstep = grad.planestep();
+  const std::ptrdiff_t istep = grad.istep();
+  const std::ptrdiff_t jstep = grad.jstep();
+  const std::ptrdiff_t pstep = grad.planestep();
 
   const double *row = grad.top_left_ptr();
   for (unsigned int j = 0; j < nj; ++j, row += jstep)
@@ -124,8 +124,8 @@ void extract_driving_edgels(const vil_image_view<double> &img,
       const double &mag = *pixel;
       const double &angle = *(pixel + pstep);
       const double &offset = *(pixel + 2*pstep);
-      double x = i + vcl_cos(angle)*offset;
-      double y = j + vcl_sin(angle)*offset;
+      double x = i + std::cos(angle)*offset;
+      double y = j + std::sin(angle)*offset;
       edgels.push_back(edgel(x, y, angle, mag));
     }
   }
@@ -135,7 +135,7 @@ void extract_driving_edgels(const vil_image_view<double> &img,
 void extract_matchable_edgels(const vil_image_view<double> &img,
                               double grad_thresh,
                               double sigma,
-                              vcl_vector<edgel> &edgels,
+                              std::vector<edgel> &edgels,
                               vil_image_view<unsigned int> &index)
 {
   vil_image_view<double> grad_x, grad_y;
@@ -158,11 +158,11 @@ void extract_matchable_edgels(const vil_image_view<double> &img,
   index.set_size(ni, nj, 1);
   index.fill(0);
 
-  const vcl_ptrdiff_t istep_E = grad.istep();
-  const vcl_ptrdiff_t istep_M = index.istep();
-  const vcl_ptrdiff_t jstep_E = grad.jstep();
-  const vcl_ptrdiff_t jstep_M = index.jstep();
-  const vcl_ptrdiff_t pstep_E = grad.planestep();
+  const std::ptrdiff_t istep_E = grad.istep();
+  const std::ptrdiff_t istep_M = index.istep();
+  const std::ptrdiff_t jstep_E = grad.jstep();
+  const std::ptrdiff_t jstep_M = index.jstep();
+  const std::ptrdiff_t pstep_E = grad.planestep();
 
   const double *row_E = grad.top_left_ptr();
   unsigned int *row_M = index.top_left_ptr();
@@ -181,8 +181,8 @@ void extract_matchable_edgels(const vil_image_view<double> &img,
       const double &angle = *(pixel_E + pstep_E);
       const double &offset = *(pixel_E + 2*pstep_E);
 
-      double x = i + vcl_cos(angle) * offset;
-      double y = j + vcl_sin(angle) * offset;
+      double x = i + std::cos(angle) * offset;
+      double y = j + std::sin(angle) * offset;
       edgels.push_back(edgel(x, y, angle, mag));
       *pixel_M = static_cast<unsigned int>(edgels.size()); //index + 1 so that 0 is reserved for no edge
     }
@@ -207,11 +207,11 @@ vnl_double_2 warp_normal(const vnl_double_3x3 &H, const vnl_double_2 &pt, const 
 
 
 void match_edgels(const vnl_double_3x3 &H,
-                  const vcl_vector<edgel> &e_fixed,
-                  const vcl_vector<edgel> &e_moving,
+                  const std::vector<edgel> &e_fixed,
+                  const std::vector<edgel> &e_moving,
                   const vil_image_view<unsigned int> &index,
                   const double search_rad,
-                  vcl_vector<match> &matches,
+                  std::vector<match> &matches,
                   double normal_cutoff)
 {
   double x_bound = static_cast<double>(index.ni()-1);
@@ -233,12 +233,12 @@ void match_edgels(const vnl_double_3x3 &H,
 
     vnl_double_2 np = warp_normal(H, e->pos, e->n);
 
-    int left = static_cast<int>(vcl_max(pp(0) - search_rad, 0.0));
-    int right = static_cast<int>(vcl_min(pp(0) + search_rad, x_bound));
-    int top = static_cast<int>(vcl_max(pp(1) - search_rad, 0.0));
-    int bot = static_cast<int>(vcl_min(pp(1) + search_rad, y_bound));
+    int left = static_cast<int>(std::max(pp(0) - search_rad, 0.0));
+    int right = static_cast<int>(std::min(pp(0) + search_rad, x_bound));
+    int top = static_cast<int>(std::max(pp(1) - search_rad, 0.0));
+    int bot = static_cast<int>(std::min(pp(1) + search_rad, y_bound));
 
-    double closest_dist = vcl_numeric_limits<double>::max();
+    double closest_dist = std::numeric_limits<double>::max();
     unsigned int closest_index;
     for (int m = left; m <= right; m++)
     {
@@ -266,12 +266,12 @@ void match_edgels(const vnl_double_3x3 &H,
       }
     }
 
-    if (closest_dist != vcl_numeric_limits<double>::max())
+    if (closest_dist != std::numeric_limits<double>::max())
     {
       matches.push_back(match(e, &e_fixed[closest_index]));
     }
   }
-  vcl_cout << matches.size() << "\n";
+  std::cout << matches.size() << "\n";
 }
 
 ///Class required by vnl_levenberg_marquardt to define the energy function
@@ -280,9 +280,9 @@ class energy_func : public vnl_least_squares_function
 public:
   energy_func(unsigned int number_of_unknowns,
               unsigned int number_of_residuals,
-              const vcl_vector<match> &correspondences,
-              const vcl_vector<vnl_double_2> &normalized_fixed,
-              const vcl_vector<vnl_double_2> &normalized_moving,
+              const std::vector<match> &correspondences,
+              const std::vector<vnl_double_2> &normalized_fixed,
+              const std::vector<vnl_double_2> &normalized_moving,
               const vnl_vector<double> &weights)
              : vnl_least_squares_function(number_of_unknowns, number_of_residuals),
                corresp(correspondences), norm_fixed(normalized_fixed),
@@ -293,9 +293,9 @@ public:
 
 private:
 
-  const vcl_vector<match> &corresp;
-  const vcl_vector<vnl_double_2> &norm_fixed;
-  const vcl_vector<vnl_double_2> &norm_moving;
+  const std::vector<match> &corresp;
+  const std::vector<vnl_double_2> &norm_fixed;
+  const std::vector<vnl_double_2> &norm_moving;
   const vnl_vector<double> &wgts;
 };
 
@@ -349,7 +349,7 @@ void energy_func::gradf(const vnl_vector<double> &x, vnl_matrix<double> &jacobia
 }
 
 ///Computes normalization matrices for numerical stability in LM
-void compute_normalization(const vcl_vector<match> &matches,
+void compute_normalization(const std::vector<match> &matches,
                            vnl_double_3x3 &T_fixed,
                            vnl_double_3x3 &T_moving)
 {
@@ -391,7 +391,7 @@ void compute_normalization(const vcl_vector<match> &matches,
 }
 
 
-void estimate_homog_lm(const vcl_vector<match> &corresp, vnl_double_3x3 &H)
+void estimate_homog_lm(const std::vector<match> &corresp, vnl_double_3x3 &H)
 {
   const unsigned int num_params = 9;
   const unsigned int num_resid = static_cast<unsigned int>(corresp.size());
@@ -402,7 +402,7 @@ void estimate_homog_lm(const vcl_vector<match> &corresp, vnl_double_3x3 &H)
   T_fixed_inv = vnl_inverse<double>(T_fixed);
   T_moving_inv = vnl_inverse<double>(T_moving);
 
-  vcl_vector<vnl_double_2> norm_fixed, norm_moving;
+  std::vector<vnl_double_2> norm_fixed, norm_moving;
   norm_fixed.reserve(corresp.size()), norm_moving.reserve(corresp.size());
   for (unsigned int i = 0; i < corresp.size(); i++)
   {

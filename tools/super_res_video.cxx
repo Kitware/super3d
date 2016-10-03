@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,8 @@
 #include <super3d/image/adjoint_flow_warp.h>
 #include <super3d/image/adjoint_resample.h>
 
-#include <vcl_iostream.h>
+#include <fstream>
+#include <iostream>
 #include <boost/bind.hpp>
 #include <boost/scoped_ptr.hpp>
 
@@ -59,15 +60,15 @@
 
 
 /// Use the valid region of the flow destinations to crop the frames and translate the flow.
-void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
-                             vcl_vector<vil_image_view<double> > &frames,
+void crop_frames_and_flows(std::vector<vil_image_view<double> > &flows,
+                             std::vector<vil_image_view<double> > &frames,
                              int scale_factor,
                              int margin=0);
 
-void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
-                             const vcl_vector<vil_image_view<double> > &weights,
-                             const vcl_vector<vil_image_view<double> > &frames,
-                             vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
+void create_warps_from_flows(const std::vector<vil_image_view<double> > &flows,
+                             const std::vector<vil_image_view<double> > &weights,
+                             const std::vector<vil_image_view<double> > &frames,
+                             std::vector<super3d::adjoint_image_ops_func<double> > &warps,
                              int scale_factor,
                              super3d::config *cfg);
 
@@ -78,11 +79,11 @@ void difference_from_flow(const vil_image_view<double> &I0,
                           double scale_factor,
                           super3d::config *cfg);
 
-void create_low_res(vcl_vector<vil_image_view<double> > &frames,
+void create_low_res(std::vector<vil_image_view<double> > &frames,
                     int scale,
                     super3d::config *cfg);
 
-void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_image_view<double> > &flows);
+void load_flow(const char *flow_list, const std::string &dir, std::vector<vil_image_view<double> > &flows);
 
 //*****************************************************************************
 
@@ -92,47 +93,47 @@ int main(int argc, char* argv[])
   {
     boost::scoped_ptr<super3d::config> cfg(new super3d::config);
     cfg->read_config(argv[1]);
-    vcl_vector<vil_image_view<double> > frames;
-    vcl_vector<vcl_string> filenames;
+    std::vector<vil_image_view<double> > frames;
+    std::vector<std::string> filenames;
 
     super3d::super_res_params srp;
     read_super_res_params( cfg, srp );
 
-    vcl_string frame_file = cfg->get_value<vcl_string>("frame_list");
-    vcl_string dir("");
+    std::string frame_file = cfg->get_value<std::string>("frame_list");
+    std::string dir("");
     if (cfg->is_set("directory"))
-      dir = cfg->get_value<vcl_string>("directory");
-    vcl_vector<int> frameindex;
+      dir = cfg->get_value<std::string>("directory");
+    std::vector<int> frameindex;
 
-    vcl_vector<vpgl_perspective_camera<double> >  cameras;
+    std::vector<vpgl_perspective_camera<double> >  cameras;
 
     if (cfg->is_set("camera_file"))
     {
-      vcl_string camera_file = cfg->get_value<vcl_string>("camera_file");
-      vcl_cout << "Using frame file: " << frame_file << " to find images and " << camera_file  << " to find cameras.\n";
+      std::string camera_file = cfg->get_value<std::string>("camera_file");
+      std::cout << "Using frame file: " << frame_file << " to find images and " << camera_file  << " to find cameras.\n";
       super3d::load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames,
                            cfg->get_value<bool>("use_color"), cfg->get_value<bool>("use_rgb12"));
       super3d::load_cams(camera_file.c_str(), frameindex, cameras);
     }
     else if (cfg->is_set("camera_dir"))
     {
-      vcl_string camera_dir = cfg->get_value<vcl_string>("camera_dir");
-      vcl_cout << "Using frame file: " << frame_file << " to find images and " << camera_dir  << " to find cameras.\n";
+      std::string camera_dir = cfg->get_value<std::string>("camera_dir");
+      std::cout << "Using frame file: " << frame_file << " to find images and " << camera_dir  << " to find cameras.\n";
 
       super3d::load_from_frame_file(frame_file.c_str(), dir, filenames, frameindex, frames,
                            cfg->get_value<bool>("use_color"), cfg->get_value<bool>("use_rgb12"));
       for (unsigned int i = 0; i < filenames.size(); i++)
       {
-        vcl_string camname = filenames[i];
+        std::string camname = filenames[i];
         unsigned int found = camname.find_last_of("/\\");
         camname = camname.substr(found+1, camname.size() - 4 - found - 1);
-        camname = cfg->get_value<vcl_string>("camera_dir") + "/" + camname + ".krtd";
+        camname = cfg->get_value<std::string>("camera_dir") + "/" + camname + ".krtd";
         cameras.push_back(super3d::load_cam(camname));
       }
     }
     else
     {
-      vcl_cerr << "Error: must use camera_file or camera_dir.\n";
+      std::cerr << "Error: must use camera_file or camera_dir.\n";
       return -1;
     }
 
@@ -146,8 +147,8 @@ int main(int argc, char* argv[])
     int j0 = 0;
     int ni, nj;
 
-    vcl_vector<vil_image_view<double> > weights;
-    vcl_vector<super3d::adjoint_image_ops_func<double> > warps;
+    std::vector<vil_image_view<double> > weights;
+    std::vector<super3d::adjoint_image_ops_func<double> > warps;
 
     const double normalizer = 1.0/255.0;
 
@@ -167,14 +168,14 @@ int main(int argc, char* argv[])
       camera_scale = cfg->get_value<double>("camera_scale");
       if (cfg->is_set("ground_truth"))
       {
-        vcl_string ground_truth = cfg->get_value<vcl_string>("ground_truth");
+        std::string ground_truth = cfg->get_value<std::string>("ground_truth");
         vil_image_view<vxl_byte> gt_byte;
         gt_byte = vil_load(ground_truth.c_str());
         vil_convert_planes_to_grey(gt_byte, gt);
       }
     }
 
-    vcl_vector<vpgl_perspective_camera<double> > scaled_cams;
+    std::vector<vpgl_perspective_camera<double> > scaled_cams;
     for (unsigned int i = 0; i < frames.size(); i++)
     {
       vil_math_scale_values(frames[i], normalizer);
@@ -182,7 +183,7 @@ int main(int argc, char* argv[])
     }
 
     vil_image_view<double> depth;
-    vcl_string depthfile = cfg->get_value<vcl_string>("high_res_depth");
+    std::string depthfile = cfg->get_value<std::string>("high_res_depth");
     depth = vil_load(depthfile.c_str());
     int dni = depth.ni(), dnj = depth.nj();
     if (cfg->get_value<bool>("upsample_depth"))
@@ -194,24 +195,24 @@ int main(int argc, char* argv[])
       depth = temp;
     }
 
-    vcl_cout << depth.ni() << " " << depth.nj() << "\n";
+    std::cout << depth.ni() << " " << depth.nj() << "\n";
     double min, max;
     vil_math_value_range(depth, min, max);
-    vcl_cout << min << " " << max << "\n";
+    std::cout << min << " " << max << "\n";
 
     //Crop regions are defined in the coordinates of the LOW RES reference frame
     vpgl_perspective_camera<double> ref_cam = scaled_cams[ref_frame];
     if (cfg->is_set("crop_window"))
     {
-      vcl_istringstream cwstream(cfg->get_value<vcl_string>("crop_window"));
+      std::istringstream cwstream(cfg->get_value<std::string>("crop_window"));
       cwstream >> i0 >> ni >> j0 >> nj;
-      vcl_cout << frames[ref_frame].ni() << " " << frames[ref_frame].nj() << "\n";
+      std::cout << frames[ref_frame].ni() << " " << frames[ref_frame].nj() << "\n";
       ref_image.deep_copy(vil_crop(frames[ref_frame], i0, ni, j0, nj));
       i0 = (int)(i0*scale_factor/camera_scale);
       j0 = (int)(j0*scale_factor/camera_scale);
       ni = (int)(ni*scale_factor/camera_scale);
       nj = (int)(nj*scale_factor/camera_scale);
-      vcl_cout << "Crop window: " << i0 << " " << ni << " " << j0 << " " << nj << "\n";
+      std::cout << "Crop window: " << i0 << " " << ni << " " << j0 << " " << nj << "\n";
       if (cfg->is_set("ground_truth"))
         gt = vil_crop(gt, i0, ni, j0, nj);
 
@@ -260,8 +261,8 @@ int main(int argc, char* argv[])
       }
     }
 
-    vcl_cout << "Computing flow from depth\n";
-    vcl_vector<vil_image_view<double> > flows;
+    std::cout << "Computing flow from depth\n";
+    std::vector<vil_image_view<double> > flows;
     super3d::compute_occluded_flows_from_depth(scaled_cams, ref_cam, depth, flows);
     crop_frames_and_flows(flows, frames, scale_factor, 0);
     create_warps_from_flows(flows, frames, weights, warps, scale_factor, cfg.get());
@@ -273,7 +274,7 @@ int main(int argc, char* argv[])
       for (unsigned int i = 0; i < warps.size(); i++)
       {
         // test if the DBW operator for image i is adjoint
-        vcl_cout << "is adjoint "<<i<<" "<<warps[i].is_adjoint()<<vcl_endl;
+        std::cout << "is adjoint "<<i<<" "<<warps[i].is_adjoint()<<std::endl;
 
         char buf[50];
         vil_image_view<vxl_byte> output;
@@ -331,7 +332,7 @@ int main(int argc, char* argv[])
       }
     }
 
-    vcl_cout << "Computing super resolution\n";
+    std::cout << "Computing super resolution\n";
 
     //Initilize super resolution parameters
     vil_image_view<double> super_u;
@@ -343,9 +344,9 @@ int main(int argc, char* argv[])
     srp.l_nj = warps[ref_frame].dst_nj();
 
     const unsigned int iterations = cfg->get_value<unsigned int>("iterations");
-    vcl_string output_image = cfg->get_value<vcl_string>("output_image");
+    std::string output_image = cfg->get_value<std::string>("output_image");
 
-    vcl_vector< vil_image_view<double> > As;
+    std::vector< vil_image_view<double> > As;
     super3d::super_resolve_robust(frames, warps, super_u, srp, iterations, As, output_image);
 
     if (cfg->is_set("ground_truth"))
@@ -380,7 +381,7 @@ int main(int argc, char* argv[])
     }
   }
   catch (const super3d::config::cfg_exception &e)  {
-    vcl_cout << "Error in config: " << e.what() << "\n";
+    std::cout << "Error in config: " << e.what() << "\n";
   }
 
   return 0;
@@ -389,8 +390,8 @@ int main(int argc, char* argv[])
 //*****************************************************************************
 
 /// Use the valid region of the flow destinations to crop the frames and translate the flow.
-void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
-                           vcl_vector<vil_image_view<double> > &frames,
+void crop_frames_and_flows(std::vector<vil_image_view<double> > &flows,
+                           std::vector<vil_image_view<double> > &frames,
                            int scale_factor, int margin)
 {
   assert(flows.size() == frames.size());
@@ -398,8 +399,8 @@ void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
   {
     // get a bounding box around the flow and expand by a margin
     vgl_box_2d<double> bounds = super3d::flow_destination_bounds(flows[i]);
-    vgl_box_2d<int> bbox(vcl_floor(bounds.min_x()), vcl_ceil(bounds.max_x()),
-                         vcl_floor(bounds.min_y()), vcl_ceil(bounds.max_y()));
+    vgl_box_2d<int> bbox(std::floor(bounds.min_x()), std::ceil(bounds.max_x()),
+                         std::floor(bounds.min_y()), std::ceil(bounds.max_y()));
     bbox.expand_about_centroid(2*margin);
 
     // get a bounding box around the (up sampled) image and intersect
@@ -417,10 +418,10 @@ void crop_frames_and_flows(vcl_vector<vil_image_view<double> > &flows,
 
 //*****************************************************************************
 
-void create_warps_from_flows(const vcl_vector<vil_image_view<double> > &flows,
-                             const vcl_vector<vil_image_view<double> > &frames,
-                             const vcl_vector<vil_image_view<double> > &weights,
-                             vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
+void create_warps_from_flows(const std::vector<vil_image_view<double> > &flows,
+                             const std::vector<vil_image_view<double> > &frames,
+                             const std::vector<vil_image_view<double> > &weights,
+                             std::vector<super3d::adjoint_image_ops_func<double> > &warps,
                              int scale_factor,
                              super3d::config *cfg)
 {
@@ -472,7 +473,7 @@ void difference_from_flow(const vil_image_view<double> &I0,
 
 //*****************************************************************************
 
-void create_low_res(vcl_vector<vil_image_view<double> > &frames,
+void create_low_res(std::vector<vil_image_view<double> > &frames,
                     int scale,
                     super3d::config *cfg)
 {
@@ -495,10 +496,10 @@ void create_low_res(vcl_vector<vil_image_view<double> > &frames,
 
 //*****************************************************************************
 
-void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_image_view<double> > &flows)
+void load_flow(const char *flow_list, const std::string &dir, std::vector<vil_image_view<double> > &flows)
 {
-  vcl_ifstream infile(flow_list);
-  vcl_string flowname;
+  std::ifstream infile(flow_list);
+  std::string flowname;
 
   while (infile >> flowname)
   {
@@ -506,7 +507,7 @@ void load_flow(const char *flow_list, const vcl_string &dir, vcl_vector<vil_imag
     super3d::read_flow_file(flowimg, (dir + flowname).c_str());
     flows.push_back(flowimg);
   }
-  vcl_cout << "Read " << flows.size() << " flows.\n";
+  std::cout << "Read " << flows.size() << " flows.\n";
 }
 
 //*****************************************************************************

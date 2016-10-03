@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,9 +52,9 @@
 #include <vgui/vgui_selector_tableau.h>
 #include <vgui/vgui_deck_tableau.h>
 
-#include <vcl_iostream.h>
-#include <vcl_fstream.h>
-#include <vcl_sstream.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include <super3d/image/warp_image.h>
 
@@ -65,8 +65,8 @@
 class matches_tableau : public vgui_tableau
 {
 public:
-  matches_tableau(const vcl_vector<match>& m, const vcl_vector<edgel> &e_fixed,
-                  const vcl_vector<edgel> &e_moving, const vnl_double_3x3 &Homog)
+  matches_tableau(const std::vector<match>& m, const std::vector<edgel> &e_fixed,
+                  const std::vector<edgel> &e_moving, const vnl_double_3x3 &Homog)
   : matches(m), H(Homog), fixed_edgels(e_fixed), moving_edgels(e_moving) { }
 
   //: handle events
@@ -169,10 +169,10 @@ public:
     return false;
   }
 
-  const vcl_vector<match> &matches;
+  const std::vector<match> &matches;
   const vnl_double_3x3 &H;
-  const vcl_vector<edgel> &fixed_edgels;
-  const vcl_vector<edgel> &moving_edgels;
+  const std::vector<edgel> &fixed_edgels;
+  const std::vector<edgel> &moving_edgels;
   vgui_parent_child_link child;
 };
 
@@ -182,14 +182,14 @@ typedef vgui_tableau_sptr_t<matches_tableau> matches_tableau_sptr;
 struct matches_tableau_new : public matches_tableau_sptr
 {
   typedef matches_tableau_sptr base;
-  matches_tableau_new(const std::vector<match>& m, const vcl_vector<edgel> &e_fixed,
-                  const vcl_vector<edgel> &e_moving, const vnl_double_3x3 &H)
+  matches_tableau_new(const std::vector<match>& m, const std::vector<edgel> &e_fixed,
+                  const std::vector<edgel> &e_moving, const vnl_double_3x3 &H)
   : base(new matches_tableau(m, e_fixed, e_moving, H)) {}
 };
 
 vnl_double_3x3 load_homog(const char *homog_list, int homog_index_f, int homog_index_m)
 {
-  vcl_ifstream infile(homog_list);
+  std::ifstream infile(homog_list);
   vgl_h_matrix_2d<double> H_f, H_m, H;
   int index = 0; int framenum = 0;
   while (infile >> H)
@@ -216,10 +216,10 @@ int main(int argc, char* argv[])
 {
   vgui::init(argc, argv);
 
-  vul_arg<vcl_string> input_image_f( 0, "input image fixed", "" );
-  vul_arg<vcl_string> input_image_m( 0, "input image moving", "" );
-  vul_arg<vcl_string> homog_info( "-h", "homog file fixed index moving index", "" );
-  vul_arg<vcl_string> crop_string("-c", "crop string", "");
+  vul_arg<std::string> input_image_f( 0, "input image fixed", "" );
+  vul_arg<std::string> input_image_m( 0, "input image moving", "" );
+  vul_arg<std::string> homog_info( "-h", "homog file fixed index moving index", "" );
+  vul_arg<std::string> crop_string("-c", "crop string", "");
 
   vul_arg_parse( argc, argv );
 
@@ -234,8 +234,8 @@ int main(int argc, char* argv[])
   vnl_double_3x3 H;
   if (homog_info.set())
   {
-    vcl_istringstream hstream(homog_info());
-    vcl_string homog_file;
+    std::istringstream hstream(homog_info());
+    std::string homog_file;
     unsigned int homog_index_f, homog_index_m;
     hstream >> homog_file >> homog_index_f >> homog_index_m;
     H = load_homog(homog_file.c_str(), homog_index_f, homog_index_m);
@@ -251,14 +251,14 @@ int main(int argc, char* argv[])
   if (crop_string.set())
   {
     int i0f, nif, j0f, njf;
-    vcl_istringstream cwstream(crop_string());
+    std::istringstream cwstream(crop_string());
     cwstream >> i0f >> nif >> j0f >> njf;
     I_f.deep_copy(vil_crop(I_f, i0f, nif, j0f, njf));
     crop_homography(H, i0f, j0f);
   }
 
-  vcl_vector<match> matches;
-  vcl_vector<edgel> e_fixed, e_moving;
+  std::vector<match> matches;
+  std::vector<edgel> e_fixed, e_moving;
   vil_image_view<unsigned int> index_map;
 
   extract_driving_edgels(I_m, 5, 0.0, e_moving);

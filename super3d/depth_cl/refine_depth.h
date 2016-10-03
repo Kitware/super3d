@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2014 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,8 @@
 
 #include "depth_cl_config.h"
 
-#include <vcl_vector.h>
-#include <vcl_string.h>
+#include <vector>
+#include <string>
 
 #include <viscl/core/task.h>
 #include <viscl/core/image.h>

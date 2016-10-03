@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,8 +48,8 @@ world_space::world_space(unsigned int pixel_width, unsigned int pixel_height)
   wip.set_interpolator(super3d::warp_image_parameters::LINEAR);
 }
 
-vcl_vector<vpgl_perspective_camera<double> >
-world_space::warp_cams(const vcl_vector<vpgl_perspective_camera<double> > &cameras, int ref_frame) const
+std::vector<vpgl_perspective_camera<double> >
+world_space::warp_cams(const std::vector<vpgl_perspective_camera<double> > &cameras, int ref_frame) const
 {
   return cameras;
 }
@@ -62,10 +62,10 @@ void world_space::warp_image_to_depth(const vil_image_view<double> &in,
                                       const vpgl_perspective_camera<double> &cam,
                                       double depth_slice, int f) const
 {
-  vcl_vector<vnl_double_3> wpts = this->get_slice(depth_slice);
+  std::vector<vnl_double_3> wpts = this->get_slice(depth_slice);
 
-  vcl_vector<vgl_homg_point_2d<double> > warp_pts;
-  vcl_vector<vgl_homg_point_2d<double> > proj_pts;
+  std::vector<vgl_homg_point_2d<double> > warp_pts;
+  std::vector<vgl_homg_point_2d<double> > proj_pts;
 
   warp_pts.push_back(vgl_homg_point_2d<double>(0.0, 0.0, 1.0));
   warp_pts.push_back(vgl_homg_point_2d<double>(ni_, 0.0, 1.0));
@@ -106,7 +106,7 @@ void world_space::compute_g(const vil_image_view<double> &ref_img, vil_image_vie
   vil_image_view<double> ref_img_g;
   vil_sobel_3x3(ref_img, ref_img_g);
 
-  vcl_cout << "Computing g weighting.\n";
+  std::cout << "Computing g weighting.\n";
   for (unsigned int i = 0; i < ref_img_g.ni(); i++)
   {
     for (unsigned int j = 0; j < ref_img_g.nj(); j++)

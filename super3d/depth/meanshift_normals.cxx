@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -126,10 +126,10 @@ meanshift(vil_image_view<double> &normal_map,
   vnl_vector<double> zeros(D);
   zeros.fill(0.0);
 
-  vcl_cout << "Filtering with h = " << h << "\n";
+  std::cout << "Filtering with h = " << h << "\n";
   for (unsigned int i = 0; i < ni; i++)
   {
-    //vcl_cout << i << " ";
+    //std::cout << i << " ";
     for (unsigned int j = 0; j < nj; j++)
     {
       vnl_vector<double> mean(D), last(D);
@@ -140,10 +140,10 @@ meanshift(vil_image_view<double> &normal_map,
         last = mean;
         double u = last(0);
         double v = last(1);
-        int mstart = (int)vcl_max(u-h(0), 0.0);
-        int mend = (int)vcl_min((double)ni-1.0, u+h(0));
-        int nstart = (int)vcl_max(v-h(1), 0.0);
-        int nend = (int)vcl_min((double)nj-1.0, v+h(1));
+        int mstart = (int)std::max(u-h(0), 0.0);
+        int mend = (int)std::min((double)ni-1.0, u+h(0));
+        int nstart = (int)std::max(v-h(1), 0.0);
+        int nend = (int)std::min((double)nj-1.0, v+h(1));
 
         int count = 0;
         mean = zeros;

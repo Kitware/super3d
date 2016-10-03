@@ -1,6 +1,6 @@
-// This is brl/bbas/imesh/algo/imesh_imls_surface.txx
-#ifndef imesh_imls_surface_txx_
-#define imesh_imls_surface_txx_
+// This is brl/bbas/imesh/algo/imesh_imls_surface.hxx
+#ifndef imesh_imls_surface_hxx_
+#define imesh_imls_surface_hxx_
 //:
 // \file
 
@@ -8,7 +8,7 @@
 
 #include "../imesh_operations.h"
 #include "imesh_intersect.h"
-#include "imesh_kd_tree.txx"
+#include "imesh_kd_tree.hxx"
 
 #include <vcl_cassert.h>
 
@@ -91,4 +91,4 @@ template SUPER3D_IMESH_ALGO_EXPORT T1 imesh_imls_surface::triangle_quadrature( \
     double v0, double v1, double v2, \
     double eps)
 
-#endif // imesh_imls_surface_txx_
+#endif // imesh_imls_surface_hxx_

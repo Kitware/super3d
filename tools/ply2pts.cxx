@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,30 +28,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vcl_iostream.h>
-#include <vcl_fstream.h>
-#include <vcl_string.h>
-#include <vcl_iomanip.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <iomanip>
 
 //Converts .ply flies to .pts for
 //poisson reconstruction
 int main(int argc, char *argv[])
 {
-  vcl_ifstream infile(argv[1]);
-  vcl_string outname(argv[1]);
+  std::ifstream infile(argv[1]);
+  std::string outname(argv[1]);
   outname[outname.size()-3] = 'p';
   outname[outname.size()-2] = 't';
   outname[outname.size()-1] = 's';
 
-  vcl_ofstream outfile(outname.c_str());
+  std::ofstream outfile(outname.c_str());
 
-  vcl_string x;
+  std::string x;
   unsigned int numpts = 0;
   while (infile >> x)
   {
-    if (x == vcl_string("vertex"))
+    if (x == std::string("vertex"))
       infile >> numpts;
-    else if (x == vcl_string("end_header"))
+    else if (x == std::string("end_header"))
       break;
   }
 
@@ -60,13 +60,13 @@ int main(int argc, char *argv[])
     double x, y, z, nx, ny, nz;
     int r, g, b;
     infile >> x >> y >> z >> nx >> ny >> nz >> r >> g >> b;
-    outfile << vcl_setprecision(10) << x << y << z << nx << ny << nz;
+    outfile << std::setprecision(10) << x << y << z << nx << ny << nz;
   }
 
   infile.close();
   outfile.close();
 
-  vcl_cout << "wrote " << outname << "\n";
+  std::cout << "wrote " << outname << "\n";
 
   return 0;
 }

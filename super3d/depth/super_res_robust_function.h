@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,8 @@
 #ifndef SUPER_RES_ROBUST_FUNCTION_H_
 #define SUPER_RES_ROBUST_FUNCTION_H_
 
-#include <vcl_vector.h>
-#include <vcl_cmath.h>
+#include <vector>
+#include <cmath>
 
 namespace super3d
 {

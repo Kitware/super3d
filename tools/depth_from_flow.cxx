@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vcl_iostream.h>
-#include <vcl_vector.h>
-#include <vcl_sstream.h>
+#include <iostream>
+#include <vector>
+#include <sstream>
 
 #include <vil/vil_convert.h>
 #include <vil/vil_save.h>
@@ -59,8 +59,8 @@
 #include <super3d/depth/multiscale.h>
 
 
-void save_flows(const vcl_vector<vil_image_view<double> > &flows, const char *filename);
-void load_flows(vcl_vector<vil_image_view<double> > &flows, const char *filename);
+void save_flows(const std::vector<vil_image_view<double> > &flows, const char *filename);
+void load_flows(std::vector<vil_image_view<double> > &flows, const char *filename);
 vnl_matrix_fixed<double, 2, 3> jacobian_at_x(const vpgl_perspective_camera<double> &cam, const vnl_double_3 &x);
 void project_ref_image(const vpgl_perspective_camera<double> &camref,
                 const vpgl_perspective_camera<double> &camtarget,
@@ -74,14 +74,14 @@ void DifferenceImage(const vil_image_view<double> &I0, const vil_image_view<doub
 //C:/Data/meshes/bundler_m.ply C:/Data/ground_medians/output.txt C:/Data/ground_medians/full_window15_reset50/frame###.png,100:100:900 c:/Data/meshes/bundlercropout.obj -f 0  -e C:/Data/exposure/exposure.txt -cw "767 1320 757 954"
 int main(int argc, char *argv[])
 {
-  vul_arg<vcl_string> input_mesh( 0, "input mesh file (OBJ)", "" );
-  vul_arg<vcl_string> camera_file( 0, "input file containing camera sequence", "" );
-  vul_arg<vcl_string> frame_fmt( 0, "frame file format string (e.g. \"tex_%03d.png\")", "" );
-  vul_arg<vcl_string> output_mesh( 0, "output mesh file (OBJ)", "");
+  vul_arg<std::string> input_mesh( 0, "input mesh file (OBJ)", "" );
+  vul_arg<std::string> camera_file( 0, "input file containing camera sequence", "" );
+  vul_arg<std::string> frame_fmt( 0, "frame file format string (e.g. \"tex_%03d.png\")", "" );
+  vul_arg<std::string> output_mesh( 0, "output mesh file (OBJ)", "");
 
   vul_arg<unsigned> reference_frame( "-f", "Reference frame for refining depth", 0 );
-  vul_arg<vcl_string> exposure_file( "-e", "Use exposure compensation in the provided file", "");
-  vul_arg<vcl_string> crop_window("-cw", "Crop window i0, ni, j0, nj (e.g., \"0 100 0 200\"", "");
+  vul_arg<std::string> exposure_file( "-e", "Use exposure compensation in the provided file", "");
+  vul_arg<std::string> crop_window("-cw", "Crop window i0, ni, j0, nj (e.g., \"0 100 0 200\"", "");
 
   //bool loadflow = true;
   bool loadflow = false;
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
   vul_arg_parse( argc, argv );
 
   int i0, ni, j0, nj;
-  vcl_istringstream cwstream(crop_window());
+  std::istringstream cwstream(crop_window());
   cwstream >> i0 >> ni >> j0 >> nj;
 
   imesh_mesh mesh;
@@ -97,19 +97,19 @@ int main(int argc, char *argv[])
   imesh_triangulate(mesh);
 
   vul_sequence_filename_map frame_seq(frame_fmt());
-  vcl_vector<vpgl_perspective_camera<double> >  cameras = super3d::load_cams(camera_file(), frame_seq);
+  std::vector<vpgl_perspective_camera<double> >  cameras = super3d::load_cams(camera_file(), frame_seq);
 
   //Read Images
-  vcl_vector<vcl_string> filenames;
-  vcl_vector<vil_image_view<double> > frames = super3d::load_frames(frame_seq, filenames);
+  std::vector<std::string> filenames;
+  std::vector<vil_image_view<double> > frames = super3d::load_frames(frame_seq, filenames);
   if (frames.empty())
   {
-    vcl_cerr << "No frames found"<<vcl_endl;
+    std::cerr << "No frames found"<<std::endl;
     return -1;
   }
   else if (frames.size() < 2)
   {
-    vcl_cerr << "At least 2 frames are required"<<vcl_endl;
+    std::cerr << "At least 2 frames are required"<<std::endl;
     return -1;
   }
 
@@ -124,10 +124,10 @@ int main(int argc, char *argv[])
 
   for (unsigned int iter = 0; iter < 3; iter++)
   {
-  vcl_vector<vil_image_view<double> > flows;
+  std::vector<vil_image_view<double> > flows;
   if (loadflow)
   {
-    vcl_cout << "Loading flows.\n";
+    std::cout << "Loading flows.\n";
     load_flows(flows, "flowcrop.dat");
   }
   else
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
         continue;
       }
 
-      vcl_cout << "Computing optical flow of ref and image " << i << ".\n";
+      std::cout << "Computing optical flow of ref and image " << i << ".\n";
 
       vil_image_view<double> reproj, flow;
       project_ref_image(cameras[ref_frame], cameras[i], mesh, frames[ref_frame], reproj);
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
   const vil_image_view<double> &ref = frames[ref_frame];
   const vpgl_perspective_camera<double> &refcam = cameras[ref_frame];
 
-  vcl_cout << "\nEstimating Depth.\n";
+  std::cout << "\nEstimating Depth.\n";
 
     vil_structuring_element se;
   se.set_to_disk(3.0);
@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
     {
       for (unsigned int j = 0; j < ref.nj(); j++)
       {
-        if (depth(i,j,0) == vcl_numeric_limits<double>::infinity())
+        if (depth(i,j,0) == std::numeric_limits<double>::infinity())
           continue;
 
         vgl_line_3d_2_points<double> ray = refcam.backproject(vgl_point_2d<double>((double)i, (double)j));
@@ -255,14 +255,14 @@ int main(int argc, char *argv[])
 }
 
 
-vcl_cout << "writing mesh"<<std::endl;
+std::cout << "writing mesh"<<std::endl;
   imesh_write_obj(output_mesh(),mesh);
 
   return 0;
 }
 
 
-void save_flows(const vcl_vector<vil_image_view<double> > &flows, const char *filename)
+void save_flows(const std::vector<vil_image_view<double> > &flows, const char *filename)
 {
   FILE *file = fopen(filename, "wb");
 
@@ -286,25 +286,37 @@ void save_flows(const vcl_vector<vil_image_view<double> > &flows, const char *fi
   fclose(file);
 }
 
-void load_flows(vcl_vector<vil_image_view<double> > &flows, const char *filename)
+void load_flows(std::vector<vil_image_view<double> > &flows, const char *filename)
 {
   FILE *file = fopen(filename, "rb");
 
-  unsigned int nflows;;
-  fread(&nflows, sizeof(unsigned int), 1, file);
+  unsigned int nflows;
+  if (fread(&nflows, sizeof(unsigned int), 1, file) != 1)
+  {
+    std::cerr << "failed to load flows" << std::endl;
+    return;
+  }
   flows.resize(nflows);
   for (unsigned int f = 0; f < nflows; f++)
   {
     unsigned int ni, nj;
-    fread(&ni, sizeof(unsigned int), 1, file);
-    fread(&nj, sizeof(unsigned int), 1, file);
+    if (fread(&ni, sizeof(unsigned int), 1, file) != 1 ||
+        fread(&nj, sizeof(unsigned int), 1, file) != 1)
+    {
+      std::cerr << "failed to load flows" << std::endl;
+      return;
+    }
     flows[f].set_size(ni, nj, 2);
     for (unsigned int i = 0; i < ni; i++)
     {
       for (unsigned int j = 0; j < nj; j++)
       {
-        fread(&flows[f](i,j,0), sizeof(double), 1, file);
-        fread(&flows[f](i,j,1), sizeof(double), 1, file);
+        if (fread(&flows[f](i,j,0), sizeof(double), 1, file) != 1 ||
+            fread(&flows[f](i,j,1), sizeof(double), 1, file) != 1)
+        {
+          std::cerr << "failed to load flows" << std::endl;
+          return;
+        }
       }
     }
   }
@@ -344,7 +356,7 @@ void project_ref_image(const vpgl_perspective_camera<double> &camref,
   {
     for (unsigned int j = 0; j < reproj.nj(); j++)
     {
-      if (depth(i,j,0) == vcl_numeric_limits<double>::infinity())
+      if (depth(i,j,0) == std::numeric_limits<double>::infinity())
         reproj(i,j,0) = 0.0;
       else
       {
@@ -382,7 +394,7 @@ void flow_to_colormap(const vil_image_view<double> &flow, vil_image_view<vil_rgb
     }
   }
 
-  vcl_cout << "Using max flow: " << max << ".\n";
+  std::cout << "Using max flow: " << max << ".\n";
 
   colormap_flow.set_size(flow.ni(), flow.nj(), 1);
   //Convert flow to HSV to RGB

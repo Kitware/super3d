@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2012 by Kitware, Inc.
+* Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@
 #include <vil/algo/vil_median.h>
 #include <vil/vil_math.h>
 
-#include <vcl_vector.h>
+#include <vector>
 
 #include <vnl/vnl_double_3.h>
 #include <vnl/vnl_double_2.h>
@@ -83,7 +83,7 @@ refine_depth_planar(world_space *ws,
       huber_planar_rof(q, d, g, a, n, lambda, step, epsilon);
       ssd = vil_math_ssd(d,last_depth,double());
       last_depth.deep_copy(d);
-      vcl_cout << "SSD: " << ssd << "\n";
+      std::cout << "SSD: " << ssd << "\n";
     } while (ssd > 1e-4);
   }
 }
@@ -117,7 +117,7 @@ void refine_depth_planar(const vil_image_view<double> &cost_volume,
         if (cost > max)
           max = cost;
       }
-      sqrt_cost_range(i,j) = vcl_sqrt(max - min);
+      sqrt_cost_range(i,j) = std::sqrt(max - min);
     }
   }
 
@@ -143,11 +143,11 @@ void refine_depth_planar(const vil_image_view<double> &cost_volume,
   {
     normals_rof(n, d, bp, ws, g, 1000, 1, 5e2, 0.25, 0.01);
 
-    vcl_cout << "Lambda: " << lambda << "\n";
+    std::cout << "Lambda: " << lambda << "\n";
     double theta = theta0;
     while (theta > theta_end)
     {
-      vcl_cout << iter << " theta: " << theta << "\n";
+      std::cout << iter << " theta: " << theta << "\n";
       min_search_bound(a, d, cost_volume, sqrt_cost_range, theta, lambda);
       huber_planar_coupled(q, d, g, a, n, theta, 0.25/theta, epsilon);
       theta = pow(10.0, log(theta)/denom - beta);

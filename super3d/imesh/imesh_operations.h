@@ -15,17 +15,17 @@
 #include "imesh_config.h"
 #include "imesh_mesh.h"
 
-#include <vcl_set.h>
+#include <set>
 #include <vgl/vgl_point_3d.h>
 
 //: Subdivide mesh faces into triangle
 SUPER3D_IMESH_EXPORT
-vcl_auto_ptr<imesh_regular_face_array<3> >
+std::unique_ptr<imesh_regular_face_array<3> >
 imesh_triangulate(const imesh_face_array_base& faces);
 
 //: Subdivide quadrilaterals into triangle
 SUPER3D_IMESH_EXPORT
-vcl_auto_ptr<imesh_regular_face_array<3> >
+std::unique_ptr<imesh_regular_face_array<3> >
 imesh_triangulate(const imesh_regular_face_array<4>& faces);
 
 
@@ -48,13 +48,13 @@ imesh_quad_subdivide(imesh_mesh& mesh);
 //  Only subdivide the selected faces
 SUPER3D_IMESH_EXPORT
 void
-imesh_quad_subdivide(imesh_mesh& mesh, const vcl_set<unsigned int>& sel_faces);
+imesh_quad_subdivide(imesh_mesh& mesh, const std::set<unsigned int>& sel_faces);
 
 
 //: Extract a sub-mesh containing only the faces listed in sel_faces
 SUPER3D_IMESH_EXPORT
 imesh_mesh
-imesh_submesh_from_faces(const imesh_mesh& mesh, const vcl_set<unsigned int>& sel_faces);
+imesh_submesh_from_faces(const imesh_mesh& mesh, const std::set<unsigned int>& sel_faces);
 
 
 //: Flip the orientation of all mesh faces
@@ -63,7 +63,7 @@ void imesh_flip_faces( imesh_mesh& mesh );
 
 //: Flip the orientation of the selected faces
 SUPER3D_IMESH_EXPORT
-void imesh_flip_faces( imesh_mesh& mesh, const vcl_set<unsigned int>& sel_faces);
+void imesh_flip_faces( imesh_mesh& mesh, const std::set<unsigned int>& sel_faces);
 
 
 //: Compute the dual mesh using face centroids for vertices

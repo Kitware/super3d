@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@
 #include <viscl/core/task.h>
 #include <viscl/core/image.h>
 #include <viscl/core/buffer.h>
-#include <vcl_vector.h>
+#include <vector>
 
 #include <vil/vil_image_view.h>
 
@@ -62,8 +62,8 @@ public:
   };
 
 
-void super_resolve(const vcl_vector<vil_image_view<float> > &frames,
-                   const vcl_vector<vil_image_view<float> > &flows,
+void super_resolve(const std::vector<vil_image_view<float> > &frames,
+                   const std::vector<vil_image_view<float> > &flows,
                    vil_image_view<float> &u,
                    params &srp,
                    unsigned int iterations);

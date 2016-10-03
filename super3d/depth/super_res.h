@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@
 #include "super_res_robust_function.h"
 
 #include <vil/vil_image_view.h>
-#include <vcl_vector.h>
+#include <vector>
 
 #include <super3d/image/adjoint_image_op.h>
 
@@ -101,23 +101,23 @@ class super_res_monitor;
 
 SUPER3D_DEPTH_EXPORT
 void super_resolve(
-  const vcl_vector<vil_image_view<double> > &frames,
-  const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
+  const std::vector<vil_image_view<double> > &frames,
+  const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
   vil_image_view<double> &u,
   const super_res_params &srp,
   unsigned int iterations,
-  const vcl_string &output_image = "",
+  const std::string &output_image = "",
   super_res_monitor *srm = NULL);
 
 SUPER3D_DEPTH_EXPORT
 void super_resolve_robust(
-  const vcl_vector<vil_image_view<double> > &frames,
-  const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
+  const std::vector<vil_image_view<double> > &frames,
+  const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
   vil_image_view<double> &Y,
   super_res_params srp,
   unsigned int iterations,
-  vcl_vector< vil_image_view<double> > &As,
-  const vcl_string &output_image = "",
+  std::vector< vil_image_view<double> > &As,
+  const std::string &output_image = "",
   super_res_monitor *srm = NULL);
 
 
@@ -141,22 +141,22 @@ public:
 private:
 
   friend void super_resolve_robust(
-    const vcl_vector<vil_image_view<double> > &frames,
-    const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
+    const std::vector<vil_image_view<double> > &frames,
+    const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
     vil_image_view<double> &Y,
     super_res_params srp,
     unsigned int iterations,
-    vcl_vector< vil_image_view<double> > &As,
-    const vcl_string &output_image,
+    std::vector< vil_image_view<double> > &As,
+    const std::string &output_image,
     super_res_monitor *srm);
 
   friend void super_resolve(
-    const vcl_vector<vil_image_view<double> > &frames,
-    const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
+    const std::vector<vil_image_view<double> > &frames,
+    const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
     vil_image_view<double> &u,
     const super_res_params &srp,
     unsigned int iterations,
-    const vcl_string &output_image,
+    const std::string &output_image,
     super_res_monitor *srm);
 
   boost::function<void (update_data)> callback_;

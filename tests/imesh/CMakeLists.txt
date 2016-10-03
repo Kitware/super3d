@@ -1,8 +1,4 @@
-# brl/bbas/imesh/tests/CMakeLists.txt
 # Tests for imesh library
-
-# The following include path is needed for imesh/algo:
-include_directories( ${GEL_INCLUDE_DIR}/mrc )
 
 super3d_build_test(imesh_all
   SOURCES
@@ -13,7 +9,7 @@ super3d_build_test(imesh_all
     test_kd_tree.cxx
     test_imls_surface.cxx
   LINK_LIBS
-    imesh imesh_algo
+    super3d_imesh super3d_imesh_algo
     vnl vgl testlib
   )
 
@@ -27,5 +23,5 @@ super3d_build_test(imesh_includes
   SOURCES
     test_include.cxx
   LINK_LIBS
-    imesh
+    super3d_imesh
   )

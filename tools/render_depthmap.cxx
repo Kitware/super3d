@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,12 @@
  */
 
 
+// stl includes
+#include <iostream>
+#include <fstream>
+#include <map>
+
+
 // VXL includes
 #include <vil/vil_image_view.h>
 #include <vil/vil_convert.h>
@@ -42,12 +48,6 @@
 
 #include <super3d/depth/multiscale.h>
 #include <super3d/depth/depth_map.h>
-
-
-// stl includes
-#include <iostream>
-#include <map>
-
 
 
 /// Load a camera file with sequence of cameras in ASCII format: i K R t
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
     imesh_project_depth(mesh,
                         camera,
                         depth_map);
-    vcl_string name = vul_sprintf(output_pattern().c_str(), citr->first);
+    std::string name = vul_sprintf(output_pattern().c_str(), citr->first);
     if (byte_images())
     {
       double min_d, max_d;

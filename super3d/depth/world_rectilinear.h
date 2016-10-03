@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ public:
 
   /// returns the corner points of an image slice at depth slice.
   /// depth slice is a value between 0 and 1 over the depth range
-  vcl_vector<vnl_double_3> get_slice(double depth_slice) const;
+  std::vector<vnl_double_3> get_slice(double depth_slice) const;
 
   void compute_g(const vil_image_view<double> &ref_img,
                  vil_image_view<double> &g,

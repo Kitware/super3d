@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2010-2013 by Kitware, Inc.
+ * Copyright 2010-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vcl_iostream.h>
+#include <iostream>
 #include <vil/vil_image_view.h>
 #include <vil/vil_math.h>
 #include <vil/vil_save.h>
@@ -47,19 +47,19 @@ using namespace super3d;
 template <typename T>
 struct traits
 {
-  static vcl_string name() {return "<unknown>";}
+  static std::string name() {return "<unknown>";}
 };
 
 template <>
 struct traits<float>
 {
-  static vcl_string name() {return "<float>";}
+  static std::string name() {return "<float>";}
 };
 
 template <>
 struct traits<double>
 {
-  static vcl_string name() {return "<double>";}
+  static std::string name() {return "<double>";}
 };
 
 
@@ -143,15 +143,15 @@ int test_dual_rof_denoise( int argc, char* argv[] )
 {
   if( argc < 2 )
   {
-    vcl_cerr << "Need the data directory as an argument\n";
+    std::cerr << "Need the data directory as an argument\n";
     return EXIT_FAILURE;
   }
 
   // load the input test image and the expected output images
-  vcl_string dir = argv[1];
-  vcl_string src_path = dir + '/' + "ocean_city.png";
-  vcl_string denoise_truth_path = dir + '/' + "ocean_city_denoised.png";
-  vcl_string weight_denoise_truth_path = dir + '/' + "ocean_city_weighted_denoised.png";
+  std::string dir = argv[1];
+  std::string src_path = dir + '/' + "ocean_city.png";
+  std::string denoise_truth_path = dir + '/' + "ocean_city_denoised.png";
+  std::string weight_denoise_truth_path = dir + '/' + "ocean_city_weighted_denoised.png";
 
   vil_image_view<vxl_byte> input = vil_load(src_path.c_str());
   vil_image_view<vxl_byte> denoise_truth = vil_load(denoise_truth_path.c_str());
@@ -160,11 +160,11 @@ int test_dual_rof_denoise( int argc, char* argv[] )
 
   testlib_test_start( "vidl_dual_rof_denoise" );
 
-  vcl_cout << "\n\nTesting denoising on " << src_path << "\n\n";
+  std::cout << "\n\nTesting denoising on " << src_path << "\n\n";
   test_denoising<double>(input, denoise_truth, 0.0);
   test_denoising<float>(input, denoise_truth, 1e-5);
 
-  vcl_cout << "\n\nTesting weighed denoising on " << src_path << "\n\n";
+  std::cout << "\n\nTesting weighed denoising on " << src_path << "\n\n";
   test_weighted_denoising<double>(input, weight_denoise_truth, 0.0);
   test_weighted_denoising<float>(input, weight_denoise_truth, 1e-5);
 

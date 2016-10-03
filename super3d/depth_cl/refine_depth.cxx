@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2014 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ void refine_depth_cl::refine(const vil_image_view<float> &cost_volume,
                              float lambda)
 {
   size_t ni = cost_volume.ni(), nj = cost_volume.nj();
-  vcl_cout << "Uploading Cost Volume.\n";
+  std::cout << "Uploading Cost Volume.\n";
   viscl::buffer cv_cl = viscl::manager::inst()->create_buffer<float>(CL_MEM_READ_WRITE, ni * nj * cost_volume.nplanes());
   queue->enqueueWriteBuffer(*cv_cl().get(), CL_TRUE, 0, cv_cl.mem_size(), cost_volume.top_left_ptr());
   viscl::image g_cl = viscl::upload_image(g);
@@ -78,7 +78,7 @@ void refine_depth_cl::refine(const vil_image_view<float> &cost_volume,
   viscl::buffer a_cl = viscl::manager::inst()->create_buffer<float>(CL_MEM_READ_WRITE, ni * nj);
   viscl::buffer sqrt_cost_vol_cl = viscl::manager::inst()->create_buffer<float>(CL_MEM_READ_WRITE, ni * nj);
 
-  vcl_cout << cost_volume.istep() << " " << cost_volume.jstep() << " " << cost_volume.planestep() << "\n";
+  std::cout << cost_volume.istep() << " " << cost_volume.jstep() << " " << cost_volume.planestep() << "\n";
 
   //int4 because int3 causes AMD's compiler to crash
   cl_int4 dims;
@@ -100,7 +100,7 @@ void refine_depth_cl::refine(const vil_image_view<float> &cost_volume,
 
   viscl::buffer dual = rof->create_dual(ni, nj);
 
-  vcl_cout << "Refining...\n";
+  std::cout << "Refining...\n";
   float theta = theta0;
   float denom = log(10.0f);
 
@@ -113,7 +113,7 @@ void refine_depth_cl::refine(const vil_image_view<float> &cost_volume,
 
   while (theta >= theta_end)
   {
-    //vcl_cout << theta << "\n";
+    //std::cout << theta << "\n";
     search_k->setArg(4, theta);
     queue->enqueueNDRangeKernel(*search_k.get(), ::cl::NullRange, global, ::cl::NullRange);
     queue->finish();

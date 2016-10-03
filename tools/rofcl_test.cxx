@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2014 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 #include <viscl/core/manager.h>
 
-#include <vcl_iostream.h>
+#include <iostream>
 
 #include <vil/vil_load.h>
 #include <vil/vil_image_view.h>
@@ -47,9 +47,9 @@ const char *print_cl_errstring(cl_int err);
 
 int main(int argc, char *argv[])
 {
-  vul_arg<vcl_string> input_image( 0, "input image", "" );
+  vul_arg<std::string> input_image( 0, "input image", "" );
 
-  vul_arg<vcl_string> output_image( "-o", "output image", "denoised.png");
+  vul_arg<std::string> output_image( "-o", "output image", "denoised.png");
 
 
   vul_arg_parse( argc, argv );
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
   float min, max;
   vil_math_value_range(out_img, min, max);
   float scale = 65535.0f;
-  vcl_cout << min << " " << max << "\n";
+  std::cout << min << " " << max << "\n";
   vil_math_scale_and_offset_values(out_img, scale, 0);
 
   vil_image_view<unsigned short> out_byte;

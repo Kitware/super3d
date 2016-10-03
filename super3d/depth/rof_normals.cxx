@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@
 #include <vnl/vnl_double_3.h>
 #include <vnl/vnl_double_3x3.h>
 
-#include <vcl_vector.h>
+#include <vector>
 
 
 namespace super3d
@@ -68,10 +68,10 @@ compute_normals_eig(const vil_image_view<double> &d,
   {
     for (unsigned int j = 0; j < d.nj(); j++)
     {
-      int mini = vcl_max(0, (int)i-neighborhood);
-      int minj = vcl_max(0, (int)j-neighborhood);
-      int maxi = vcl_min((int)n.ni()-1, (int)i+neighborhood);
-      int maxj = vcl_min((int)n.nj()-1, (int)j+neighborhood);
+      int mini = std::max(0, (int)i-neighborhood);
+      int minj = std::max(0, (int)j-neighborhood);
+      int maxi = std::min((int)n.ni()-1, (int)i+neighborhood);
+      int maxj = std::min((int)n.nj()-1, (int)j+neighborhood);
       int numpix = (maxi-mini + 1)*(maxj-minj + 1);
       vnl_matrix<double> A1(numpix, 2);
       vnl_vector<double> b1(numpix);
@@ -104,7 +104,7 @@ compute_normals_eig(const vil_image_view<double> &d,
         normal = vnl_double_3(nratio(0), nratio(1), 1.0);
         if (normalize) normal.normalize();
       }
-            //vcl_cout << nratio(0) << " " << nratio(1) << "\n";
+            //std::cout << nratio(0) << " " << nratio(1) << "\n";
 
       n(i,j,0) = normal(0);
       n(i,j,1) = normal(1);
@@ -126,11 +126,11 @@ normals_rof(vil_image_view<double> &n,
                   double step,
                   double epsilon)
 {
-  vcl_cout << "Huber on normals!\n";
+  std::cout << "Huber on normals!\n";
 
   double depth_thresh = 2;
   //Compute normals for neighborhoods
-  vcl_cout << "Computing initial normals...\n";
+  std::cout << "Computing initial normals...\n";
   compute_normals_eig(d, bp, n, ws, neighborhood, depth_thresh, false);
 
   vil_image_view<double> a;
@@ -139,26 +139,26 @@ normals_rof(vil_image_view<double> &n,
   vil_image_view<double> q(n.ni(), n.nj(), 4);
   q.fill(0.0);
 
-  vcl_cout << "Preprocessing ROF...\n";
-  vcl_vector<vcl_vector<vnl_matrix_fixed<double, 2, 2> > > AtAinv;
-  vcl_vector<vcl_vector<vnl_vector_fixed<double, 2> > > Atb;
+  std::cout << "Preprocessing ROF...\n";
+  std::vector<std::vector<vnl_matrix_fixed<double, 2, 2> > > AtAinv;
+  std::vector<std::vector<vnl_vector_fixed<double, 2> > > Atb;
   huber_normals_rof_preproc(bp, d, AtAinv, Atb, lambda, step, neighborhood, depth_thresh);
 
-  vcl_cout << lambda << "\n";
+  std::cout << lambda << "\n";
   double ssd;
   unsigned int iter = 0;
   do
   {
-    vcl_cout << "Normal ROF iter: " << iter++ << " ";
+    std::cout << "Normal ROF iter: " << iter++ << " ";
     //huber_normals_rof_update(q, n, bp, d, g, neighborhood, lambda, step, epsilon, depth_thresh);
     huber_normals_rof_update(q, n, AtAinv, Atb, g, lambda, step, epsilon);
     ssd = vil_math_ssd<double, double>(vil_plane<double>(n,0), vil_plane<double>(a,0),double()) +
           vil_math_ssd<double, double>(vil_plane<double>(n,1), vil_plane<double>(a,1),double());
     a.deep_copy(n);
-    vcl_cout << "SSD: " << ssd << "\n";
+    std::cout << "SSD: " << ssd << "\n";
   } while (ssd > 1e-4 && iter < iterations);
 
-  vcl_cout << "\n";
+  std::cout << "\n";
 
   for (unsigned int i = 0; i < n.ni(); i++)
   {
@@ -196,8 +196,8 @@ normals_rof(vil_image_view<double> &n,
 
 void huber_normals_rof_preproc(const vil_image_view<double> &bp,
                                const vil_image_view<double> &d,
-                               vcl_vector<vcl_vector<vnl_matrix_fixed<double, 2, 2> > > &AtAinv,
-                               vcl_vector<vcl_vector<vnl_vector_fixed<double, 2> > > &Atb,
+                               std::vector<std::vector<vnl_matrix_fixed<double, 2, 2> > > &AtAinv,
+                               std::vector<std::vector<vnl_vector_fixed<double, 2> > > &Atb,
                                double lambda,
                                double step,
                                int neighborhood,
@@ -212,10 +212,10 @@ void huber_normals_rof_preproc(const vil_image_view<double> &bp,
 
     for (unsigned int j = 0; j < bp.nj(); j++)
     {
-      int mini = vcl_max(0, (int)i-neighborhood);
-      int minj = vcl_max(0, (int)j-neighborhood);
-      int maxi = vcl_min((int)bp.ni()-1, (int)i+neighborhood);
-      int maxj = vcl_min((int)bp.nj()-1, (int)j+neighborhood);
+      int mini = std::max(0, (int)i-neighborhood);
+      int minj = std::max(0, (int)j-neighborhood);
+      int maxi = std::min((int)bp.ni()-1, (int)i+neighborhood);
+      int maxj = std::min((int)bp.nj()-1, (int)j+neighborhood);
       int numpix = (maxi-mini + 1)*(maxj-minj + 1);
       vnl_matrix<double> A1(numpix, 2);
       vnl_vector<double> b1(numpix);
@@ -250,8 +250,8 @@ void huber_normals_rof_preproc(const vil_image_view<double> &bp,
 void
 huber_normals_rof_update(vil_image_view<double> &q,
                          vil_image_view<double> &n,
-                         vcl_vector<vcl_vector<vnl_matrix_fixed<double, 2, 2> > > &AtAinv,
-                         vcl_vector<vcl_vector<vnl_vector_fixed<double, 2> > > &Atb,
+                         std::vector<std::vector<vnl_matrix_fixed<double, 2, 2> > > &AtAinv,
+                         std::vector<std::vector<vnl_vector_fixed<double, 2> > > &Atb,
                          const vil_image_view<double> &g,
                          double lambda,
                          double step,
@@ -364,10 +364,10 @@ huber_normals_rof_update(vil_image_view<double> &q,
       }
 
       vnl_vector_fixed<double, 2> nij(n(i,j,0),n(i,j,1));
-      int mini = vcl_max(0, (int)i-neighborhood);
-      int minj = vcl_max(0, (int)j-neighborhood);
-      int maxi = vcl_min((int)n.ni()-1, (int)i+neighborhood);
-      int maxj = vcl_min((int)n.nj()-1, (int)j+neighborhood);
+      int mini = std::max(0, (int)i-neighborhood);
+      int minj = std::max(0, (int)j-neighborhood);
+      int maxi = std::min((int)n.ni()-1, (int)i+neighborhood);
+      int maxj = std::min((int)n.nj()-1, (int)j+neighborhood);
       int numpix = (maxi-mini + 1)*(maxj-minj + 1);
       vnl_matrix<double> A1(numpix, 2);
       vnl_vector<double> b1(numpix);
@@ -396,7 +396,7 @@ huber_normals_rof_update(vil_image_view<double> &q,
       if (svd.rank() == 2)
       {
         nij = svd.pinverse() * (nij + step * g(i,j) * div + lambda * step * A.transpose() * b );
-        //vcl_cout << svd.pinverse() * lambda * step * A.transpose() * b << "\n";
+        //std::cout << svd.pinverse() * lambda * step * A.transpose() * b << "\n";
         n(i,j,0) = nij(0);
         n(i,j,1) = nij(1);
         n(i,j,2) = 1.0;

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2010-2013 by Kitware, Inc.
+ * Copyright 2010-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vcl_iostream.h>
+#include <iostream>
 #include <vil/vil_image_view.h>
 #include <vil/vil_save.h>
 #include <vil/vil_load.h>
@@ -46,7 +46,7 @@ using namespace super3d;
 
 template<typename T, typename gradT>
 void
-test_gaussian_pyramid_builder( vcl_string const& /*dir*/,
+test_gaussian_pyramid_builder( std::string const& /*dir*/,
                 const vil_image_view<vxl_byte> input,
                 const vil_image_view<vxl_byte> truth_gp,
                 const vil_image_view<vxl_byte> truth_gradp)
@@ -56,7 +56,7 @@ test_gaussian_pyramid_builder( vcl_string const& /*dir*/,
   vil_convert_cast(input, T_input);
   vil_image_view<vxl_byte> output;
 
-  vcl_vector<vil_image_view<T> > pyramid;
+  std::vector<vil_image_view<T> > pyramid;
   gaussian_pyramid_builder gpb(4, 2, 1.0);
   gpb.build_pyramid<T>(T_input, pyramid);
   tile_pyramid(pyramid, T_output_gp);
@@ -66,7 +66,7 @@ test_gaussian_pyramid_builder( vcl_string const& /*dir*/,
   TEST_NEAR( "Testing Gaussian pyramid", result, 0.0, 1.0);
   //vil_save(output, (dir + "/ocean_city_pyramid_b.png").c_str());
 
-  vcl_vector<vil_image_view<gradT> > gradpyramid;
+  std::vector<vil_image_view<gradT> > gradpyramid;
   gpb.build_pyramid<T, gradT>(T_input, pyramid, gradpyramid);
 
   tile_pyramid(pyramid, T_output_gp);
@@ -88,25 +88,25 @@ int test_gaussian_pyramid_builder( int argc, char* argv[] )
 {
   if( argc < 2 )
   {
-    vcl_cerr << "Need the data directory as an argument\n";
+    std::cerr << "Need the data directory as an argument\n";
     return EXIT_FAILURE;
   }
 
   testlib_test_start( "vidl_gaussian_pyramid" );
 
-  vcl_cout << "\nTesting Gaussian pyramid on ocean_city.png\n";
+  std::cout << "\nTesting Gaussian pyramid on ocean_city.png\n";
 
-  vcl_string dir(argv[1]);
-  vcl_string src_path = dir + "/ocean_city.png";
+  std::string dir(argv[1]);
+  std::string src_path = dir + "/ocean_city.png";
   vil_image_view<vxl_byte> input = vil_load(src_path.c_str());
-  vcl_string truth_path_gp = dir + "/ocean_city_pyramid.png";
+  std::string truth_path_gp = dir + "/ocean_city_pyramid.png";
   vil_image_view<vxl_byte> truth_gp = vil_load(truth_path_gp.c_str());
-  vcl_string truth_path_gradp = dir + "/ocean_city_pyramid_grad.png";
+  std::string truth_path_gradp = dir + "/ocean_city_pyramid_grad.png";
   vil_image_view<vxl_byte> truth_gradp = vil_load(truth_path_gradp.c_str());
 
-  vcl_cout << "DOUBLE:\n";
+  std::cout << "DOUBLE:\n";
   test_gaussian_pyramid_builder<double, double>(dir, input, truth_gp, truth_gradp);
-  vcl_cout << "\nVXL_BYTE:\n";
+  std::cout << "\nVXL_BYTE:\n";
   test_gaussian_pyramid_builder<vxl_byte, double>(dir, input, truth_gp, truth_gradp);
 
   return testlib_test_summary();

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,7 +104,7 @@ void fill_missing_depths(vil_image_view<double>& depth_map,
 ///                     The index is unsigned(-1) for infinite depths.
 /// \return An array of mesh vertices covering all finite depth pixels
 SUPER3D_DEPTH_EXPORT
-std::auto_ptr<imesh_vertex_array<3> >
+std::unique_ptr<imesh_vertex_array<3> >
 depth_map_to_vertices(const vpgl_perspective_camera<double>& camera,
                       const vil_image_view<double>& depth_map,
                       vil_image_view<unsigned>& index_image);
@@ -119,7 +119,7 @@ depth_map_to_vertices(const vpgl_perspective_camera<double>& camera,
 /// \param y_scale Amount to scale the unit vertical distance between pixels
 /// \return An array of mesh vertices covering all finite height pixels
 SUPER3D_DEPTH_EXPORT
-std::auto_ptr<imesh_vertex_array<3> >
+std::unique_ptr<imesh_vertex_array<3> >
 height_map_to_vertices(const vil_image_view<double>& height_map,
                        vil_image_view<unsigned>& index_image,
                        double z_scale = 1.0,
@@ -132,7 +132,7 @@ height_map_to_vertices(const vil_image_view<double>& height_map,
 ///                    The index is unsigned(-1) for missing vertices
 /// \return An array of mesh faces (triangles) using the indices
 SUPER3D_DEPTH_EXPORT
-std::auto_ptr<imesh_regular_face_array<3> >
+std::unique_ptr<imesh_regular_face_array<3> >
 triangulate_index_image(const vil_image_view<unsigned>& index_image);
 
 
@@ -200,7 +200,7 @@ void save_depth_to_vtp(const char *filename,
 #endif
 
 SUPER3D_DEPTH_EXPORT
-void write_points_to_vtp(vcl_vector<vnl_double_3> &points, const char *filename);
+void write_points_to_vtp(std::vector<vnl_double_3> &points, const char *filename);
 
 } // end namespace super3d
 

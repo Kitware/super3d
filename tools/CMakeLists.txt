@@ -8,7 +8,7 @@ include_directories("${Super3D_BINARY_DIR}")
 #
 super3d_add_executable(exhaustive_depth exhaustive_depth.cxx)
 target_link_libraries(exhaustive_depth
-  super3d_depth super3d_image imesh_algo
+  super3d_depth super3d_image super3d_imesh_algo
   vil vpgl vnl vul vil_algo
   ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY}
   )
@@ -25,7 +25,7 @@ endif()
 #
 super3d_add_executable(cam_and_homog_picker cam_and_homog_picker.cxx)
 target_link_libraries(cam_and_homog_picker
-  super3d_depth super3d_image imesh_algo
+  super3d_depth super3d_image super3d_imesh_algo
   vil vpgl vnl vul vil_algo
   ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY}
   )
@@ -35,7 +35,7 @@ target_link_libraries(cam_and_homog_picker
 #
 super3d_add_executable(downsampler downsampler.cxx)
 target_link_libraries(downsampler
-  super3d_depth super3d_image imesh_algo
+  super3d_depth super3d_image super3d_imesh_algo
   vil vpgl vnl vul vil_algo
   )
 
@@ -44,7 +44,7 @@ target_link_libraries(downsampler
 #
 super3d_add_executable(super_res_video super_res_video.cxx)
 target_link_libraries(super_res_video
-  super3d_depth super3d_image imesh_algo
+  super3d_depth super3d_image super3d_imesh_algo
   vil vpgl vnl vul vil_algo ${Boost_SYSTEM_LIBRARY}
   )
 
@@ -53,7 +53,7 @@ target_link_libraries(super_res_video
 #
 super3d_add_executable(super_res_opt_flow super_res_opt_flow.cxx)
 target_link_libraries(super_res_opt_flow
-  super3d_depth super3d_image imesh_algo
+  super3d_depth super3d_image super3d_imesh_algo
   vil vpgl vgl vnl vul vil_algo ${Boost_SYSTEM_LIBRARY}
   )
 
@@ -70,7 +70,7 @@ endif()
 #
 super3d_add_executable(super_res_image super_res_image.cxx)
 target_link_libraries(super_res_image
-  super3d_depth super3d_image imesh_algo
+  super3d_depth super3d_image super3d_imesh_algo
   vil vpgl vnl vul vil_algo ${Boost_SYSTEM_LIBRARY}
   )
 
@@ -147,7 +147,7 @@ target_link_libraries(extract_nitf_roi_krtd
 #
 super3d_add_executable(depth_from_flow depth_from_flow.cxx)
 target_link_libraries(depth_from_flow
-  super3d_depth super3d_image imesh_algo
+  super3d_depth super3d_image super3d_imesh_algo
   vil vpgl vnl vul vil_algo
   )
 
@@ -156,7 +156,7 @@ target_link_libraries(depth_from_flow
 #
 super3d_add_executable(direct_depth direct_depth.cxx tv_refine.cxx tv_refine.h)
 target_link_libraries(direct_depth
-  super3d_depth super3d_image imesh imesh_algo
+  super3d_depth super3d_image super3d_imesh super3d_imesh_algo
   vil vpgl vnl vul vil_algo
   )
 
@@ -164,7 +164,7 @@ target_link_libraries(direct_depth
 # Render Depthmap
 #
 super3d_add_executable(render_depthmap render_depthmap.cxx)
-target_link_libraries(render_depthmap super3d_depth imesh_algo vpgl)
+target_link_libraries(render_depthmap super3d_depth super3d_imesh_algo vpgl)
 
 #
 # Extract depth range
@@ -183,7 +183,7 @@ target_link_libraries(mean_shift vil vil_algo vul vnl)
 #
 super3d_add_executable(exhaustive_stereo exhaustive_stereo.cxx)
 target_link_libraries(exhaustive_stereo
-  super3d_depth super3d_image imesh_algo
+  super3d_depth super3d_image super3d_imesh_algo
   vil vpgl vnl vul vil_algo
   ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY}
   )

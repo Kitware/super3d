@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2014 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,16 +33,16 @@
 #include <vtkXMLPolyDataReader.h>
 
 #include <vul/vul_arg.h>
-#include <vcl_string.h>
+#include <string>
 
 #include "picker.h"
 
 int main (int argc, char *argv[])
 {
   //Required
-  vul_arg<vcl_string> vtp_file(0, "VTP file", vcl_string("world_vol.vtp"));
-  vul_arg<vcl_string> cost_vol_file( 0, "Cost volume file", vcl_string("cost_volume.dat"));
-  vul_arg<vcl_string> depth_map_file( 0, "depth image save file", vcl_string("depth_map.dat"));
+  vul_arg<std::string> vtp_file(0, "VTP file", std::string("world_vol.vtp"));
+  vul_arg<std::string> cost_vol_file( 0, "Cost volume file", std::string("cost_volume.dat"));
+  vul_arg<std::string> depth_map_file( 0, "depth image save file", std::string("depth_map.dat"));
 
   vul_arg_parse( argc, argv );
 

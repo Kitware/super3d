@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
 #include <vil/vil_resample_bicub.h>
 #include <vil/vil_convert.h>
 
-#include <vil/vil_resample_bicub.txx>
+#include <vil/vil_resample_bicub.hxx>
 VIL_RESAMPLE_BICUB_INSTANTIATE( double , double );
 
 #define DEBUG
@@ -86,8 +86,8 @@ void dual_step_grad_huber(const vil_image_view<double> &primal,
 }
 
 
-void dual_step_b(const vcl_vector<vil_image_view<double> > &a0,
-                 vcl_vector<vil_image_view<double> > &b0,
+void dual_step_b(const std::vector<vil_image_view<double> > &a0,
+                 std::vector<vil_image_view<double> > &b0,
                  const super_res_params &srp)
 {
   for (unsigned int i = 0; i < a0.size(); i++)
@@ -101,12 +101,12 @@ void dual_step_b(const vcl_vector<vil_image_view<double> > &a0,
 
 //*****************************************************************************
 
-void dual_step_q(const vcl_vector<vil_image_view<double> > &frames,
-                 const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
-                 const vcl_vector<vil_image_view<double> > &weights,
+void dual_step_q(const std::vector<vil_image_view<double> > &frames,
+                 const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
+                 const std::vector<vil_image_view<double> > &weights,
                  const vil_image_view<double> &u_bar,
-                 const vcl_vector<vil_image_view<double> > &a0,
-                 vcl_vector<vil_image_view<double> > &q,
+                 const std::vector<vil_image_view<double> > &a0,
+                 std::vector<vil_image_view<double> > &q,
                  const super_res_params &srp)
 {
   vil_image_view<double> l_u, l_a0;
@@ -130,8 +130,8 @@ void dual_step_q(const vcl_vector<vil_image_view<double> > &frames,
         {
           double &qfijk = q[f](i, j, k);
           qfijk = (qfijk + srp.sigma * sf_2 * (l_u(i, j, k) + l_a0(i, j) - frames[f](i, j, k) * weights[f](i,j)))/denom;
-          qfijk = vcl_max(qfijk, -sf_2);
-          qfijk = vcl_min(qfijk, sf_2);
+          qfijk = std::max(qfijk, -sf_2);
+          qfijk = std::min(qfijk, sf_2);
         }
       }
     }
@@ -140,11 +140,11 @@ void dual_step_q(const vcl_vector<vil_image_view<double> > &frames,
 
 //*****************************************************************************
 
-void dual_step_q(const vcl_vector<vil_image_view<double> > &frames,
-                 const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
-                 const vcl_vector<vil_image_view<double> > &weights,
+void dual_step_q(const std::vector<vil_image_view<double> > &frames,
+                 const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
+                 const std::vector<vil_image_view<double> > &weights,
                  const vil_image_view<double> &u_bar,
-                 vcl_vector<vil_image_view<double> > &q,
+                 std::vector<vil_image_view<double> > &q,
                  const super_res_params &srp)
 {
   vil_image_view<double> l_u;
@@ -167,16 +167,16 @@ void dual_step_q(const vcl_vector<vil_image_view<double> > &frames,
         {
           double &qfijk = q[f](i, j, k);
           qfijk = (qfijk + srp.sigma * sf_2 * (l_u(i, j, k) - frames[f](i, j, k) * weights[f](i,j)))/denom;
-          qfijk = vcl_max(qfijk, -sf_2);
-          qfijk = vcl_min(qfijk, sf_2);
+          qfijk = std::max(qfijk, -sf_2);
+          qfijk = std::min(qfijk, sf_2);
         }
       }
     }
   }
 }
 
-void primal_step_u(const vcl_vector<vil_image_view<double> > &q,
-                   const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
+void primal_step_u(const std::vector<vil_image_view<double> > &q,
+                   const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
                    const vil_image_view<double> &p,
                    vil_image_view<double> &u,
                    vil_image_view<double> &u_bar,
@@ -199,16 +199,16 @@ void primal_step_u(const vcl_vector<vil_image_view<double> > &q,
   vil_math_image_sum(u, work, work);
   u_bar.deep_copy(work);
   vil_math_add_image_fraction(u_bar, 2.0, u, -1.0);
-  vcl_swap(u, work);
+  std::swap(u, work);
 }
 
 //*****************************************************************************
 
-void primal_step_a(const vcl_vector<vil_image_view<double> > &q,
-                   const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
+void primal_step_a(const std::vector<vil_image_view<double> > &q,
+                   const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
                    const vil_image_view<double> &u,
-                   const vcl_vector<vil_image_view<double> > &b0,
-                   vcl_vector<vil_image_view<double> > &a0,
+                   const std::vector<vil_image_view<double> > &b0,
+                   std::vector<vil_image_view<double> > &a0,
                    const super_res_params &srp)
 {
   const double sf_2 = 1.0/(srp.scale_factor * srp.scale_factor);
@@ -243,7 +243,7 @@ void save_image(const vil_image_view<double> &img, const char *filename)
   vil_image_view<vxl_byte> output;
   vil_math_value_range(img, minv, maxv);
   vil_image_view<double> outd;
-  vil_convert_stretch_range_limited(img, outd, vcl_max(0.0,minv), vcl_min(1.0,maxv), 0.0, 255.0);
+  vil_convert_stretch_range_limited(img, outd, std::max(0.0,minv), std::min(1.0,maxv), 0.0, 255.0);
   vil_convert_cast(outd, output);
   vil_save(output, filename);
 }
@@ -271,12 +271,12 @@ void upsamplep(const vil_image_view<double> &src, vil_image_view<double> &dest,
 
 //*****************************************************************************
 
-void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
-                   const vcl_vector<super3d::adjoint_image_ops_func<double> > &warps,
+void super_resolve(const std::vector<vil_image_view<double> > &frames,
+                   const std::vector<super3d::adjoint_image_ops_func<double> > &warps,
                    vil_image_view<double> &u,
                    const super_res_params &srp,
                    unsigned int iterations,
-                   const vcl_string &output_image,
+                   const std::string &output_image,
                    super_res_monitor *srm)
 {
   if (frames.empty())
@@ -287,7 +287,7 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
   {
     if (frames[i].nplanes() != np)
     {
-      vcl_cerr << "All frames must have the same number of planes.\n";
+      std::cerr << "All frames must have the same number of planes.\n";
       return;
     }
   }
@@ -302,13 +302,13 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
   vil_image_view<double> p(srp.s_ni, srp.s_nj, 2*np);
   p.fill(0.0);
 
-  vcl_vector<vil_image_view<double> > q(frames.size());
-  vcl_vector<vil_image_view<double> > a0(frames.size());
-  vcl_vector<vil_image_view<double> > b0(frames.size());
-  vcl_vector<vil_image_view<double> > weights;
+  std::vector<vil_image_view<double> > q(frames.size());
+  std::vector<vil_image_view<double> > a0(frames.size());
+  std::vector<vil_image_view<double> > b0(frames.size());
+  std::vector<vil_image_view<double> > weights;
   for (unsigned int i = 0; i < frames.size(); i++)
   {
-    vcl_cout << warps[i].dst_ni() << " " << warps[i].dst_nj() << "\n";
+    std::cout << warps[i].dst_ni() << " " << warps[i].dst_nj() << "\n";
     q[i].set_size(warps[i].dst_ni(), warps[i].dst_nj(), np);
     q[i].fill(0.0);
     weights.push_back(warps[i].weight_map());
@@ -326,7 +326,7 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
 
   do
   {
-    vcl_cout << "Iteration: " << i;
+    std::cout << "Iteration: " << i;
     if (srp.tv_method == super3d::super_res_params::IMAGEDATA_IMAGEPRIOR_ILLUMINATIONPRIOR)
     {
       dual_step_grad_huber(u, p, srp.lambda, srp.sigma, srp.epsilon_reg);
@@ -377,11 +377,11 @@ void super_resolve(const vcl_vector<vil_image_view<double> > &frames,
       }
 
       ssd = vil_math_ssd(last, u, double());
-      vcl_cout << " SSD: " << ssd << " " << minv << " " << maxv;
-      vcl_swap(last, u);
+      std::cout << " SSD: " << ssd << " " << minv << " " << maxv;
+      std::swap(last, u);
     }
 
-    vcl_cout << "\n";
+    std::cout << "\n";
   } while (++i < iterations);
 }
 
@@ -395,8 +395,8 @@ void compare_to_original(const vil_image_view<double> &ref_img,
   vil_image_view<double> upsample;
   vil_resample_bicub(ref_img, upsample, scale_factor * ref_img.ni(), scale_factor * ref_img.nj());
 
-  vcl_cout << "SSD Super-res: " << vil_math_ssd(original, super, double()) << "\n";
-  vcl_cout << "SSD Upsample: " << vil_math_ssd(original, upsample, double()) << "\n";
+  std::cout << "SSD Super-res: " << vil_math_ssd(original, super, double()) << "\n";
+  std::cout << "SSD Upsample: " << vil_math_ssd(original, upsample, double()) << "\n";
 
   vil_image_view<vxl_byte> output;
   vil_convert_stretch_range_limited(upsample, output, 0.0, 1.0);

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
 #include <vil/algo/vil_median.h>
 #include <vil/vil_math.h>
 
-#include <vcl_vector.h>
+#include <vector>
 
 #include <vnl/vnl_double_3.h>
 #include <vnl/vnl_double_2.h>
@@ -82,7 +82,7 @@ refine_depth(vil_image_view<double> &cost_volume,
         if (cost > max)
           max = cost;
       }
-      sqrt_cost_range(i,j) = vcl_sqrt(max - min);
+      sqrt_cost_range(i,j) = std::sqrt(max - min);
       d(i,j) = (min_k + 0.5) * a_step;
     }
   }
@@ -99,7 +99,7 @@ refine_depth(vil_image_view<double> &cost_volume,
 
   for (unsigned int iter = 1; iter <= iterations; iter++)
   {
-    vcl_cout << "theta: " << theta << "\n";
+    std::cout << "theta: " << theta << "\n";
     min_search_bound(a, d, cost_volume, sqrt_cost_range, theta, lambda);
     huber(q, d, a, g, theta, 0.25/theta, epsilon);
     theta = pow(10.0, log(theta)/denom - beta);
@@ -240,8 +240,8 @@ void hessian_frob(vil_image_view<double> &q,
       double &xx = q(i,j,0), &xy = q(i,j,1), &yy = q(i,j,2);
       double dij = d(i,j);
       double scale = step * g(i,j);
-      int ip1 = vcl_min(ni, i+1), jp1 = vcl_min(nj, j+1);
-      int im1 = vcl_max(i-1, (unsigned int)0), jm1 = vcl_max(j-1, (unsigned int)0);
+      int ip1 = std::min(ni, i+1), jp1 = std::min(nj, j+1);
+      int im1 = std::max(i-1, (unsigned int)0), jm1 = std::max(j-1, (unsigned int)0);
       xx = (xx + scale * (d(ip1,j) - 2.0 *dij + d(im1,j)))/stepsilon1;
       xy = (xy + scale * 0.25 * (d(ip1,jp1) - d(ip1,jm1) - d(im1,jp1) + d(im1,jm1)))/stepsilon1;
       yy = (yy + scale * (d(i,jm1) - 2.0*dij + d(i,jp1)))/stepsilon1;
@@ -265,8 +265,8 @@ void hessian_frob(vil_image_view<double> &q,
     {
       double qxx = q(i,j,0), qxy = q(i,j,1), qyy = q(i,j,2);
       double &dij = d(i,j);
-      int ip1 = vcl_min(ni, i+1), jp1 = vcl_min(nj, j+1);
-      int im1 = vcl_max(i-1, (unsigned int)0), jm1 = vcl_max(j-1, (unsigned int)0);
+      int ip1 = std::min(ni, i+1), jp1 = std::min(nj, j+1);
+      int im1 = std::max(i-1, (unsigned int)0), jm1 = std::max(j-1, (unsigned int)0);
       qxx = - q(im1,j,0) + 2.0*qxx - q(ip1,j,0);
       qyy = -q(i,jm1,2) + 2.0*qyy - q(i,jp1,2);
       qxy = -0.25 * (q(ip1,jp1,1) - q(ip1,jm1,1) - q(im1,jp1,1) + q(im1,jm1,1));
