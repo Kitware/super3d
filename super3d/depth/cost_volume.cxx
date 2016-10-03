@@ -610,14 +610,24 @@ bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
 
   std::sort(depths.begin(), depths.end());
 
-  //int index = 0.05 * depths.size();
-  min_depth = depths[0];
-  max_depth = depths[depths.size() - 1];
+  // threshold for fraction of outlier depths to reject at the
+  // near and far of the depth range.
+  const double outlier_thresh = 0.05;
+  // fraction of total depth range to pad both near and far to
+  // account for depths not sampled by the point cloud
+  const double safety_margin_factor = 0.33;
 
-  double diff = max_depth - min_depth;
-  double offset = diff * 0.5;
-  max_depth += offset;
-  min_depth -= offset;
+  const unsigned int min_index =
+    static_cast<unsigned int>((depths.size()-1) * outlier_thresh);
+  const unsigned int max_index =
+    static_cast<unsigned int>((depths.size()-1) * (1.0 - outlier_thresh));
+  min_depth = depths[min_index];
+  max_depth = depths[max_index];
+
+  const double safety_margin = safety_margin_factor * (max_depth - min_depth);
+  max_depth += safety_margin;
+  min_depth -= safety_margin;
+  min_depth = std::max(0.0, min_depth);
 
   return true;
 }
