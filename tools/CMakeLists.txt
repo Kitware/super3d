@@ -10,7 +10,6 @@ super3d_add_executable(exhaustive_depth exhaustive_depth.cxx)
 target_link_libraries(exhaustive_depth
   super3d_depth super3d_image super3d_imesh_algo
   vil vpgl vnl vul vil_algo
-  ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY}
   )
 if (viscl_FOUND)
   target_link_libraries(exhaustive_depth super3d_depth_cl)
@@ -27,7 +26,6 @@ super3d_add_executable(cam_and_homog_picker cam_and_homog_picker.cxx)
 target_link_libraries(cam_and_homog_picker
   super3d_depth super3d_image super3d_imesh_algo
   vil vpgl vnl vul vil_algo
-  ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY}
   )
 
 #
@@ -45,7 +43,7 @@ target_link_libraries(downsampler
 super3d_add_executable(super_res_video super_res_video.cxx)
 target_link_libraries(super_res_video
   super3d_depth super3d_image super3d_imesh_algo
-  vil vpgl vnl vul vil_algo ${Boost_SYSTEM_LIBRARY}
+  vil vpgl vnl vul vil_algo
   )
 
 #
@@ -54,7 +52,7 @@ target_link_libraries(super_res_video
 super3d_add_executable(super_res_opt_flow super_res_opt_flow.cxx)
 target_link_libraries(super_res_opt_flow
   super3d_depth super3d_image super3d_imesh_algo
-  vil vpgl vgl vnl vul vil_algo ${Boost_SYSTEM_LIBRARY}
+  vil vpgl vgl vnl vul vil_algo
   )
 
 if (viscl_FOUND)
@@ -71,7 +69,7 @@ endif()
 super3d_add_executable(super_res_image super_res_image.cxx)
 target_link_libraries(super_res_image
   super3d_depth super3d_image super3d_imesh_algo
-  vil vpgl vnl vul vil_algo ${Boost_SYSTEM_LIBRARY}
+  vil vpgl vnl vul vil_algo
   )
 
 #
@@ -138,9 +136,9 @@ super3d_add_executable(ply2pts ply2pts.cxx)
 super3d_add_executable(extract_nitf_roi_krtd extract_nitf_roi_krtd.cxx)
 target_link_libraries(extract_nitf_roi_krtd
                       super3d_depth
-                      vpgl_file_formats vpgl_algo
+                      vpgl_file_formats vpgl_algo vul
                       #super3d_vil_plugins
-                      ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+                     )
 
 #
 # Depth from Flow
@@ -185,7 +183,6 @@ super3d_add_executable(exhaustive_stereo exhaustive_stereo.cxx)
 target_link_libraries(exhaustive_stereo
   super3d_depth super3d_image super3d_imesh_algo
   vil vpgl vnl vul vil_algo
-  ${Boost_CHRONO_LIBRARY} ${Boost_SYSTEM_LIBRARY}
   )
 
 #

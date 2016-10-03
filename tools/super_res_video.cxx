@@ -42,8 +42,6 @@
 
 #include <fstream>
 #include <iostream>
-#include <boost/bind.hpp>
-#include <boost/scoped_ptr.hpp>
 
 #include <vil/vil_crop.h>
 #include <vil/vil_bicub_interp.h>
@@ -91,7 +89,7 @@ int main(int argc, char* argv[])
 {
   try
   {
-    boost::scoped_ptr<super3d::config> cfg(new super3d::config);
+    std::unique_ptr<super3d::config> cfg(new super3d::config);
     cfg->read_config(argv[1]);
     std::vector<vil_image_view<double> > frames;
     std::vector<std::string> filenames;

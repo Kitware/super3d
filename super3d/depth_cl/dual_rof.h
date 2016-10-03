@@ -80,7 +80,7 @@ private:
   viscl::cl_kernel_t gradient_k, divergence_k, init_dual_k;
 };
 
-typedef boost::shared_ptr<dual_rof> dual_rof_t;
+typedef std::shared_ptr<dual_rof> dual_rof_t;
 
 } // end namespace cl
 

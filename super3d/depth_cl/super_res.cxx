@@ -30,7 +30,6 @@
 
 #include "super_res.h"
 
-#include <boost/make_shared.hpp>
 #include <viscl/core/manager.h>
 #include <viscl/core/program_registry.h>
 #include <viscl/vxl/transfer.h>

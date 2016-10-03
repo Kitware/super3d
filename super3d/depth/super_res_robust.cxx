@@ -764,7 +764,7 @@ void super_resolve_robust(
   }
 }
 
-void read_super_res_params( const boost::scoped_ptr<config>& cfg,
+void read_super_res_params( const std::unique_ptr<config>& cfg,
                             super_res_params &srp)
 {
     if (cfg->is_set("debug"))

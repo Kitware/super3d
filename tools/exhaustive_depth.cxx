@@ -40,34 +40,30 @@
 #include <super3d/depth/world_rectilinear.h>
 #include <super3d/depth/world_frustum.h>
 #include <super3d/depth/exposure.h>
-
-#include <boost/scoped_ptr.hpp>
-
+#include <super3d/imesh/imesh_mesh.h>
+#include <super3d/imesh/imesh_fileio.h>
 
 // VXL includes
+#include <vul/vul_timer.h>
 #include <vil/vil_convert.h>
 #include <vil/vil_save.h>
 #include <vil/vil_crop.h>
 #include <vil/vil_load.h>
 #include <vil/vil_copy.h>
 #include <vil/vil_decimate.h>
-#include <super3d/imesh/imesh_mesh.h>
-#include <super3d/imesh/imesh_fileio.h>
+#include <vpgl/vpgl_perspective_camera.h>
 
 #ifdef HAVE_VISCL
 #include <super3d/depth_cl/refine_depth.h>
 #endif
 
-#include <boost/chrono.hpp>
-
-#include <vpgl/vpgl_perspective_camera.h>
 
 
 int main(int argc, char* argv[])
 {
   try
   {
-    boost::scoped_ptr<super3d::config> cfg(new super3d::config);
+    std::unique_ptr<super3d::config> cfg(new super3d::config);
     cfg->read_config(argv[1]);
 
 #ifndef HAVE_VISCL
@@ -284,24 +280,23 @@ int main(int argc, char* argv[])
         vil_copy_reformat<float>(cv_float, cv_f);
       }
 
-      boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
+      vul_timer timer;
       rd->refine(cv_f, depth_f, g_f, beta, theta0, theta_end, lambda);
-      boost::chrono::duration<double> sec = boost::chrono::system_clock::now() - start;
-      std::cout << "viscl took " << sec.count() << " seconds.\n";
+      double sec = 1e-3 * timer.real();
+      std::cout << "viscl took " << sec << " seconds.\n";
       vil_convert_cast<float, double>(depth_f, depth);
     }
     else
 #endif
     {
-      boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
-
+      vul_timer timer;
       unsigned int iterations = 2000;
       if (cfg->is_set("iterations"))
         iterations = cfg->get_value<unsigned int>("iterations");
       super3d::refine_depth(cost_volume, g, depth, iterations, theta0, theta_end, lambda, epsilon);
 
-      boost::chrono::duration<double> sec = boost::chrono::system_clock::now() - start;
-      std::cout << "super3d took " << sec.count() << " seconds.\n";
+      double sec = 1e-3 * timer.real();
+      std::cout << "super3d took " << sec << " seconds.\n";
     }
     if(cfg->is_set("init_depthmap_file"))
     {

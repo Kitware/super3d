@@ -31,21 +31,15 @@
 #ifndef SUPER_RES_H_
 #define SUPER_RES_H_
 
-#include <boost/scoped_ptr.hpp>
-
 #include "super_config.h"
 #include "depth_config.h"
 #include "super_res_robust_function.h"
+#include <super3d/image/adjoint_image_op.h>
 
 #include <vil/vil_image_view.h>
 #include <vector>
+#include <functional>
 
-#include <super3d/image/adjoint_image_op.h>
-
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/locks.hpp>
 
 namespace super3d
 {
@@ -131,9 +125,9 @@ public:
     unsigned int num_iterations;
   };
 
-  super_res_monitor(boost::function<void (update_data)> callback,
+  super_res_monitor(std::function<void (update_data)> callback,
                     unsigned int interval,
-                    boost::shared_ptr<bool> interrupted)
+                    std::shared_ptr<bool> interrupted)
     : callback_(callback),
     interval_(interval),
     interrupted_(interrupted) {}
@@ -159,9 +153,9 @@ private:
     const std::string &output_image,
     super_res_monitor *srm);
 
-  boost::function<void (update_data)> callback_;
+  std::function<void (update_data)> callback_;
   unsigned int interval_;
-  boost::shared_ptr<bool const> interrupted_;
+  std::shared_ptr<bool const> interrupted_;
 };
 
 
@@ -173,7 +167,7 @@ void compare_to_original(const vil_image_view<double> &ref_img,
                          unsigned int scale_factor);
 
 SUPER3D_DEPTH_EXPORT
-void read_super_res_params( const boost::scoped_ptr<config>& cfg,
+void read_super_res_params( const std::unique_ptr<config>& cfg,
                             super_res_params &srp);
 
 } // end namespace super3d

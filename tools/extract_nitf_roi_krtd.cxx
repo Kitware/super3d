@@ -32,12 +32,11 @@
 #include <sstream>
 #include <cstdlib>
 
-#include <boost/filesystem.hpp>
-
 #include <vgl/vgl_box_3d.h>
 #include <vil/vil_convert.h>
 #include <vil/vil_load.h>
 #include <vil/vil_save.h>
+#include <vul/vul_file.h>
 #include <vpgl/file_formats/vpgl_nitf_rational_camera.h>
 #include <vpgl/algo/vpgl_camera_convert.h>
 
@@ -69,7 +68,7 @@ int main(int argc, char *argv[])
 
   //load rational camera from image files
   std::vector<vpgl_nitf_rational_camera> nitf_cams;
-  std::vector<boost::filesystem::path> nitf_paths;
+  std::vector<std::string> nitf_paths;
   for(int i=7; i<argc; ++i)
   {
     vpgl_nitf_rational_camera *nitf_cam = new vpgl_nitf_rational_camera(argv[i]);
@@ -109,7 +108,7 @@ int main(int argc, char *argv[])
     double u,v;
 
     std::cout << "loading pixels from "<< nitf_paths[i] <<std::endl;
-    vil_image_resource_sptr im = vil_load_image_resource(nitf_paths[i].string().c_str());
+    vil_image_resource_sptr im = vil_load_image_resource(nitf_paths[i].c_str());
     if(!im)
     {
       std::cerr << "Unable to load image" << std::endl;
@@ -176,7 +175,7 @@ int main(int argc, char *argv[])
     vil_image_view<vxl_byte> byte_img = vil_convert_stretch_range(vxl_byte(), view);
 
     // write the cropped byte image out to a TIFF file
-    std::string basename = nitf_paths[i].stem().string();
+    std::string basename = vul_file::basename(nitf_paths[i]);
     std::stringstream ss;
     ss << basename << "_crop_"<<ni<<"x"<<nj<<"+"<<i0<<"+"<<j0;
     std::cout << "saving "<< ss.str() << ".tiff" <<std::endl;

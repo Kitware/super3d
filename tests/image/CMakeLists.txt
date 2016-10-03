@@ -29,7 +29,7 @@ create_test_sourcelist( test_sources
 add_executable( super3d_test_image
    ${test_sources}
 )
-target_link_libraries( super3d_test_image super3d_image testlib vgl ${Boost_SYSTEM_LIBRARY} )
+target_link_libraries( super3d_test_image super3d_image testlib vgl )
 
 # Create ADD_TEST lines for some tests automatically.  Tests taking
 # special arguments will be specified manually later.

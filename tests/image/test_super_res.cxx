@@ -40,8 +40,6 @@
 #include <super3d/image/adjoint_dbw.h>
 #include <super3d/image/adjoint_flow_warp.h>
 
-#include <boost/make_shared.hpp>
-
 // Put everything in an anonymous namespace so that different tests
 // won't conflict.
 namespace
@@ -176,7 +174,7 @@ int test_super_res( int argc, char* argv[] )
   srp.sigma = 0.35;
   srp.tau = 0.35;
 
-  boost::shared_ptr<bool> interrupt = boost::make_shared<bool>();
+  std::shared_ptr<bool> interrupt = std::make_shared<bool>();
   super_resolution_monitor *srm = new super_resolution_monitor(super_res_callback, 100, interrupt);
 
   test_super_res(img, srp, 800, false, false, 0.01, 2, srm);

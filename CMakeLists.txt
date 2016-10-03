@@ -1,5 +1,11 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 project(Super3D)
+
+
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD_REQUIRED True)
+endif()
 
 
 ###
@@ -43,16 +49,6 @@ include(super3d-flags)
 
 ### REQUIRED Packages
 
-if(WIN32)
-  set(Boost_USE_STATIC_LIBS TRUE)
-else()
-  option(Boost_USE_STATIC_LIBS "Use a statically-linked Boost" OFF)
-endif()
-find_package(Boost 1.48 REQUIRED COMPONENTS chrono system filesystem)
-add_definitions(-DBOOST_ALL_NO_LIB)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
-
 find_package(VXL REQUIRED)
 if( VXL_CORE_INCLUDE_DIRS )
   include_directories( SYSTEM ${VXL_CORE_INCLUDE_DIRS} )
@@ -76,7 +72,6 @@ if(viscl_FOUND)
   link_directories(${VISCL_LIBRARY_DIRS})
   message(STATUS "VisCL Library dir: ${viscl_LIBRARY_DIR}")
   message(STATUS "VisCL Include dir: ${viscl_INCLUDE_DIR}")
-  message(STATUS "VisCL Boost include dir: ${viscl_Boost_INCLUDE_DIR}")
 endif()
 
 find_package(VTK 6.2)

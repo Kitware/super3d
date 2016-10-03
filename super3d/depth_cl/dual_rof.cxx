@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2014 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@
 
 #include "dual_rof.h"
 
-#include <boost/make_shared.hpp>
 #include <viscl/core/manager.h>
 #include <viscl/core/program_registry.h>
 #include <viscl/vxl/transfer.h>
