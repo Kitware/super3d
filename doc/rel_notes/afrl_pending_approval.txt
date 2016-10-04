@@ -1,0 +1,27 @@
+Super3D Release Notes for changes pending release approval by AFRL
+==================================================================
+
+This file documents release notes for changes made to Super3D which require
+public release approval from AFRL.  After approval, the changes and
+corresponding notes below will be incorporated into a public numbered
+release version, and the content of this file will be reset.
+
+
+Updates since last public release
+---------------------------------
+
+Depth Library
+
+ * Added support for parsing VisualSFM NVM files.
+
+ * Write out depth maps in the VTK-based file format which is read
+   by the MAP-Tk GUI and by the CudeDepthMapIntegration tool
+
+Tools
+
+ * Added a new "video_depth" tool that computes depth maps for each
+   key frame in a video.  Each depth map is built using a neighborhood
+   of frames around the key frame.
+
+Fixes since last public release
+-------------------------------
