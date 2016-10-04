@@ -14,6 +14,10 @@ Depth Library
 
  * Added support for parsing VisualSFM NVM files.
 
+ * Added a separate helper function for loading MAP-Tk landmark PLY files.
+   Generalized PLY loading to handle recent MAP-Tk files that contain
+   additional fields.
+
  * Write out depth maps in the VTK-based file format which is read
    by the MAP-Tk GUI and by the CudeDepthMapIntegration tool
 
