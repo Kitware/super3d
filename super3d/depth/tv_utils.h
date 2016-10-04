@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,6 @@ SUPER3D_DEPTH_EXPORT
 double subsample(double dij,
                  const vil_image_view<double> &cost_volume,
                  double coeff,
-                 double lambda,
                  unsigned int i,
                  unsigned int j,
                  unsigned int k,

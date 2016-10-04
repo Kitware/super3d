@@ -45,53 +45,56 @@ min_search_bound(vil_image_view<double> &a,
            double theta,
            double lambda)
 {
-  double coeff = (1.0/(2.0*theta));
-  double range_coeff = std::sqrt(2.0 * theta * lambda);
-  unsigned int S = cost_volume.nplanes();
-  double a_step = 1.0 / S;
+  const double coeff = (1.0 / (2.0 * theta * lambda));
+  const double range_coeff = std::sqrt(2.0 * theta * lambda);
+  const int S = static_cast<int>(cost_volume.nplanes());
+  const double a_step = 1.0 / S;
+  const int last_plane = S-1;
 
-  for (unsigned int j = 0; j < d.nj(); j++)
+  const std::ptrdiff_t istep_c = cost_volume.istep();
+  const std::ptrdiff_t jstep_c = cost_volume.jstep();
+  const std::ptrdiff_t pstep_c = cost_volume.planestep();
+
+  const double* row_c = cost_volume.top_left_ptr();
+  for (unsigned int j = 0; j < d.nj(); j++, row_c+=jstep_c)
   {
-    for (unsigned int i = 0; i < d.ni(); i++)
+    const double* col_c = row_c;
+    for (unsigned int i = 0; i < d.ni(); i++, col_c+=istep_c)
     {
-      double r = range_coeff * sqrt_cost_range(i,j);
-      double dij = d(i,j);
+      const int r = std::min(last_plane, std::max(0, static_cast<int>(S * range_coeff * sqrt_cost_range(i,j))));
+      const double dij = d(i,j);
+      const int init_k = std::min(last_plane, std::max(0, static_cast<int>(dij * S)));
 
-      // compute the search range and clip between 0 and 1
+      // compute the search range and clip between 0 and S-1
       // note that when dij is outside the volume range [0,1] this
       // range needs to be shifted to the closest edge of the volume
       // for example if dij < 0 then search in [0, r] and
-      // if dij > 0 search in [1-r, 1]
-      double min_idepth = std::min(std::max(dij - r, 0.0), 1.0 - r);
-      double max_idepth = std::min(std::max(dij + r, r), 1.0);
+      // if dij > 1 search in [S-1-r, 1]
+      const int min_k = std::max(0, init_k - r);
+      const int max_k = std::min(last_plane, init_k + r);
 
-      unsigned int k = static_cast<unsigned int>(min_idepth * S);
-      if (k >= S)
+      int bestk = init_k;
+      double best_idepth = (bestk + 0.5) * a_step;
+      const double diff = dij - best_idepth;
+      double best_e = coeff*diff*diff + *(col_c + bestk);
+      const double* cost = col_c + min_k;
+      for (int k = min_k; k <= max_k; ++k, cost+=pstep_c)
       {
-        k = S-1;
-      }
-      unsigned int max_k = static_cast<unsigned int>(max_idepth * S);
-      if (max_k >= S)
-      {
-        max_k = S-1;
-      }
-      unsigned int bestk = 0;
-      double best_idepth = 0, best_e = std::numeric_limits<double>::infinity();
-      for (; k <= max_k; ++k)
-      {
-        double aij = (k + 0.5) * a_step;
-        double cost = cost_volume(i,j,k);
-        if (cost < 0.0) continue;
-        double diff = dij - aij;
-        double e = coeff*diff*diff + lambda * cost;
+        if (k == init_k || *cost < 0.0 || *cost > best_e)
+        {
+          continue;
+        }
+        const double aij = (k + 0.5) * a_step;
+        const double diff = dij - aij;
+        const double e = coeff*diff*diff + (*cost);
         if (e < best_e)
         {
           best_e = e;
           best_idepth = aij;
           bestk = k;
-         }
+        }
       }
-      a(i,j) = subsample(dij, cost_volume, coeff, lambda, i, j, bestk, a_step, best_idepth);
+      a(i,j) = subsample(dij, cost_volume, coeff, i, j, bestk, a_step, best_idepth);
     }
   }
 }
@@ -104,7 +107,7 @@ min_search(vil_image_view<double> &a,
            double theta,
            double lambda)
 {
-  double coeff = (1.0/(2.0*theta));
+  double coeff = (1.0 / (2.0 * theta * lambda));
   unsigned int S = cost_volume.nplanes();
   double a_step = 1.0 / S;
   for (unsigned int j = 0; j < d.nj(); j++)
@@ -120,7 +123,7 @@ min_search(vil_image_view<double> &a,
         double cost = cost_volume(i,j,k);
         if (cost < 0.0) continue;
         double diff = dij - aij;
-        double e = coeff*diff*diff + lambda * cost;
+        double e = coeff*diff*diff + cost;
         if (e < best_e)
         {
           best_e = e;
@@ -128,7 +131,7 @@ min_search(vil_image_view<double> &a,
           bestk = k;
          }
       }
-      a(i,j) = subsample(dij, cost_volume, coeff, lambda, i, j, bestk, a_step, best_idepth);
+      a(i,j) = subsample(dij, cost_volume, coeff, i, j, bestk, a_step, best_idepth);
     }
   }
 }
@@ -137,35 +140,34 @@ min_search(vil_image_view<double> &a,
 double subsample(double dij,
                  const vil_image_view<double> &cost_volume,
                  double coeff,
-                 double lambda,
                  unsigned int i,
                  unsigned int j,
                  unsigned int k,
                  double a_step,
                  double aij)
 {
-  double eval[3];
   const int S = static_cast<int>(cost_volume.nplanes());
+  if (k < 1 || k >= static_cast<unsigned int>(S-1))
+  {
+    return aij;
+  }
+
+  double eval[3];
 
   for (int m = -1; m <= 1; m++)
   {
-    double aij_m = a_step * m + aij;
-
-    int loc = k + m;
-    if (loc < 0 || loc >= S)
-      return aij;
-
-    double diff = dij - aij_m;
-    eval[m+1] = coeff*diff*diff + lambda * cost_volume(i,j,loc);
+    const double aij_m = a_step * m + aij;
+    const double diff = dij - aij_m;
+    eval[m+1] = coeff*diff*diff + cost_volume(i,j,k+m);
   }
 
-  double dleft = (eval[1] - eval[0])/a_step;
-  double dright = (eval[2] - eval[1])/a_step;
+  const double dleft = (eval[1] - eval[0]);
+  const double dright = (eval[2] - eval[1]);
 
-  double diff1 = (eval[2] - eval[0])/(2.0*a_step);
-  double diff2 = (dright - dleft)/a_step;
-  double delta = -diff1/diff2;
-  return aij + delta;
+  const double diff1 = (eval[2] - eval[0]) * 0.5;
+  const double diff2 = (dright - dleft);
+  const double delta = -diff1/diff2;
+  return aij + delta * a_step;
 }
 
 } // end namespace super3d
