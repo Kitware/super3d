@@ -589,7 +589,7 @@ bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
   std::vector<double> depths;
 
   vgl_box_2d<double> box(i0, i0+ni, j0, j0+nj);
-  std::cout << box << "\n";
+  std::cout << "depth range - using ROI " << box << "\n";
   for (unsigned int i = 0; i < landmarks.size(); i++)
   {
     const vnl_double_3 &p = landmarks[i];
@@ -604,6 +604,8 @@ bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
       depths.push_back(res(2));
     }
   }
+  std::cout << "depth range - ratio of landmarks projected in ROI: "
+            << depths.size() << "/" << landmarks.size() <<std::endl;
 
   if (depths.size() < 3)
     return false;
