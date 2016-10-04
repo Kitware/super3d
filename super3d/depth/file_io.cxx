@@ -430,11 +430,12 @@ void read_landmark_file(const std::string &filename, std::vector<vnl_double_3> &
     }
   } while (x != std::string("end_header"));
 
-  for (unsigned int i = 0; i < numverts; i++)
+  std::string line;
+  for (unsigned int i = 0; i < numverts && std::getline( infile, line); i++)
   {
+    std::stringstream ss(line);
     vnl_double_3 pt;
-    unsigned int id;
-    infile >> pt[0] >> pt[1] >> pt[2] >> id;
+    ss >> pt[0] >> pt[1] >> pt[2];
     landmarks.push_back(pt);
   }
 
