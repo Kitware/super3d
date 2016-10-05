@@ -56,17 +56,6 @@ min_search(vil_image_view<double> &a,
            double theta,
            double lambda);
 
-
-SUPER3D_DEPTH_EXPORT
-double subsample(double dij,
-                 const vil_image_view<double> &cost_volume,
-                 double coeff,
-                 unsigned int i,
-                 unsigned int j,
-                 unsigned int k,
-                 double a_step,
-                 double aij);
-
 } // end namespace super3d
 
 #endif //tv_utils_h_
