@@ -79,7 +79,13 @@ min_search_bound(vil_image_view<double> &a,
     const double* col_c = row_c;
     for (unsigned int i = 0; i < d.ni(); i++, col_c+=istep_c)
     {
-      const int r = std::min(last_plane, std::max(0, static_cast<int>(S * range_coeff * sqrt_cost_range(i,j))));
+      const double sqrt_range = sqrt_cost_range(i,j);
+      if (!std::isfinite(sqrt_range))
+      {
+        a(i,j) = d(i,j);
+        continue;
+      }
+      const int r = std::min(last_plane, std::max(0, static_cast<int>(S * range_coeff * sqrt_range)));
       const double dij = d(i,j) * S - 0.5;
       const int init_k = std::min(last_plane, std::max(0, static_cast<int>(dij)));
 
@@ -116,7 +122,8 @@ min_search_bound(vil_image_view<double> &a,
         const double diff2 = 2 * coeff * (dij - static_cast<double>(bestk));
         const double ym1 = *(cost - pstep_c) + diff2 + coeff;
         const double yp1 = *(cost + pstep_c) - diff2 + coeff;
-        a(i,j) = (static_cast<double>(bestk) + interp_offset(ym1, *cost, yp1) + 0.5) * a_step;
+        const double offset = interp_offset(ym1, *cost, yp1);
+        a(i,j) = (static_cast<double>(bestk) + offset + 0.5) * a_step;
       }
       else
       {
