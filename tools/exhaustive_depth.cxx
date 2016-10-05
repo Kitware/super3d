@@ -345,6 +345,7 @@ int main(int argc, char* argv[])
 #ifdef HAVE_VTK
   //vtp depth writer uses 0..1 depth scaling
   vil_image_view<double> d_texture;
+  vil_image_view<vxl_byte> b_texture;
 
   if (cfg->get_value<bool>("use_rgb12"))
   {
@@ -352,16 +353,24 @@ int main(int argc, char* argv[])
     vil_image_view<unsigned short> us_texture = img_rsc->get_view();
     vil_convert_cast(us_texture, d_texture);
     vil_math_scale_values(d_texture, 255.0 / 4095.0);
+    vil_convert_cast(d_texture, b_texture);
   }
   else
   {
-    vil_image_view<vxl_byte> b_texture;
     b_texture = vil_load((dir + filenames[ref_frame]).c_str());
     vil_convert_cast<vxl_byte, double>(b_texture, d_texture);
   }
 
-  std::string output_file_name = cfg->get_value<std::string>("output_file");
-  save_depth_to_vtp(output_file_name.c_str(), depth, d_texture, ref_cam, ws);
+  if (cfg->is_set("ouput_file"))
+  {
+    std::string output_file_name = cfg->get_value<std::string>("output_file");
+    save_depth_to_vtp(output_file_name.c_str(), depth, d_texture, ref_cam, ws);
+  }
+  if (cfg->is_set("output_vti"))
+  {
+    std::string output_file_name = cfg->get_value<std::string>("output_vti");
+    super3d::save_depth_to_vti(output_file_name.c_str(), depth, b_texture);
+  }
 #endif
 
   // map depth from normalized range back into true depth
