@@ -37,6 +37,24 @@
 namespace super3d
 {
 
+namespace {
+
+/// Interpolate the offset to the subsampled minimum by fitting a parabola
+/// This function fits a parabola to 3 points: (-1, ym1), (0, y0), (1, yp1)
+/// and estimates the X location of the minimum.  It is assumed that y0 < ym1
+/// and y0 < yp1.
+inline
+double
+interp_offset(double ym1, double y0, double yp1)
+{
+  const double d1 = yp1 - ym1;
+  const double d2 = 2 * y0 - ym1 - yp1;
+  return d2 == 0.0 ? 0.0 : d1 / (2 * d2);
+}
+
+}
+
+
 void
 min_search_bound(vil_image_view<double> &a,
            const vil_image_view<double> &d,
@@ -45,11 +63,11 @@ min_search_bound(vil_image_view<double> &a,
            double theta,
            double lambda)
 {
-  const double coeff = (1.0 / (2.0 * theta * lambda));
-  const double range_coeff = std::sqrt(2.0 * theta * lambda);
   const int S = static_cast<int>(cost_volume.nplanes());
   const double a_step = 1.0 / S;
   const int last_plane = S-1;
+  const double coeff = (1.0 / (2.0 * theta * lambda * S * S));
+  const double range_coeff = std::sqrt(2.0 * theta * lambda);
 
   const std::ptrdiff_t istep_c = cost_volume.istep();
   const std::ptrdiff_t jstep_c = cost_volume.jstep();
@@ -62,8 +80,8 @@ min_search_bound(vil_image_view<double> &a,
     for (unsigned int i = 0; i < d.ni(); i++, col_c+=istep_c)
     {
       const int r = std::min(last_plane, std::max(0, static_cast<int>(S * range_coeff * sqrt_cost_range(i,j))));
-      const double dij = d(i,j);
-      const int init_k = std::min(last_plane, std::max(0, static_cast<int>(dij * S)));
+      const double dij = d(i,j) * S - 0.5;
+      const int init_k = std::min(last_plane, std::max(0, static_cast<int>(dij)));
 
       // compute the search range and clip between 0 and S-1
       // note that when dij is outside the volume range [0,1] this
@@ -74,8 +92,7 @@ min_search_bound(vil_image_view<double> &a,
       const int max_k = std::min(last_plane, init_k + r);
 
       int bestk = init_k;
-      double best_idepth = (bestk + 0.5) * a_step;
-      const double diff = dij - best_idepth;
+      const double diff = dij - bestk;
       double best_e = coeff*diff*diff + *(col_c + bestk);
       const double* cost = col_c + min_k;
       for (int k = min_k; k <= max_k; ++k, cost+=pstep_c)
@@ -84,17 +101,27 @@ min_search_bound(vil_image_view<double> &a,
         {
           continue;
         }
-        const double aij = (k + 0.5) * a_step;
-        const double diff = dij - aij;
+        const double diff = dij - k;
         const double e = coeff*diff*diff + (*cost);
         if (e < best_e)
         {
           best_e = e;
-          best_idepth = aij;
           bestk = k;
         }
       }
-      a(i,j) = subsample(dij, cost_volume, coeff, i, j, bestk, a_step, best_idepth);
+      // fit a parabola to estimate the subsample offset for the best k
+      if (bestk > 0 && bestk < S-1)
+      {
+        cost = col_c + bestk;
+        const double diff2 = 2 * coeff * (dij - static_cast<double>(bestk));
+        const double ym1 = *(cost - pstep_c) + diff2 + coeff;
+        const double yp1 = *(cost + pstep_c) - diff2 + coeff;
+        a(i,j) = (static_cast<double>(bestk) + interp_offset(ym1, *cost, yp1) + 0.5) * a_step;
+      }
+      else
+      {
+        a(i,j) = (static_cast<double>(bestk) + 0.5) * a_step;
+      }
     }
   }
 }
