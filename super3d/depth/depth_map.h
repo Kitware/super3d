@@ -197,6 +197,13 @@ void save_depth_to_vtp(const char *filename,
                        const vpgl_perspective_camera<double> &cam,
                        world_space *ws);
 
+/// Writes a vti (VTK image) file from a depth image.
+/// This particular format is designed to work with the MAP-Tk GUI
+/// and the CUDADepthMapIntegration tool
+void save_depth_to_vti(const char *filename,
+                       const vil_image_view<double> &depth,
+                       const vil_image_view<vxl_byte> &color);
+
 #endif
 
 SUPER3D_DEPTH_EXPORT
