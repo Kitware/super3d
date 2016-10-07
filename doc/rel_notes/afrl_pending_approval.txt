@@ -12,6 +12,9 @@ Updates since last public release
 
 Depth Library
 
+ * Added depth_map_to_height_map and height_map_to_depth_map conversion
+   functions given a camera.
+
  * Added support for parsing VisualSFM NVM files.
 
  * Added a separate helper function for loading MAP-Tk landmark PLY files.
