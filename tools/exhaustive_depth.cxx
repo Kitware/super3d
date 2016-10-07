@@ -139,6 +139,7 @@ int main(int argc, char* argv[])
   super3d::world_space *ws = NULL;
   int i0, ni, j0, nj;
   double depth_min, depth_max;
+  bool use_world_planes = false;
 
   if (cfg->is_set("world_volume"))
   {
@@ -188,7 +189,6 @@ int main(int argc, char* argv[])
     }
 
     vnl_double_3 normal;
-    bool use_world_planes = false;
     if (cfg->is_set("world_plane_normal"))
     {
       // use world coordinate slices in this direction instead of depth
@@ -358,6 +358,19 @@ int main(int argc, char* argv[])
 #else
   bp_refine(cost_volume, depth_min, depth_max, depth);    //TODO: need to check if this works after idepth->depth change
 #endif
+
+  vil_image_view<double> height_map;
+  if (use_world_planes)
+  {
+    height_map = depth;
+    depth = vil_image_view<double>();
+    super3d::height_map_to_depth_map(cameras[ref_frame], height_map, depth);
+  }
+  else
+  {
+    super3d::depth_map_to_height_map(cameras[ref_frame], depth, height_map);
+  }
+
 
   if (cfg->is_set("output_depthmap"))
   {
