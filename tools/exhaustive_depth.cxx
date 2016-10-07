@@ -382,6 +382,15 @@ int main(int argc, char* argv[])
     vil_save(dmap, depthmap_file.c_str());
   }
 
+  if (cfg->is_set("output_heightmap"))
+  {
+    vil_image_view<vxl_byte> hmap;
+    vil_convert_stretch_range_limited(height_map, hmap, 0.0, 1.0);
+    std::string heightmap_file = cfg->get_value<std::string>("output_heightmap");
+    vil_save(hmap, heightmap_file.c_str());
+  }
+
+
   std::cout << "writing mesh"<<std::endl;
 #ifdef HAVE_VTK
   //vtp depth writer uses 0..1 depth scaling
