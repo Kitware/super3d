@@ -39,6 +39,7 @@
 #include <super3d/depth/tv_refine_plane.h>
 #include <super3d/depth/world_rectilinear.h>
 #include <super3d/depth/world_frustum.h>
+#include <super3d/depth/world_angled_frustum.h>
 #include <super3d/depth/exposure.h>
 #include <super3d/imesh/imesh_mesh.h>
 #include <super3d/imesh/imesh_fileio.h>
@@ -186,13 +187,33 @@ int main(int argc, char* argv[])
       super3d::read_landmark_file(cfg->get_value<std::string>("landmarks_path"), landmarks);
     }
 
+    vnl_double_3 normal;
+    bool use_world_planes = false;
+    if (cfg->is_set("world_plane_normal"))
+    {
+      // use world coordinate slices in this direction instead of depth
+      std::istringstream ss(cfg->get_value<std::string>("world_plane_normal"));
+      ss >> normal;
+      normal.normalize();
+      use_world_planes = true;
+    }
+
     if (cfg->get_value<bool>("use_landmarks_depth_range"))
     {
       std::vector<vnl_double_3> visible_landmarks =
         super3d::filter_visible_landmarks(cameras[ref_frame], 0, ni, 0, nj, landmarks);
-      super3d::compute_depth_range(visible_landmarks, cameras[ref_frame], depth_min, depth_max);
-      std::cout << "Max estimated depth: " << depth_max << "\n";
-      std::cout << "Min estimated depth: " << depth_min << "\n";
+      if (use_world_planes)
+      {
+        super3d::compute_offset_range(visible_landmarks, normal, depth_min, depth_max, 0, 0.5);
+        std::cout << "Max estimated offset: " << depth_max << "\n";
+        std::cout << "Min estimated offset: " << depth_min << "\n";
+      }
+      else
+      {
+        super3d::compute_depth_range(visible_landmarks, cameras[ref_frame], depth_min, depth_max);
+        std::cout << "Max estimated depth: " << depth_max << "\n";
+        std::cout << "Min estimated depth: " << depth_min << "\n";
+      }
     }
     else
     {
@@ -200,9 +221,14 @@ int main(int argc, char* argv[])
       depth_max = cfg->get_value<double>("depth_max");
     }
 
-
-
-    ws = new super3d::world_frustum(cameras[ref_frame], depth_min, depth_max, ni, nj);
+    if (use_world_planes)
+    {
+      ws = new super3d::world_angled_frustum(cameras[ref_frame], normal, depth_min, depth_max, ni, nj);
+    }
+    else
+    {
+      ws = new super3d::world_frustum(cameras[ref_frame], depth_min, depth_max, ni, nj);
+    }
   }
 
   std::cout << "Refining depth"<<std::endl;
