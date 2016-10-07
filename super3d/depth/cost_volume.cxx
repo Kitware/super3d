@@ -579,50 +579,88 @@ read_cost_volume_at(FILE *file,
   }
 }
 
-bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
+
+/// Return a subset of landmark points that project into the given region of interest
+std::vector<vnl_double_3>
+filter_visible_landmarks(const vpgl_perspective_camera<double> &camera,
                          int i0, int ni, int j0, int nj,
-                         const std::vector<vnl_double_3> &landmarks, double &min_depth, double &max_depth)
+                         const std::vector<vnl_double_3> &landmarks)
+{
+  vgl_box_2d<double> box(i0, i0+ni, j0, j0+nj);
+  std::vector<vnl_double_3> visible_landmarks;
+  std::cout << "filtering landmarks using ROI " << box << "\n";
+  for (unsigned int i = 0; i < landmarks.size(); i++)
+  {
+    const vnl_double_3 &p = landmarks[i];
+    double u, v;
+    camera.project(p[0], p[1], p[2], u, v);
+    if (box.contains(u, v))
+    {
+      visible_landmarks.push_back(p);
+    }
+  }
+  std::cout << "ratio of filtered landmarks in ROI: "
+            << visible_landmarks.size() << "/" << landmarks.size() <<std::endl;
+  return visible_landmarks;
+}
+
+/// Robustly compute the bounding planes of the landmarks in a given direction
+void
+compute_offset_range(const std::vector<vnl_double_3> &landmarks,
+                     const vnl_vector_fixed<double,3> &normal,
+                     double &min_offset, double &max_offset,
+                     const double outlier_thresh,
+                     const double safety_margin_factor)
+{
+  min_offset = std::numeric_limits<double>::infinity();
+  max_offset = -std::numeric_limits<double>::infinity();
+
+  std::vector<double> offsets;
+
+  for (unsigned int i = 0; i < landmarks.size(); i++)
+  {
+    offsets.push_back(dot_product(normal, landmarks[i]));
+  }
+  std::sort(offsets.begin(), offsets.end());
+
+  const unsigned int min_index =
+    static_cast<unsigned int>((offsets.size()-1) * outlier_thresh);
+  const unsigned int max_index = offsets.size() - 1 - min_index;
+  min_offset = offsets[min_index];
+  max_offset = offsets[max_index];
+
+  const double safety_margin = safety_margin_factor * (max_offset - min_offset);
+  max_offset += safety_margin;
+  min_offset -= safety_margin;
+}
+
+
+/// Robustly compute the depth range of the landmarks with respect to a camera
+void
+compute_depth_range(const std::vector<vnl_double_3> &landmarks,
+                    const vpgl_perspective_camera<double> &camera,
+                    double &min_depth, double &max_depth,
+                    const double outlier_thresh,
+                    const double safety_margin_factor)
 {
   min_depth = std::numeric_limits<double>::infinity();
   max_depth = -std::numeric_limits<double>::infinity();
 
   std::vector<double> depths;
 
-  vgl_box_2d<double> box(i0, i0+ni, j0, j0+nj);
-  std::cout << "depth range - using ROI " << box << "\n";
   for (unsigned int i = 0; i < landmarks.size(); i++)
   {
     const vnl_double_3 &p = landmarks[i];
     vnl_vector_fixed<double, 4> pt(p[0], p[1], p[2], 1.0);
-    vnl_double_3 res = ref_cam.get_matrix() * pt;
+    vnl_double_3 res = camera.get_matrix() * pt;
 
-    double u, v;
-    ref_cam.project(p[0], p[1], p[2], u, v);
-
-    if (box.contains(u, v))
-    {
-      depths.push_back(res(2));
-    }
+    depths.push_back(res(2));
   }
-  std::cout << "depth range - ratio of landmarks projected in ROI: "
-            << depths.size() << "/" << landmarks.size() <<std::endl;
-
-  if (depths.size() < 3)
-    return false;
-
   std::sort(depths.begin(), depths.end());
-
-  // threshold for fraction of outlier depths to reject at the
-  // near and far of the depth range.
-  const double outlier_thresh = 0.05;
-  // fraction of total depth range to pad both near and far to
-  // account for depths not sampled by the point cloud
-  const double safety_margin_factor = 0.33;
 
   const unsigned int min_index =
     static_cast<unsigned int>((depths.size()-1) * outlier_thresh);
-  const unsigned int max_index =
-    static_cast<unsigned int>((depths.size()-1) * (1.0 - outlier_thresh));
+  const unsigned int max_index = depths.size() - 1 - min_index;
   min_depth = depths[min_index];
   max_depth = depths[max_index];
 
@@ -630,8 +668,7 @@ bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
   max_depth += safety_margin;
   min_depth -= safety_margin;
   min_depth = std::max(0.0, min_depth);
-
-  return true;
 }
+
 
 } // end namespace super3d

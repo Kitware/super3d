@@ -120,7 +120,9 @@ int main(int argc, char* argv[])
       std::cout << "Computing depth range from " << cfg->get_value<std::string>("landmarks_path") << "\n";
       std::vector<vnl_double_3> landmarks;
       super3d::read_landmark_file(cfg->get_value<std::string>("landmarks_path"), landmarks);
-      super3d::compute_depth_range(cameras[ref_frame], 0, ni, 0, nj, landmarks, depth_min, depth_max);
+      std::vector<vnl_double_3> visible_landmarks =
+        super3d::filter_visible_landmarks(cameras[ref_frame], 0, ni, 0, nj, landmarks);
+      super3d::compute_depth_range(visible_landmarks, cameras[ref_frame], depth_min, depth_max);
       std::cout << "Max estimated depth: " << depth_max << "\n";
       std::cout << "Min estimated depth: " << depth_min << "\n";
 
