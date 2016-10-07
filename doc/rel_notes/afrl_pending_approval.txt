@@ -10,6 +10,11 @@ release version, and the content of this file will be reset.
 Updates since last public release
 ---------------------------------
 
+Depth Library
+
+ * Added depth_map_to_height_map and height_map_to_depth_map conversion
+   functions given a camera.
+
 IMesh Library
 
  * Added a function to render a mesh with groups as a label image.
