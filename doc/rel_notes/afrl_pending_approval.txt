@@ -21,11 +21,15 @@ Depth Library
  * Write out depth maps in the VTK-based file format which is read
    by the MAP-Tk GUI and by the CudeDepthMapIntegration tool
 
+ * Refactored code to save depth maps as VTI files into its own function.
+
 Tools
 
  * Added a new "video_depth" tool that computes depth maps for each
    key frame in a video.  Each depth map is built using a neighborhood
    of frames around the key frame.
+
+ * Added option to exhaustive depth tool to save out VTI files.
 
 Fixes since last public release
 -------------------------------
