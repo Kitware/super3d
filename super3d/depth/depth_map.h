@@ -160,6 +160,13 @@ height_map_to_mesh(const vil_image_view<double>& height_map,
                    double y_scale = 1.0);
 
 
+/// Convert a depth map into a height map
+SUPER3D_DEPTH_EXPORT
+void depth_map_to_height_map(const vpgl_perspective_camera<double>& camera,
+                             const vil_image_view<double>& depth_map,
+                                   vil_image_view<double>& height_map);
+
+
 /// Compute the minimum and maximum value ignoring infinite and NaN values.
 SUPER3D_DEPTH_EXPORT
 void finite_value_range(const vil_image_view<double>& img,
