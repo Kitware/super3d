@@ -1,0 +1,24 @@
+Super3D Release Notes for changes pending release approval by AFRL
+==================================================================
+
+This file documents release notes for changes made to Super3D which require
+public release approval from AFRL.  After approval, the changes and
+corresponding notes below will be incorporated into a public numbered
+release version, and the content of this file will be reset.
+
+
+Updates since last public release
+---------------------------------
+
+IMesh Library
+
+ * Added a function to render a mesh with groups as a label image.
+
+Tools
+
+ * Updated the render_depthmap tool to work with MAP-Tk style cameras
+   and camera file naming conventions.  Added options to render height map
+   images and label map images in addition to depth map images.
+
+Fixes since last public release
+-------------------------------
