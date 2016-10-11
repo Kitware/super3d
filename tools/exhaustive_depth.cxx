@@ -359,6 +359,16 @@ int main(int argc, char* argv[])
   bp_refine(cost_volume, depth_min, depth_max, depth);    //TODO: need to check if this works after idepth->depth change
 #endif
 
+  // The estimated depth map at this point is in the
+  // slice space with values in the range [0,1].
+  // various functions below operate on the slice, depth, or height map
+  vil_image_view<double> slice_map;
+  slice_map.deep_copy(depth);
+
+  // map depth from normalized range back into true depth
+  double depth_scale = depth_max - depth_min;
+  vil_math_scale_and_offset_values(depth, depth_scale, depth_min);
+
   vil_image_view<double> height_map;
   if (use_world_planes)
   {
@@ -375,7 +385,7 @@ int main(int argc, char* argv[])
   if (cfg->is_set("output_depthmap"))
   {
     vil_image_view<vxl_byte> dmap;
-    vil_convert_stretch_range_limited(depth, dmap, 0.0, 1.0);
+    vil_convert_stretch_range(depth, dmap);
     // depth map are drawn inverted (white == closest) for viewing
     vil_math_scale_and_offset_values(dmap, -1.0, 255);
     std::string depthmap_file = cfg->get_value<std::string>("output_depthmap");
@@ -385,7 +395,7 @@ int main(int argc, char* argv[])
   if (cfg->is_set("output_heightmap"))
   {
     vil_image_view<vxl_byte> hmap;
-    vil_convert_stretch_range_limited(height_map, hmap, 0.0, 1.0);
+    vil_convert_stretch_range(height_map, hmap);
     std::string heightmap_file = cfg->get_value<std::string>("output_heightmap");
     vil_save(hmap, heightmap_file.c_str());
   }
@@ -410,13 +420,13 @@ int main(int argc, char* argv[])
     vil_convert_cast<vxl_byte, double>(b_texture, d_texture);
   }
 
-  std::string output_file_name = cfg->get_value<std::string>("output_file");
-  save_depth_to_vtp(output_file_name.c_str(), depth, d_texture, ref_cam, ws);
+  if (cfg->is_set("ouput_file"))
+  {
+    std::string output_file_name = cfg->get_value<std::string>("output_file");
+    save_depth_to_vtp(output_file_name.c_str(), slice_map, d_texture, ref_cam, ws);
+  }
 #endif
 
-  // map depth from normalized range back into true depth
-  double depth_scale = depth_max - depth_min;
-  vil_math_scale_and_offset_values(depth, depth_scale, depth_min);
 
   if (cfg->is_set("obj_file"))
   {
