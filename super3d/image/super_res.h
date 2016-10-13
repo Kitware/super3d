@@ -36,6 +36,7 @@
 #include <vector>
 #include <functional>
 #include <mutex>
+#include <memory>
 
 #include "adjoint_image_op.h"
 

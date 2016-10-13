@@ -35,6 +35,7 @@
 
 #include <vector>
 #include <functional>
+#include <memory>
 #include <vil/vil_image_view.h>
 #include <vnl/vnl_matrix_fixed.h>
 #include <vnl/vnl_vector_fixed.h>
