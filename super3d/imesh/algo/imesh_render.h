@@ -14,6 +14,8 @@
 
 #include "imesh_algo_config.h"
 #include "../imesh_mesh.h"
+#include "../imesh_operations.h"
+#include "imesh_project.h"
 
 #include <vil/vil_image_view.h>
 #include <vgl/vgl_point_3d.h>
@@ -64,6 +66,70 @@ void imesh_render_triangle_label(const vgl_point_3d<double>& v1,
         depth_img(x,y) = depth;
         image(x,y) = label;
       }
+    }
+  }
+}
+
+
+//: project the mesh onto the image plane using the camera
+//  Set each pixel of the image to the depth to the mesh
+template <class T>
+void imesh_render_mesh_labels(const imesh_mesh& mesh,
+                              const vpgl_proj_camera<double>& camera,
+                              vil_image_view<T>& label_image,
+                              vil_image_view<double>& depth_image)
+{
+  if (!mesh.faces().has_groups())
+  {
+    std::cerr << "Warning: rendering mesh labels, but mesh has no groups"
+              << std::endl;
+  }
+
+  // clear the images by filling with the default values
+  depth_image.fill(std::numeric_limits<double>::infinity());
+  label_image.fill(T(0));
+
+  // project the mesh vertices into image space points and depths
+  assert(mesh.vertices().dim() == 3);
+  std::vector<vgl_point_2d<double> > verts2d;
+  std::vector<double> depths;
+  imesh_project_verts(mesh.vertices<3>(), camera, verts2d, depths);
+
+  // combine 2D points and depth values into 3D points (in camera coordinates)
+  std::vector<vgl_point_3d<double> > verts3d;
+  for(unsigned i=0; i<verts2d.size(); ++i)
+  {
+    const vgl_point_2d<double>& pt = verts2d[i];
+    verts3d.push_back(vgl_point_3d<double>(pt.x(), pt.y(), depths[i]));
+  }
+
+  // convert mesh faces to triangles, if needed
+  const imesh_face_array_base& faces = mesh.faces();
+  std::unique_ptr<imesh_regular_face_array<3> > tri_data;
+  const imesh_regular_face_array<3>* tris;
+  if (faces.regularity() != 3)
+  {
+    tri_data = imesh_triangulate(faces);
+    tris = tri_data.get();
+  }
+  else
+  {
+    tris = static_cast<const imesh_regular_face_array<3>*>(&faces);
+  }
+
+  // render each triangle into the label and depth images
+  // the label is equal to the group number + 1 (zero means no label)
+  int group = -1;
+  if (tris->has_groups())
+    group = 0;
+  for (unsigned t=0; t<tris->size(); ++t)
+  {
+    const imesh_regular_face<3>& tri = (*tris)[t];
+    imesh_render_triangle_label(verts3d[tri[0]], verts3d[tri[1]], verts3d[tri[2]],
+                                static_cast<T>(group+1), label_image, depth_image);
+    if (group >= 0 && t+1 >= tris->groups()[group].second)
+    {
+      ++group;
     }
   }
 }
