@@ -20,6 +20,15 @@ if (viscl_FOUND)
 endif()
 
 #
+# Exhaustive Depth
+#
+super3d_add_executable(video_depth video_depth.cxx)
+target_link_libraries(video_depth
+  super3d_depth super3d_image imesh_algo
+  vil vpgl vnl vul vil_algo
+  )
+
+#
 # Camera and Homography Picker
 #
 super3d_add_executable(cam_and_homog_picker cam_and_homog_picker.cxx)
@@ -113,6 +122,13 @@ if(VTK_FOUND)
   # Adding VTK to Exhastive depth util
   target_link_libraries(exhaustive_depth ${VTK_LIBRARIES})
   set_source_files_properties(exhaustive_depth.cxx
+    PROPERTIES
+      COMPILE_DEFINITIONS HAVE_VTK
+    )
+
+  # Adding VTK to video depth util
+  target_link_libraries(video_depth ${VTK_LIBRARIES})
+  set_source_files_properties(video_depth.cxx
     PROPERTIES
       COMPILE_DEFINITIONS HAVE_VTK
     )

@@ -579,72 +579,58 @@ read_cost_volume_at(FILE *file,
   }
 }
 
-
 bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
                          int i0, int ni, int j0, int nj,
-                         const std::string &landmark_file, double &min_depth, double &max_depth)
+                         const std::vector<vnl_double_3> &landmarks, double &min_depth, double &max_depth)
 {
-  std::ifstream infile(landmark_file.c_str());
-  std::string x;
-  unsigned int numverts;
-  do
-  {
-    infile >> x;
-    if (x == "element")
-    {
-      infile >> x;
-      if (x == "vertex")
-      {
-        infile >> numverts;
-      }
-    }
-  } while (x != std::string("end_header"));
-
   min_depth = std::numeric_limits<double>::infinity();
   max_depth = -std::numeric_limits<double>::infinity();
 
   std::vector<double> depths;
-  //std::vector<vnl_double_3> points;
 
   vgl_box_2d<double> box(i0, i0+ni, j0, j0+nj);
-  std::cout << box << "\n";
-  for (unsigned int i = 0; i < numverts; i++)
+  std::cout << "depth range - using ROI " << box << "\n";
+  for (unsigned int i = 0; i < landmarks.size(); i++)
   {
-    double x, y, z;
-    unsigned int id;
-    infile >> x >> y >> z >> id;
-    vnl_vector_fixed<double, 4> pt(x, y, z, 1.0);
+    const vnl_double_3 &p = landmarks[i];
+    vnl_vector_fixed<double, 4> pt(p[0], p[1], p[2], 1.0);
     vnl_double_3 res = ref_cam.get_matrix() * pt;
 
     double u, v;
-    ref_cam.project(x, y, z, u, v);
+    ref_cam.project(p[0], p[1], p[2], u, v);
 
     if (box.contains(u, v))
     {
       depths.push_back(res(2));
-      //points.push_back(vnl_double_3(x, y, z));
     }
   }
+  std::cout << "depth range - ratio of landmarks projected in ROI: "
+            << depths.size() << "/" << landmarks.size() <<std::endl;
 
-  //std::cout << "Points in region: " << points.size() << "\n";
   if (depths.size() < 3)
     return false;
 
   std::sort(depths.begin(), depths.end());
 
-  //write_points_to_vtp(points, "pointsincrop.vtp");
+  // threshold for fraction of outlier depths to reject at the
+  // near and far of the depth range.
+  const double outlier_thresh = 0.05;
+  // fraction of total depth range to pad both near and far to
+  // account for depths not sampled by the point cloud
+  const double safety_margin_factor = 0.33;
 
-  //int index = 0.05 * depths.size();
-  min_depth = depths[0];
-  max_depth = depths[depths.size() - 1];
+  const unsigned int min_index =
+    static_cast<unsigned int>((depths.size()-1) * outlier_thresh);
+  const unsigned int max_index =
+    static_cast<unsigned int>((depths.size()-1) * (1.0 - outlier_thresh));
+  min_depth = depths[min_index];
+  max_depth = depths[max_index];
 
+  const double safety_margin = safety_margin_factor * (max_depth - min_depth);
+  max_depth += safety_margin;
+  min_depth -= safety_margin;
+  min_depth = std::max(0.0, min_depth);
 
-  double diff = max_depth - min_depth;
-  double offset = diff * 0.5;
-  max_depth += offset;
-  min_depth -= offset;
-
-  infile.close();
   return true;
 }
 
