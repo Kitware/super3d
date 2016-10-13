@@ -20,11 +20,11 @@ if (viscl_FOUND)
 endif()
 
 #
-# Exhaustive Depth
+# Video Depth
 #
 super3d_add_executable(video_depth video_depth.cxx)
 target_link_libraries(video_depth
-  super3d_depth super3d_image imesh_algo
+  super3d_depth super3d_image super3d_imesh_algo
   vil vpgl vnl vul vil_algo
   )
 
