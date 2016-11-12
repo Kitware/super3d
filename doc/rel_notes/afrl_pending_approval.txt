@@ -25,6 +25,8 @@ Depth Library
    simplifying the logic, switching to integer calculations where reasonable,
    and additional bounds to allow early search termination.
 
+ * Refactored code to save depth maps as VTI files into its own function.
+
 Tools
 
  * Added a new "video_depth" tool that computes depth maps for each
@@ -43,6 +45,8 @@ Tools
    and camera file naming conventions.  Added options to render height map
    images and label map images in addition to depth map images.
 
+
+ * Added option to exhaustive depth tool to save out VTI files.
 
 Fixes since last public release
 -------------------------------

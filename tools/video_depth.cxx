@@ -54,15 +54,7 @@
 #include <super3d/imesh/imesh_fileio.h>
 
 #include <vpgl/vpgl_perspective_camera.h>
-
-#include <vtkXMLImageDataWriter.h>
-#include <vtkImageData.h>
-#include <vtkNew.h>
-#include <vtkPointData.h>
-#include <vtkDoubleArray.h>
-#include <vtkPoints.h>
-#include <vtkUnsignedCharArray.h>
-
+#include <fstream>
 #include <sstream>
 
 int main(int argc, char* argv[])
@@ -180,57 +172,9 @@ int main(int argc, char* argv[])
       vil_math_value_range(depth, minv, maxv);
       std::cout << "Depth range: " << minv << " - " << maxv << "\n";
 
-      vtkNew<vtkDoubleArray> uniquenessRatios;
-      uniquenessRatios->SetName("Uniqueness Ratios");
-      uniquenessRatios->SetNumberOfValues(ni*nj);
-
-      vtkNew<vtkDoubleArray> bestCost;
-      bestCost->SetName("Best Cost Values");
-      bestCost->SetNumberOfValues(ni*nj);
-
-      vtkNew<vtkUnsignedCharArray> color;
-      color->SetName("Color");
-      color->SetNumberOfComponents(3);
-      color->SetNumberOfTuples(ni*nj);
-
-      vtkNew<vtkDoubleArray> depths;
-      depths->SetName("Depths");
-      depths->SetNumberOfComponents(1);
-      depths->SetNumberOfTuples(ni*nj);
-
       vil_image_view<vxl_byte> ref_img_color = vil_load(support_frames[ref_frame].c_str());
-
-      vtkIdType pt_id = 0;
-
-      for (int y = nj - 1; y >= 0; y--)
-      {
-        for (int x = 0; x < ni; x++)
-        {
-          uniquenessRatios->SetValue(pt_id, 0);
-          bestCost->SetValue(pt_id, 0);
-          depths->SetValue(pt_id, depth(x, y));
-          color->SetTuple3(pt_id, (int)ref_img_color(x, y, 0), (int)ref_img_color(x, y, 1), (int)ref_img_color(x, y, 2));
-          pt_id++;
-        }
-      }
-
-      vtkNew<vtkImageData> imageData;
-      imageData->SetSpacing(1, 1, 1);
-      imageData->SetOrigin(0, 0, 0);
-      imageData->SetDimensions(ni, nj, 1);
-      imageData->GetPointData()->AddArray(depths.Get());
-      imageData->GetPointData()->AddArray(color.Get());
-      imageData->GetPointData()->AddArray(uniquenessRatios.Get());
-      imageData->GetPointData()->AddArray(bestCost.Get());
-
-      vtkNew<vtkXMLImageDataWriter> writerI;
-      std::string depthmapImageFileName = depth_name.str() + ".vti";
-
-      writerI->SetFileName(depthmapImageFileName.c_str());
-      writerI->AddInputDataObject(imageData.Get());
-      writerI->SetDataModeToBinary();
-      writerI->Write();
-      std::cout << "Saved : " << depthmapImageFileName << std::endl;
+      super3d::save_depth_to_vti((depth_name.str() + ".vti").c_str(), depth, ref_img_color);
+      std::cout << "Saved : " << depth_name.str() + ".vti" << std::endl;
 
 
       if (ws) delete ws;
