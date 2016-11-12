@@ -24,11 +24,37 @@ Depth Library
  * Write out depth maps in the VTK-based file format which is read
    by the MAP-Tk GUI and by the CudeDepthMapIntegration tool
 
+ * Optimized the min_search_bound function to make it 30% faster by
+   simplifying the logic, switching to integer calculations where reasonable,
+   and additional bounds to allow early search termination.
+
+ * Refactored code to save depth maps as VTI files into its own function.
+
 Tools
 
  * Added a new "video_depth" tool that computes depth maps for each
    key frame in a video.  Each depth map is built using a neighborhood
    of frames around the key frame.
+ * Added depth_map_to_height_map and height_map_to_depth_map conversion
+   functions given a camera.
+
+IMesh Library
+
+ * Added a function to render a mesh with groups as a label image.
+
+Tools
+
+ * Updated the render_depthmap tool to work with MAP-Tk style cameras
+   and camera file naming conventions.  Added options to render height map
+   images and label map images in addition to depth map images.
+
+
+ * Added option to exhaustive depth tool to save out VTI files.
 
 Fixes since last public release
 -------------------------------
+
+Depth Library
+
+ * Fixed a bug in how cost volumes treat missing data (infinite costs), which
+   was causing spikes in depth maps in areas of missing data.

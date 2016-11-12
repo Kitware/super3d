@@ -19,11 +19,11 @@ include_directories("${Super3D_SOURCE_DIR}")
 include_directories("${Super3D_BINARY_DIR}")
 
 
-super3d_add_module(imesh "${CMAKE_CURRENT_LIST_DIR}/imesh")
+super3d_add_module(super3d_imesh "${CMAKE_CURRENT_LIST_DIR}/imesh")
 
-super3d_add_module(image "${CMAKE_CURRENT_LIST_DIR}/image")
+super3d_add_module(super3d_image "${CMAKE_CURRENT_LIST_DIR}/image")
 super3d_add_module(super3d_depth "${CMAKE_CURRENT_LIST_DIR}/depth"
-                   DEPENDS imesh image)
+                   DEPENDS super3d_imesh super3d_image)
 
 if(viscl_FOUND)
   super3d_add_module(super3d_depth_cl "${CMAKE_CURRENT_LIST_DIR}/depth_cl")

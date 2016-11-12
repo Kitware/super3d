@@ -183,7 +183,7 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
       for (unsigned int i = 0; i < warp_ref.ni(); i++)
       {
         if (counts(i,j) == 0)
-          cost_volume(i,j,k) = 1e6;
+          cost_volume(i,j,k) = std::numeric_limits<double>::infinity();
         else
           cost_volume(i, j, k) /= (double)counts(i,j);
       }

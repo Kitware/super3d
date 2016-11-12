@@ -39,6 +39,7 @@
 #include <vil/vil_image_view.h>
 #include <vector>
 #include <functional>
+#include <memory>
 
 
 namespace super3d

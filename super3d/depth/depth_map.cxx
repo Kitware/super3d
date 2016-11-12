@@ -45,12 +45,17 @@
 
 #ifdef HAVE_VTK
 #include <vtkXMLPolyDataWriter.h>
+#include <vtkXMLImageDataWriter.h>
+#include <vtkNew.h>
+#include <vtkImageData.h>
 #include <vtkPolyData.h>
 #include <vtkPoints.h>
 #include <vtkFloatArray.h>
 #include <vtkSmartPointer.h>
 #include <vtkCellArray.h>
 #include <vtkPointData.h>
+#include <vtkDoubleArray.h>
+#include <vtkUnsignedCharArray.h>
 #endif
 
 
@@ -714,6 +719,64 @@ void write_points_to_vtp(std::vector<vnl_double_3> &points, const char *filename
   writer->SetFileName(filename);
   writer->Update();
 }
+
+
+void save_depth_to_vti(const char *filename,
+                       const vil_image_view<double> &depth_img,
+                       const vil_image_view<vxl_byte> &color_img)
+{
+  const int ni = depth_img.ni();
+  const int nj = depth_img.nj();
+  vtkNew<vtkDoubleArray> uniquenessRatios;
+  uniquenessRatios->SetName("Uniqueness Ratios");
+  uniquenessRatios->SetNumberOfValues(ni*nj);
+
+  vtkNew<vtkDoubleArray> bestCost;
+  bestCost->SetName("Best Cost Values");
+  bestCost->SetNumberOfValues(ni*nj);
+
+  vtkNew<vtkUnsignedCharArray> color;
+  color->SetName("Color");
+  color->SetNumberOfComponents(3);
+  color->SetNumberOfTuples(ni*nj);
+
+  vtkNew<vtkDoubleArray> depths;
+  depths->SetName("Depths");
+  depths->SetNumberOfComponents(1);
+  depths->SetNumberOfTuples(ni*nj);
+
+  vtkIdType pt_id = 0;
+
+  for (int y = nj - 1; y >= 0; y--)
+  {
+    for (int x = 0; x < ni; x++)
+    {
+      uniquenessRatios->SetValue(pt_id, 0);
+      bestCost->SetValue(pt_id, 0);
+      depths->SetValue(pt_id, depth_img(x, y));
+      color->SetTuple3(pt_id, (int)color_img(x, y, 0),
+                              (int)color_img(x, y, 1),
+                              (int)color_img(x, y, 2));
+      pt_id++;
+    }
+  }
+
+  vtkNew<vtkImageData> imageData;
+  imageData->SetSpacing(1, 1, 1);
+  imageData->SetOrigin(0, 0, 0);
+  imageData->SetDimensions(ni, nj, 1);
+  imageData->GetPointData()->AddArray(depths.Get());
+  imageData->GetPointData()->AddArray(color.Get());
+  imageData->GetPointData()->AddArray(uniquenessRatios.Get());
+  imageData->GetPointData()->AddArray(bestCost.Get());
+
+  vtkNew<vtkXMLImageDataWriter> writerI;
+  writerI->SetFileName(filename);
+  writerI->AddInputDataObject(imageData.Get());
+  writerI->SetDataModeToBinary();
+  writerI->Write();
+}
+
 
 #endif
 
