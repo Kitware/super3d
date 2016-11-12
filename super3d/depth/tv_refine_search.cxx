@@ -69,10 +69,10 @@ refine_depth(vil_image_view<double> &cost_volume,
   {
     for (unsigned int i = 0; i < cost_volume.ni(); i++)
     {
-      double min, max;
-      min = max = cost_volume(i,j,0);
+      double min = std::numeric_limits<double>::infinity();
+      double max = -std::numeric_limits<double>::infinity();
       unsigned int min_k = 0;
-      for (unsigned int k = 1; k < cost_volume.nplanes(); k++)
+      for (unsigned int k = 0; k < cost_volume.nplanes(); k++)
       {
         const double &cost = cost_volume(i,j,k);
         if (cost < min) {
@@ -80,7 +80,9 @@ refine_depth(vil_image_view<double> &cost_volume,
           min_k = k;
         }
         if (cost > max)
+        {
           max = cost;
+        }
       }
       sqrt_cost_range(i,j) = std::sqrt(max - min);
       d(i,j) = (min_k + 0.5) * a_step;

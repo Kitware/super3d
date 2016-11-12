@@ -21,6 +21,10 @@ Depth Library
  * Write out depth maps in the VTK-based file format which is read
    by the MAP-Tk GUI and by the CudeDepthMapIntegration tool
 
+ * Optimized the min_search_bound function to make it 30% faster by
+   simplifying the logic, switching to integer calculations where reasonable,
+   and additional bounds to allow early search termination.
+
 Tools
 
  * Added a new "video_depth" tool that computes depth maps for each
@@ -42,3 +46,8 @@ Tools
 
 Fixes since last public release
 -------------------------------
+
+Depth Library
+
+ * Fixed a bug in how cost volumes treat missing data (infinite costs), which
+   was causing spikes in depth maps in areas of missing data.
