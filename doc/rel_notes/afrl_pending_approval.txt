@@ -35,8 +35,6 @@ Tools
  * Added a new "video_depth" tool that computes depth maps for each
    key frame in a video.  Each depth map is built using a neighborhood
    of frames around the key frame.
- * Added depth_map_to_height_map and height_map_to_depth_map conversion
-   functions given a camera.
 
 IMesh Library
 
@@ -47,7 +45,6 @@ Tools
  * Updated the render_depthmap tool to work with MAP-Tk style cameras
    and camera file naming conventions.  Added options to render height map
    images and label map images in addition to depth map images.
-
 
  * Added option to exhaustive depth tool to save out VTI files.
 
