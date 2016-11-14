@@ -36,6 +36,10 @@ Tools
    key frame in a video.  Each depth map is built using a neighborhood
    of frames around the key frame.
 
+ * Extended render_depthmap tool to add the capability to write depth maps
+   to VTI files.  This allows ground truth depth maps to be used in the
+   MAP-Tk tools.
+
 IMesh Library
 
  * Added a function to render a mesh with groups as a label image.
