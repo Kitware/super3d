@@ -39,6 +39,7 @@
 #include <vil/vil_image_view.h>
 #include <vil/vil_convert.h>
 #include <vil/vil_save.h>
+#include <vil/vil_load.h>
 #include <vul/vul_arg.h>
 #include <vul/vul_file.h>
 #include <vul/vul_sprintf.h>
@@ -100,6 +101,9 @@ int main(int argc, char* argv[])
   vul_arg<std::string> image_size( "-s", "Image size (WIDTHxHEIGHT)","1920x1080" );
   vul_arg<double>      resolution_scale( "-r", "resolution scale ", 1.0 );
   vul_arg<bool>        byte_images( "-b", "Make byte images where [max, min] = [1,255] and 0 = infinity ", false);
+#ifdef HAVE_VTK
+  vul_arg<bool>        vti_images( "-v", "Write depth images to VTI files", false);
+#endif
 
   vul_arg<std::string> output_dir( "-o", "Output directory", "depthmaps" );
   vul_arg<std::string> height_dir( "-h", "Output height map directory", "" );
@@ -132,11 +136,12 @@ int main(int argc, char* argv[])
 
   std::ifstream ifs(file_list());
   std::map<std::string, vpgl_perspective_camera<double> > cameras;
+  std::map<std::string, std::string> image_paths;
   while (ifs)
   {
-    std::string filename;
-    ifs >> filename;
-    filename = vul_file::strip_extension(vul_file::basename(filename));
+    std::string filepath;
+    ifs >> filepath;
+    std::string filename = vul_file::strip_extension(vul_file::basename(filepath));
     std::cout << "Looking for "<< filename;
     std::string camera_file = camera_dir() + "/" + filename + ".krtd";
     if(vul_file::exists(camera_file))
@@ -144,6 +149,7 @@ int main(int argc, char* argv[])
       std::cout << " -- Loading " << camera_file;
       vpgl_perspective_camera<double> camera = super3d::load_cam(camera_file);
       cameras[filename] = camera;
+      image_paths[filename] = filepath;
     }
     std::cout << std::endl;
   }
@@ -204,6 +210,22 @@ int main(int argc, char* argv[])
       std::cout << "Saving double depth image to " << name << std::endl;
       vil_save(depth_map, name.c_str());
     }
+
+#ifdef HAVE_VTK
+    std::string rgb_path = image_paths[citr->first];
+    if (vti_images())
+    {
+      vil_image_view<vxl_byte> rgb;
+      if (vul_file::exists(rgb_path))
+      {
+        std::cout << "Loading RGB image" << rgb_path << std::endl;
+        rgb = vil_load(rgb_path.c_str());
+      }
+      std::string vti_name = output_dir() + "/" + citr->first + "-depth.vti";
+      std::cout << "Saving VTI depth image to " << vti_name << std::endl;
+      super3d::save_depth_to_vti(vti_name.c_str(), depth_map, rgb);
+    }
+#endif
 
     if(height_dir() != "")
     {
