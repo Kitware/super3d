@@ -108,6 +108,12 @@ if (Super3D_ENABLE_REFINE_HOMOG)
 endif()
 
 #
+# Render Depthmap
+#
+super3d_add_executable(render_depthmap render_depthmap.cxx)
+target_link_libraries(render_depthmap super3d_depth super3d_imesh_algo vpgl)
+
+#
 # VTK Dependent tools
 #
 if(VTK_FOUND)
@@ -139,6 +145,14 @@ if(VTK_FOUND)
     PROPERTIES
       COMPILE_DEFINITIONS HAVE_VTK
     )
+
+  # Adding VTK to render depthmap util
+  target_link_libraries(render_depthmap ${VTK_LIBRARIES})
+  set_source_files_properties(render_depthmap.cxx
+    PROPERTIES
+      COMPILE_DEFINITIONS HAVE_VTK
+    )
+
 endif()
 
 #
@@ -173,12 +187,6 @@ target_link_libraries(direct_depth
   super3d_depth super3d_image super3d_imesh super3d_imesh_algo
   vil vpgl vnl vul vil_algo
   )
-
-#
-# Render Depthmap
-#
-super3d_add_executable(render_depthmap render_depthmap.cxx)
-target_link_libraries(render_depthmap super3d_depth super3d_imesh_algo vpgl)
 
 #
 # Extract depth range

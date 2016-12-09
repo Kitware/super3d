@@ -56,6 +56,10 @@ Tools
    key frame in a video.  Each depth map is built using a neighborhood
    of frames around the key frame.
 
+ * Extended render_depthmap tool to add the capability to write depth maps
+   to VTI files.  This allows ground truth depth maps to be used in the
+   MAP-Tk tools.
+
  * Updated exhaustive_depth and video_depth tools to optionally use the new
    world_angled_frustum instead of world_frustum to estimate height maps
    instead of depth maps.  The option is controlled in the config file by
