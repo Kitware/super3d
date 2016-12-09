@@ -47,6 +47,16 @@ include(super3d-flags)
 # Dependencies and Modules
 #
 
+###
+# Look for and use Fletch to find dependencies
+#
+set( fletch_DIR "" CACHE PATH "Path to FLETCH packages" )
+if ( IS_DIRECTORY ${fletch_DIR} )
+  find_package( fletch NO_MODULE )
+  # Search for libraries in the fletch install root
+  list(APPEND CMAKE_PREFIX_PATH "${fletch_ROOT}")
+endif()
+
 ### REQUIRED Packages
 
 find_package(VXL REQUIRED)
