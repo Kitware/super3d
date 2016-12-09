@@ -39,6 +39,7 @@
 #include <super3d/depth/tv_refine_plane.h>
 #include <super3d/depth/world_rectilinear.h>
 #include <super3d/depth/world_frustum.h>
+#include <super3d/depth/world_angled_frustum.h>
 #include <super3d/depth/exposure.h>
 
 
@@ -81,6 +82,17 @@ int main(int argc, char* argv[])
 
     std::cout << "Read " << filenames.size() << " filenames.\n";
 
+    bool use_world_planes = false;
+    vnl_double_3 normal;
+    if (cfg->is_set("world_plane_normal"))
+    {
+      // use world coordinate slices in this direction instead of depth
+      std::istringstream ss(cfg->get_value<std::string>("world_plane_normal"));
+      ss >> normal;
+      normal.normalize();
+      use_world_planes = true;
+    }
+
     int halfsupport = numsupport / 2;
     for (int i = halfsupport; i < static_cast<int>(filenames.size()) - halfsupport; i += stride)
     {
@@ -112,11 +124,22 @@ int main(int argc, char* argv[])
       std::cout << "Computing depth range from " << cfg->get_value<std::string>("landmarks_path") << "\n";
       std::vector<vnl_double_3> landmarks;
       super3d::read_landmark_file(cfg->get_value<std::string>("landmarks_path"), landmarks);
-      super3d::compute_depth_range(cameras[ref_frame], 0, ni, 0, nj, landmarks, depth_min, depth_max);
-      std::cout << "Max estimated depth: " << depth_max << "\n";
-      std::cout << "Min estimated depth: " << depth_min << "\n";
-
-      ws = new super3d::world_frustum(cameras[ref_frame], depth_min, depth_max, ni, nj);
+      std::vector<vnl_double_3> visible_landmarks =
+        super3d::filter_visible_landmarks(cameras[ref_frame], 0, ni, 0, nj, landmarks);
+      if (use_world_planes)
+      {
+        super3d::compute_offset_range(visible_landmarks, normal, depth_min, depth_max, 0, 0.5);
+        std::cout << "Max estimated offset: " << depth_max << "\n";
+        std::cout << "Min estimated offset: " << depth_min << "\n";
+        ws = new super3d::world_angled_frustum(cameras[ref_frame], normal, depth_min, depth_max, ni, nj);
+      }
+      else
+      {
+        super3d::compute_depth_range(visible_landmarks, cameras[ref_frame], depth_min, depth_max);
+        std::cout << "Max estimated depth: " << depth_max << "\n";
+        std::cout << "Min estimated depth: " << depth_min << "\n";
+        ws = new super3d::world_frustum(cameras[ref_frame], depth_min, depth_max, ni, nj);
+      }
 
       std::cout << "Refining depth" << std::endl;
       unsigned int S = cfg->get_value<unsigned int>("num_slices");
@@ -155,22 +178,41 @@ int main(int argc, char* argv[])
       std::ostringstream depth_name;
       depth_name << outdir << "/" << i;
 
-      vil_image_view<vxl_byte> dmap;
-      vil_convert_stretch_range_limited(depth, dmap, 0.0, 1.0);
-      // depth map are drawn inverted (white == closest) for viewing
-      vil_math_scale_and_offset_values(dmap, -1.0, 255);
-      std::string depthmap_file = depth_name.str() + ".png";
-      vil_save(dmap, depthmap_file.c_str());
-
       super3d::save_depth_to_vtp((depth_name.str() + ".vtp").c_str(), depth, frames[ref_frame], ref_cam, ws);
 
       // map depth from normalized range back into true depth
       double depth_scale = depth_max - depth_min;
       vil_math_scale_and_offset_values(depth, depth_scale, depth_min);
 
+      vil_image_view<double> height_map;
+      if (use_world_planes)
+      {
+        height_map = depth;
+        depth = vil_image_view<double>();
+        super3d::height_map_to_depth_map(cameras[ref_frame], height_map, depth);
+      }
+      else
+      {
+        super3d::depth_map_to_height_map(cameras[ref_frame], depth, height_map);
+      }
+
+      // save byte depth map
+      vil_image_view<vxl_byte> bmap;
+      vil_convert_stretch_range(depth, bmap);
+      // depth map are drawn inverted (white == closest) for viewing
+      vil_math_scale_and_offset_values(bmap, -1.0, 255);
+      std::string depthmap_file = depth_name.str() + "_depth.png";
+      vil_save(bmap, depthmap_file.c_str());
+      // save byte height map
+      vil_convert_stretch_range(height_map, bmap);
+      std::string heightmap_file = depth_name.str() + "_height.png";
+      vil_save(bmap, heightmap_file.c_str());
+
       double minv, maxv;
       vil_math_value_range(depth, minv, maxv);
       std::cout << "Depth range: " << minv << " - " << maxv << "\n";
+      vil_math_value_range(height_map, minv, maxv);
+      std::cout << "Height range: " << minv << " - " << maxv << "\n";
 
       vil_image_view<vxl_byte> ref_img_color = vil_load(support_frames[ref_frame].c_str());
       super3d::save_depth_to_vti((depth_name.str() + ".vti").c_str(), depth, ref_img_color);

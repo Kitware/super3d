@@ -13,6 +13,7 @@ set(header_files
   tv_refine_search.h
   tv_refine_plane.h
   tv_utils.h
+  world_angled_frustum.h
   world_frustum.h
   world_rectilinear.h
   world_space.h
@@ -35,6 +36,7 @@ set(cxx_files
   tv_refine_search.cxx
   tv_refine_plane.cxx
   tv_utils.cxx
+  world_angled_frustum.cxx
   world_frustum.cxx
   world_rectilinear.cxx
   world_space.cxx

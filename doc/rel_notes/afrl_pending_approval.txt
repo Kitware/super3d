@@ -30,6 +30,26 @@ Depth Library
 
  * Refactored code to save depth maps as VTI files into its own function.
 
+ * Refactored the compute_depth_range function into two components:
+   filter_visible_landmarks to filter out landmarks outside of an ROI, and
+   compute_depth_range to compute the depth range of all landmarks.
+   Previously compute_depth_range both filtered by ROI and computed the range.
+
+ * Added a compute_offset_range function which is similar to
+   compute_depth_range but operates in world space in a particular direction.
+   It finds the minimum and maximum plane offsets to bound the landmarks
+   for a continuum of planes with a given normal direction.
+
+ * Added a new "angled frustum" world space implementation that builds a cost
+   volume within a camera frustum with a column of voxels aligned with each
+   pixel in the image.  Unlike the standard frustum world space the Z-axis
+   is not aligned with the camera principal ray, rather it is align with
+   a specified world normal.  As a result the voxels are skewed in space and
+   the "slice" parameter represents height above a base plane in the world
+   rather than depth from the camera.  This is useful for better sampling in
+   mostly planar scenes where plane is not aligned with the camera viewing
+   direction.  For example, off-nadir aerial imagery.
+
 Tools
 
  * Added a new "video_depth" tool that computes depth maps for each
@@ -39,6 +59,12 @@ Tools
  * Extended render_depthmap tool to add the capability to write depth maps
    to VTI files.  This allows ground truth depth maps to be used in the
    MAP-Tk tools.
+
+ * Updated exhaustive_depth and video_depth tools to optionally use the new
+   world_angled_frustum instead of world_frustum to estimate height maps
+   instead of depth maps.  The option is controlled in the config file by
+   setting "world_plane_normal".  The tools can now write out both depth map
+   and height map images regardless of which method is used for estimation.
 
 IMesh Library
 
