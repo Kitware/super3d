@@ -1,22 +1,46 @@
-Training:
-In order to train the FCN first we have to put training data into the correct format.  The data needed is a directory containing the the imagery and a different corresponding directory with the ground 
-truth label image for each image named imagename-labels.png.  In order to put the images into databases used by caffe we run the chipper.py script which chips the larger images up into smaller images to 
-create additional training data by rotating and scaling the chips and places the chips in lmdb databases.  A training and a validation dataset are made using a manual split of the training dataset. The directories to the imagery are set at the bottom of chipper.py the arguments
+Training
+--------
+
+In order to train the FCN first we have to put training data into the correct
+format.  The data needed is a directory containing the the imagery and a
+different corresponding directory with the ground truth label image for each
+image named imagename-labels.png.  In order to put the images into databases
+used by caffe we run the chipper.py script which chips the larger images up
+into smaller images to create additional training data by rotating and scaling
+the chips and places the chips in lmdb databases.  A training and a validation
+dataset are made using a manual split of the training dataset. The directories
+to the imagery are set at the bottom of chipper.py the arguments
+
   imagerdir: base directory of images
   labeldir:  base directory of label images
   outputdir: base directory to make the database in
   dbname:    name of the database
-The output is four lmdb databases: training images, training labels, validation images, validation labels.
 
-Now that our data is in the proper format we can begin training the FCN.  The FCN is a retrained version of the FCN8s dataset distributed by Berkeley. The file caffemodel-url has a url from which you can 
-download the FCB8s model that we use as base weights for retraining. The next step is to point the train_val.prototxt (file that describes the network architecture for training) to the data we want to
-train on.  The first four layers of the train_val.prototxt each have a source tag that should point to the four databases that were made. Then the "net" value in solver.prototxt should point to the location of the train_val.prototxt.  Now we can train the network: caffe train -solver solver.prototxt -weights fcn8s.caffemodel
-The retraining takes the beginning layers from the fcn8s network but retrains the end of the network to our 5 label categories: ground, building side, building roof, wall, other
+The output is four lmdb databases: training images, training labels,
+validation images, validation labels.
+
+Now that our data is in the proper format we can begin training the FCN.
+The FCN is a retrained version of the FCN8s dataset distributed by Berkeley.
+The file caffemodel-url has a url from which you can download the FCB8s model
+that we use as base weights for retraining. The next step is to point the
+train_val.prototxt (file that describes the network architecture for training)
+to the data we want to train on.  The first four layers of the
+train_val.prototxt each have a source tag that should point to the four
+databases that were made. Then the "net" value in solver.prototxt should point
+to the location of the train_val.prototxt.  Now we can train the network:
+
+    caffe train -solver solver.prototxt -weights fcn8s.caffemodel
+
+The retraining takes the beginning layers from the fcn8s network but retrains
+the end of the network to our 5 label categories: ground, building side,
+building roof, wall, other
 
 
+Testing
+-------
 
-Testing:
-Point the files in infer.py to the location of the test imagery, output image directory, deploy.prototxt and the newly trained network then run.
+Point the files in infer.py to the location of the test imagery, output image
+directory, deploy.prototxt and the newly trained network then run.
 
-
-In order to run the python files make sure your PYTHON_PATH includes fletchdir/install/python
+In order to run the python files make sure your PYTHON_PATH includes
+fletchdir/install/python
