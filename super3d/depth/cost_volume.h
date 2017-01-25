@@ -53,7 +53,8 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
                           vil_image_view<double> &cost_volume,
                           double intesity_weight,
                           double gradient_weight,
-                          double census_weight);
+                          double census_weight,
+                          std::vector<vil_image_view<double> > *masks = NULL);
 
 SUPER3D_DEPTH_EXPORT
 void

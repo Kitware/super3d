@@ -72,15 +72,23 @@ int main(int argc, char* argv[])
     std::string camera_dir = cfg->get_value<std::string>("camera_dir");
     std::cout << "Using frame file: " << frame_file << " to find images and " << camera_dir << " to find cameras.\n";
 
-    std::ifstream infile(frame_file.c_str());
+    std::ifstream frame_infile(frame_file.c_str());
     std::vector<std::string> filenames;
     std::string x;
-    while (infile >> x) filenames.push_back(x);
+    while (frame_infile >> x) filenames.push_back(x);
+    frame_infile.close();
 
     int numsupport = cfg->get_value<int>("support_frames");
     int stride = cfg->get_value<int>("stride");
 
     std::cout << "Read " << filenames.size() << " filenames.\n";
+
+    std::string mask_list = cfg->get_value<std::string>("mask_list");
+    std::ifstream mask_file_stream(mask_list.c_str());
+    std::vector<std::string> masknames;
+    while (mask_file_stream >> x) masknames.push_back(x);
+    mask_file_stream.close();
+
 
     bool use_world_planes = false;
     vnl_double_3 normal;
@@ -98,9 +106,11 @@ int main(int argc, char* argv[])
     {
       std::cout << "Computing depth map on frame: " << i << "\n";
       std::vector<std::string> support_frames(filenames.begin() + (i - halfsupport), filenames.begin() + (i + halfsupport));
+      std::vector<std::string> support_masks(masknames.begin() + (i - halfsupport), masknames.begin() + (i + halfsupport));
       std::cout << support_frames.size() << std::endl;
 
       std::vector<vil_image_view<double> > frames;
+      std::vector<vil_image_view<double> > masks;
       std::vector<vpgl_perspective_camera<double> >  cameras;
 
       super3d::load_frames(support_frames, frames, cfg->get_value<bool>("use_color"), cfg->get_value<bool>("use_rgb12"));
@@ -111,6 +121,12 @@ int main(int argc, char* argv[])
         camname = camname.substr(found + 1, camname.size() - 4 - found - 1);
         camname = cfg->get_value<std::string>("camera_dir") + "/" + camname + ".krtd";
         cameras.push_back(super3d::load_cam(camname));
+
+        vil_image_view<double> mask;
+        std::cout << support_masks[f] << "\n";
+        vil_image_view<bool> maskb = vil_load(support_masks[f].c_str());
+        vil_convert_cast(maskb, mask);
+        masks.push_back(mask);
       }
 
       unsigned int ref_frame = halfsupport;
@@ -128,7 +144,7 @@ int main(int argc, char* argv[])
         super3d::filter_visible_landmarks(cameras[ref_frame], 0, ni, 0, nj, landmarks);
       if (use_world_planes)
       {
-        super3d::compute_offset_range(visible_landmarks, normal, depth_min, depth_max, 0, 0.5);
+        super3d::compute_offset_range(visible_landmarks, normal, depth_min, depth_max, 0.2, 0.5);
         std::cout << "Max estimated offset: " << depth_max << "\n";
         std::cout << "Min estimated offset: " << depth_min << "\n";
         ws = new super3d::world_angled_frustum(cameras[ref_frame], normal, depth_min, depth_max, ni, nj);
@@ -156,9 +172,9 @@ int main(int argc, char* argv[])
       double iw = cfg->get_value<double>("intensity_cost_weight");
       double gw = cfg->get_value<double>("gradient_cost_weight");
       double cw = cfg->get_value<double>("census_cost_weight");
-      super3d::compute_world_cost_volume(frames, cameras, ws, ref_frame, S, cost_volume, iw, gw, cw);
+      super3d::compute_world_cost_volume(frames, cameras, ws, ref_frame, S, cost_volume, iw, gw, cw,&masks);
       //compute_cost_volume_warp(frames, cameras, ref_frame, S, depth_min, depth_max, cost_volume);
-      ws->compute_g(frames[ref_frame], g, gw_alpha, 1.0);
+      ws->compute_g(frames[ref_frame], g, gw_alpha, 1.0, &masks[ref_frame]);
 
 
       std::cout << "Refining Depth. ..\n";

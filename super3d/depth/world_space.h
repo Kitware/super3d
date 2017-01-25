@@ -67,7 +67,8 @@ public:
   virtual void compute_g(const vil_image_view<double> &ref_img,
                          vil_image_view<double> &g,
                          double alpha,
-                         double beta);
+                         double beta,
+                         vil_image_view<double> *mask = NULL);
 
   virtual vnl_double_3 point_at_depth(unsigned int i, unsigned int j, double depth) const = 0;
   virtual vnl_double_3 point_at_depth_on_axis(double i, double j, double depth) const = 0;

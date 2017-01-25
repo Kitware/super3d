@@ -82,7 +82,8 @@ std::vector<vnl_double_3> world_rectilinear::get_slice(double depth_slice) const
 void world_rectilinear::compute_g(const vil_image_view<double> &ref_img,
                                   vil_image_view<double> &g,
                                   double alpha,
-                                  double beta)
+                                  double beta,
+                                  vil_image_view<double> *mask)
 {
   g.set_size(ref_img.ni(), ref_img.nj(), 1);
   g.fill(1.0);

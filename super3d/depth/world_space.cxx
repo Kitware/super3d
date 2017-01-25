@@ -99,7 +99,11 @@ void world_space::warp_image_to_depth(const vil_image_view<double> &in,
 }
 
 
-void world_space::compute_g(const vil_image_view<double> &ref_img, vil_image_view<double> &g, double alpha, double beta)
+void world_space::compute_g(const vil_image_view<double> &ref_img,
+                            vil_image_view<double> &g,
+                            double alpha,
+                            double beta,
+                            vil_image_view<double> *mask)
 {
   g.set_size(ref_img.ni(), ref_img.nj(), 1);
 
@@ -111,12 +115,17 @@ void world_space::compute_g(const vil_image_view<double> &ref_img, vil_image_vie
   {
     for (unsigned int j = 0; j < ref_img_g.nj(); j++)
     {
-      double dx = ref_img_g(i,j,0);
-      double dy = ref_img_g(i,j,1);
-      double mag = sqrt(dx*dx + dy*dy);
-      //if (mag > .5) //clamp gradients because of over exposure
-      //  mag = .5;
-      g(i,j) = exp(-alpha * mag);
+      if (!mask || (*mask)(i, j) < 1.0)
+      {
+        double dx = ref_img_g(i, j, 0);
+        double dy = ref_img_g(i, j, 1);
+        double mag = sqrt(dx*dx + dy*dy);
+        //if (mag > .5) //clamp gradients because of over exposure
+        //  mag = .5;
+        g(i, j) = exp(-alpha * mag);
+      }
+      else
+        g(i, j) = 1.0;
     }
   }
 }
