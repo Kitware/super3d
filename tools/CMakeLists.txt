@@ -20,6 +20,15 @@ if (viscl_FOUND)
 endif()
 
 #
+# Video Depth
+#
+super3d_add_executable(video_depth video_depth.cxx)
+target_link_libraries(video_depth
+  super3d_depth super3d_image super3d_imesh_algo
+  vil vpgl vnl vul vil_algo
+  )
+
+#
 # Camera and Homography Picker
 #
 super3d_add_executable(cam_and_homog_picker cam_and_homog_picker.cxx)
@@ -99,6 +108,12 @@ if (Super3D_ENABLE_REFINE_HOMOG)
 endif()
 
 #
+# Render Depthmap
+#
+super3d_add_executable(render_depthmap render_depthmap.cxx)
+target_link_libraries(render_depthmap super3d_depth super3d_imesh_algo vpgl)
+
+#
 # VTK Dependent tools
 #
 if(VTK_FOUND)
@@ -117,12 +132,27 @@ if(VTK_FOUND)
       COMPILE_DEFINITIONS HAVE_VTK
     )
 
+  # Adding VTK to video depth util
+  target_link_libraries(video_depth ${VTK_LIBRARIES})
+  set_source_files_properties(video_depth.cxx
+    PROPERTIES
+      COMPILE_DEFINITIONS HAVE_VTK
+    )
+
   # Adding VTK to Bunder->VPGL converter
   target_link_libraries(bundler2vpgl ${VTK_LIBRARIES})
   set_source_files_properties(bundler2vpgl.cxx
     PROPERTIES
       COMPILE_DEFINITIONS HAVE_VTK
     )
+
+  # Adding VTK to render depthmap util
+  target_link_libraries(render_depthmap ${VTK_LIBRARIES})
+  set_source_files_properties(render_depthmap.cxx
+    PROPERTIES
+      COMPILE_DEFINITIONS HAVE_VTK
+    )
+
 endif()
 
 #
@@ -157,12 +187,6 @@ target_link_libraries(direct_depth
   super3d_depth super3d_image super3d_imesh super3d_imesh_algo
   vil vpgl vnl vul vil_algo
   )
-
-#
-# Render Depthmap
-#
-super3d_add_executable(render_depthmap render_depthmap.cxx)
-target_link_libraries(render_depthmap super3d_depth super3d_imesh_algo vpgl)
 
 #
 # Extract depth range

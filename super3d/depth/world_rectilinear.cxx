@@ -61,6 +61,7 @@ world_rectilinear::world_rectilinear(const vnl_double_3 &origin,
 }
 
 
+
 /// returns the corner points of an image slice at depth slice.
 /// depth slice is a value between 0 and 1 over the depth range
 std::vector<vnl_double_3> world_rectilinear::get_slice(double depth_slice) const

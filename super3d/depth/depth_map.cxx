@@ -45,12 +45,17 @@
 
 #ifdef HAVE_VTK
 #include <vtkXMLPolyDataWriter.h>
+#include <vtkXMLImageDataWriter.h>
+#include <vtkNew.h>
+#include <vtkImageData.h>
 #include <vtkPolyData.h>
 #include <vtkPoints.h>
 #include <vtkFloatArray.h>
 #include <vtkSmartPointer.h>
 #include <vtkCellArray.h>
 #include <vtkPointData.h>
+#include <vtkDoubleArray.h>
+#include <vtkUnsignedCharArray.h>
 #endif
 
 
@@ -427,6 +432,50 @@ height_map_to_mesh(const vil_image_view<double>& height_map,
 }
 
 
+/// Convert a depth map into a height map
+void depth_map_to_height_map(const vpgl_perspective_camera<double>& camera,
+                             const vil_image_view<double>& depth_map,
+                                   vil_image_view<double>& height_map)
+{
+  const vnl_matrix_fixed<double,3,4>& P = camera.get_matrix();
+  const vnl_vector_fixed<double,3> v = vnl_inverse(P.extract(3,3)).get_row(2);
+  const double o = dot_product(v, -P.get_column(3));
+  assert(depth_map.nplanes() == 1);
+  height_map.set_size(depth_map.ni(), depth_map.nj(), 1);
+  for (unsigned j=0; j < depth_map.nj(); ++j)
+  {
+    for (unsigned i=0; i < depth_map.ni(); ++i)
+    {
+      const double& d = depth_map(i,j);
+      vnl_vector_fixed<double,3> pt(i, j, 1);
+      height_map(i,j) = d * dot_product(v, pt) + o;
+    }
+  }
+}
+
+
+/// Convert a height map into a depth map
+void height_map_to_depth_map(const vpgl_perspective_camera<double>& camera,
+                             const vil_image_view<double>& height_map,
+                                   vil_image_view<double>& depth_map)
+{
+  const vnl_matrix_fixed<double,3,4>& P = camera.get_matrix();
+  const vnl_vector_fixed<double,3> v = vnl_inverse(P.extract(3,3)).get_row(2);
+  const double o = dot_product(v, -P.get_column(3));
+  assert(height_map.nplanes() == 1);
+  depth_map.set_size(height_map.ni(), height_map.nj(), 1);
+  for (unsigned j=0; j < height_map.nj(); ++j)
+  {
+    for (unsigned i=0; i < height_map.ni(); ++i)
+    {
+      const double& h = height_map(i,j);
+      vnl_vector_fixed<double,3> pt(i, j, 1);
+      depth_map(i,j) = (h - o) / dot_product(v, pt);
+    }
+  }
+}
+
+
 /// Compute the minimum and maximum value ignoring infinite and NaN values.
 void finite_value_range(const vil_image_view<double>& img,
                         double& min_value, double& max_value)
@@ -670,6 +719,64 @@ void write_points_to_vtp(std::vector<vnl_double_3> &points, const char *filename
   writer->SetFileName(filename);
   writer->Update();
 }
+
+
+void save_depth_to_vti(const char *filename,
+                       const vil_image_view<double> &depth_img,
+                       const vil_image_view<vxl_byte> &color_img)
+{
+  const int ni = depth_img.ni();
+  const int nj = depth_img.nj();
+  vtkNew<vtkDoubleArray> uniquenessRatios;
+  uniquenessRatios->SetName("Uniqueness Ratios");
+  uniquenessRatios->SetNumberOfValues(ni*nj);
+
+  vtkNew<vtkDoubleArray> bestCost;
+  bestCost->SetName("Best Cost Values");
+  bestCost->SetNumberOfValues(ni*nj);
+
+  vtkNew<vtkUnsignedCharArray> color;
+  color->SetName("Color");
+  color->SetNumberOfComponents(3);
+  color->SetNumberOfTuples(ni*nj);
+
+  vtkNew<vtkDoubleArray> depths;
+  depths->SetName("Depths");
+  depths->SetNumberOfComponents(1);
+  depths->SetNumberOfTuples(ni*nj);
+
+  vtkIdType pt_id = 0;
+
+  for (int y = nj - 1; y >= 0; y--)
+  {
+    for (int x = 0; x < ni; x++)
+    {
+      uniquenessRatios->SetValue(pt_id, 0);
+      bestCost->SetValue(pt_id, 0);
+      depths->SetValue(pt_id, depth_img(x, y));
+      color->SetTuple3(pt_id, (int)color_img(x, y, 0),
+                              (int)color_img(x, y, 1),
+                              (int)color_img(x, y, 2));
+      pt_id++;
+    }
+  }
+
+  vtkNew<vtkImageData> imageData;
+  imageData->SetSpacing(1, 1, 1);
+  imageData->SetOrigin(0, 0, 0);
+  imageData->SetDimensions(ni, nj, 1);
+  imageData->GetPointData()->AddArray(depths.Get());
+  imageData->GetPointData()->AddArray(color.Get());
+  imageData->GetPointData()->AddArray(uniquenessRatios.Get());
+  imageData->GetPointData()->AddArray(bestCost.Get());
+
+  vtkNew<vtkXMLImageDataWriter> writerI;
+  writerI->SetFileName(filename);
+  writerI->AddInputDataObject(imageData.Get());
+  writerI->SetDataModeToBinary();
+  writerI->Write();
+}
+
 
 #endif
 

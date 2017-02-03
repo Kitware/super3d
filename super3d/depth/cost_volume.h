@@ -44,12 +44,6 @@ namespace super3d
 {
 
 SUPER3D_DEPTH_EXPORT
-bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
-                         int i0, int ni, int j0, int nj, const std::string &landmark_file,
-                         double &min_depth, double &max_depth);
-
-SUPER3D_DEPTH_EXPORT
-
 void
 compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
                           const std::vector<vpgl_perspective_camera<double> > &cameras,
@@ -121,6 +115,54 @@ read_cost_volume_at(FILE *file,
                     unsigned int i,
                     unsigned int j,
                     vnl_vector<double> &values);
+
+/// Return a subset of landmark points that project into the given region of interest
+/// \param camera is the camera used to project the points
+/// \param i0 is the horizontal coordinate of upper left corner of the ROI
+/// \param ni is the width of the ROI
+/// \param j0 is the vertical coordinate of upper left corner of the ROI
+/// \param nj is the height of the ROI
+/// \param landmarks is the set of 3D landmark points to project
+/// \return the subset of \p landmarks that project into the ROI
+SUPER3D_DEPTH_EXPORT
+std::vector<vnl_double_3>
+filter_visible_landmarks(const vpgl_perspective_camera<double> &camera,
+                         int i0, int ni, int j0, int nj,
+                         const std::vector<vnl_double_3> &landmarks);
+
+/// Robustly compute the bounding planes of the landmarks in a given direction
+/// \param  landmarks is the set of 3D landmark points
+/// \param  normal is the normal vector of the plane
+/// \retval min_offset is the minimum plane offset
+/// \retval max_offset is the maximum plane offset
+/// \param  outlier_thresh is the threshold for fraction of outlier offsets to
+///         reject at both the top and bottom
+/// \param  safety_margin_factor is the fraction of total offset range to pad
+///         both top and bottom to account for insufficient landmark samples
+SUPER3D_DEPTH_EXPORT
+void
+compute_offset_range(const std::vector<vnl_double_3> &landmarks,
+                     const vnl_vector_fixed<double,3> &normal,
+                     double &min_offset, double &max_offset,
+                     const double outlier_thresh = 0.05,
+                     const double safety_margin_factor = 0.33);
+
+/// Robustly compute the depth range of the landmarks with respect to a camera
+/// \param  landmarks is the set of 3D landmark points
+/// \param  camera is the camera used relative to which depths are computed
+/// \retval min_depth is the computed minimum depth
+/// \retval max_depth is the computed maximum depth
+/// \param  outlier_thresh is the threshold for fraction of outlier offsets to
+///         reject at both the near and far planes
+/// \param  safety_margin_factor is the fraction of total depth range to pad
+///         both near and far to account for insufficient landmark samples
+SUPER3D_DEPTH_EXPORT
+void
+compute_depth_range(const std::vector<vnl_double_3> &landmarks,
+                    const vpgl_perspective_camera<double> &camera,
+                    double &min_depth, double &max_depth,
+                    const double outlier_thresh = 0.05,
+                    const double safety_margin_factor = 0.33);
 
 } // end namespace suepr3d
 

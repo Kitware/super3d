@@ -183,7 +183,7 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
       for (unsigned int i = 0; i < warp_ref.ni(); i++)
       {
         if (counts(i,j) == 0)
-          cost_volume(i,j,k) = 1e6;
+          cost_volume(i,j,k) = std::numeric_limits<double>::infinity();
         else
           cost_volume(i, j, k) /= (double)counts(i,j);
       }
@@ -580,72 +580,95 @@ read_cost_volume_at(FILE *file,
 }
 
 
-bool compute_depth_range(const vpgl_perspective_camera<double> &ref_cam,
+/// Return a subset of landmark points that project into the given region of interest
+std::vector<vnl_double_3>
+filter_visible_landmarks(const vpgl_perspective_camera<double> &camera,
                          int i0, int ni, int j0, int nj,
-                         const std::string &landmark_file, double &min_depth, double &max_depth)
+                         const std::vector<vnl_double_3> &landmarks)
 {
-  std::ifstream infile(landmark_file.c_str());
-  std::string x;
-  unsigned int numverts;
-  do
+  vgl_box_2d<double> box(i0, i0+ni, j0, j0+nj);
+  std::vector<vnl_double_3> visible_landmarks;
+  std::cout << "filtering landmarks using ROI " << box << "\n";
+  for (unsigned int i = 0; i < landmarks.size(); i++)
   {
-    infile >> x;
-    if (x == "element")
+    const vnl_double_3 &p = landmarks[i];
+    double u, v;
+    camera.project(p[0], p[1], p[2], u, v);
+    if (box.contains(u, v))
     {
-      infile >> x;
-      if (x == "vertex")
-      {
-        infile >> numverts;
-      }
+      visible_landmarks.push_back(p);
     }
-  } while (x != std::string("end_header"));
+  }
+  std::cout << "ratio of filtered landmarks in ROI: "
+            << visible_landmarks.size() << "/" << landmarks.size() <<std::endl;
+  return visible_landmarks;
+}
 
+/// Robustly compute the bounding planes of the landmarks in a given direction
+void
+compute_offset_range(const std::vector<vnl_double_3> &landmarks,
+                     const vnl_vector_fixed<double,3> &normal,
+                     double &min_offset, double &max_offset,
+                     const double outlier_thresh,
+                     const double safety_margin_factor)
+{
+  min_offset = std::numeric_limits<double>::infinity();
+  max_offset = -std::numeric_limits<double>::infinity();
+
+  std::vector<double> offsets;
+
+  for (unsigned int i = 0; i < landmarks.size(); i++)
+  {
+    offsets.push_back(dot_product(normal, landmarks[i]));
+  }
+  std::sort(offsets.begin(), offsets.end());
+
+  const unsigned int min_index =
+    static_cast<unsigned int>((offsets.size()-1) * outlier_thresh);
+  const unsigned int max_index = offsets.size() - 1 - min_index;
+  min_offset = offsets[min_index];
+  max_offset = offsets[max_index];
+
+  const double safety_margin = safety_margin_factor * (max_offset - min_offset);
+  max_offset += safety_margin;
+  min_offset -= safety_margin;
+}
+
+
+/// Robustly compute the depth range of the landmarks with respect to a camera
+void
+compute_depth_range(const std::vector<vnl_double_3> &landmarks,
+                    const vpgl_perspective_camera<double> &camera,
+                    double &min_depth, double &max_depth,
+                    const double outlier_thresh,
+                    const double safety_margin_factor)
+{
   min_depth = std::numeric_limits<double>::infinity();
   max_depth = -std::numeric_limits<double>::infinity();
 
   std::vector<double> depths;
-  //std::vector<vnl_double_3> points;
 
-  vgl_box_2d<double> box(i0, i0+ni, j0, j0+nj);
-  std::cout << box << "\n";
-  for (unsigned int i = 0; i < numverts; i++)
+  for (unsigned int i = 0; i < landmarks.size(); i++)
   {
-    double x, y, z;
-    unsigned int id;
-    infile >> x >> y >> z >> id;
-    vnl_vector_fixed<double, 4> pt(x, y, z, 1.0);
-    vnl_double_3 res = ref_cam.get_matrix() * pt;
+    const vnl_double_3 &p = landmarks[i];
+    vnl_vector_fixed<double, 4> pt(p[0], p[1], p[2], 1.0);
+    vnl_double_3 res = camera.get_matrix() * pt;
 
-    double u, v;
-    ref_cam.project(x, y, z, u, v);
-
-    if (box.contains(u, v))
-    {
-      depths.push_back(res(2));
-      //points.push_back(vnl_double_3(x, y, z));
-    }
+    depths.push_back(res(2));
   }
-
-  //std::cout << "Points in region: " << points.size() << "\n";
-  if (depths.size() < 3)
-    return false;
-
   std::sort(depths.begin(), depths.end());
 
-  //write_points_to_vtp(points, "pointsincrop.vtp");
+  const unsigned int min_index =
+    static_cast<unsigned int>((depths.size()-1) * outlier_thresh);
+  const unsigned int max_index = depths.size() - 1 - min_index;
+  min_depth = depths[min_index];
+  max_depth = depths[max_index];
 
-  //int index = 0.05 * depths.size();
-  min_depth = depths[0];
-  max_depth = depths[depths.size() - 1];
-
-
-  double diff = max_depth - min_depth;
-  double offset = diff * 0.5;
-  max_depth += offset;
-  min_depth -= offset;
-
-  infile.close();
-  return true;
+  const double safety_margin = safety_margin_factor * (max_depth - min_depth);
+  max_depth += safety_margin;
+  min_depth -= safety_margin;
+  min_depth = std::max(0.0, min_depth);
 }
+
 
 } // end namespace super3d

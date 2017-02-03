@@ -160,6 +160,20 @@ height_map_to_mesh(const vil_image_view<double>& height_map,
                    double y_scale = 1.0);
 
 
+/// Convert a depth map into a height map
+SUPER3D_DEPTH_EXPORT
+void depth_map_to_height_map(const vpgl_perspective_camera<double>& camera,
+                             const vil_image_view<double>& depth_map,
+                                   vil_image_view<double>& height_map);
+
+
+/// Convert a height map into a depth map
+SUPER3D_DEPTH_EXPORT
+void height_map_to_depth_map(const vpgl_perspective_camera<double>& camera,
+                             const vil_image_view<double>& height_map,
+                                   vil_image_view<double>& depth_map);
+
+
 /// Compute the minimum and maximum value ignoring infinite and NaN values.
 SUPER3D_DEPTH_EXPORT
 void finite_value_range(const vil_image_view<double>& img,
@@ -196,6 +210,13 @@ void save_depth_to_vtp(const char *filename,
                        const vil_image_view<double> &ref,
                        const vpgl_perspective_camera<double> &cam,
                        world_space *ws);
+
+/// Writes a vti (VTK image) file from a depth image.
+/// This particular format is designed to work with the MAP-Tk GUI
+/// and the CUDADepthMapIntegration tool
+void save_depth_to_vti(const char *filename,
+                       const vil_image_view<double> &depth,
+                       const vil_image_view<vxl_byte> &color);
 
 #endif
 
