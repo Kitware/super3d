@@ -1,14 +1,14 @@
-Super3D Release Notes for changes pending release approval by AFRL
-==================================================================
+Super3D Change Log
+==================
 
-This file documents release notes for changes made to Super3D which require
-public release approval from AFRL.  After approval, the changes and
-corresponding notes below will be incorporated into a public numbered
-release version, and the content of this file will be reset.
+This file documents changes made to Super3D since the code was initially
+published.  The Super3D code base is highly experimental and at this point we
+have no plans for a formal release.   Instead we will migrate the most useful
+code from this repository into KWIVER and eventually deprecate this repository.
 
 
-Updates since last public release
----------------------------------
+Updates since initial code release
+----------------------------------
 
 Depth Library
 
@@ -84,8 +84,8 @@ Scripts
    network using Caffe.
 
 
-Fixes since last public release
--------------------------------
+Fixes since initial code release
+--------------------------------
 
 Depth Library
 
