@@ -83,11 +83,14 @@ int main(int argc, char* argv[])
 
     std::cout << "Read " << filenames.size() << " filenames.\n";
 
-    std::string mask_list = cfg->get_value<std::string>("mask_list");
-    std::ifstream mask_file_stream(mask_list.c_str());
     std::vector<std::string> masknames;
-    while (mask_file_stream >> x) masknames.push_back(x);
-    mask_file_stream.close();
+    if (cfg->is_set("mask_list"))
+    {
+      std::string mask_list = cfg->get_value<std::string>("mask_list");
+      std::ifstream mask_file_stream(mask_list.c_str());
+      while (mask_file_stream >> x) masknames.push_back(x);
+      mask_file_stream.close();
+    }
 
 
     bool use_world_planes = false;
@@ -106,7 +109,16 @@ int main(int argc, char* argv[])
     {
       std::cout << "Computing depth map on frame: " << i << "\n";
       std::vector<std::string> support_frames(filenames.begin() + (i - halfsupport), filenames.begin() + (i + halfsupport));
-      std::vector<std::string> support_masks(masknames.begin() + (i - halfsupport), masknames.begin() + (i + halfsupport));
+
+      std::vector<std::string> support_masks;
+      if (!masknames.empty())
+      {
+        support_masks = std::vector<std::string>(masknames.begin() + (i - halfsupport), masknames.begin() + (i + halfsupport));
+      }
+      else if (masknames.size() == 1)
+      {
+        support_masks = std::vector<std::string>(2 * halfsupport, masknames[0]);
+      }
       std::cout << support_frames.size() << std::endl;
 
       std::vector<vil_image_view<double> > frames;
@@ -123,9 +135,18 @@ int main(int argc, char* argv[])
         cameras.push_back(super3d::load_cam(camname));
 
         vil_image_view<double> mask;
-        std::cout << support_masks[f] << "\n";
-        vil_image_view<bool> maskb = vil_load(support_masks[f].c_str());
-        vil_convert_cast(maskb, mask);
+        if (support_masks.empty())
+        {
+          mask = vil_image_view<double>(frames[f].ni(), frames[f].nj(), 1);
+          mask.fill(1.0);
+          vil_crop(mask, 2, mask.ni()-4, 2, mask.nj()-4).fill(0.0);
+        }
+        else
+        {
+          std::cout << support_masks[f] << "\n";
+          vil_image_view<bool> maskb = vil_load(support_masks[f].c_str());
+          vil_convert_cast(maskb, mask);
+        }
         masks.push_back(mask);
       }
 
