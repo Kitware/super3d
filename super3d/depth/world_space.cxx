@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2016 by Kitware, Inc.
+ * Copyright 2012-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -115,7 +115,7 @@ void world_space::compute_g(const vil_image_view<double> &ref_img,
   {
     for (unsigned int j = 0; j < ref_img_g.nj(); j++)
     {
-      if (!mask || (*mask)(i, j) < 1.0)
+      if (!mask || (*mask)(i, j) == 0.0)
       {
         double dx = ref_img_g(i, j, 0);
         double dy = ref_img_g(i, j, 1);

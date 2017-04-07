@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2016 by Kitware, Inc.
+ * Copyright 2012-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,7 +148,7 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
       {
         for (unsigned int i = 0; i < warp_ref.ni(); i++)
         {
-          if (warp(i,j) == -1 || (masks && (warp_ref_mask(i,j) > 0.0 || warp_mask(i,j) > 0.0)))
+          if (warp(i,j) == -1 || (masks && (warp_ref_mask(i,j) != 0.0 || warp_mask(i,j) != 0.0)))
             continue;
 
           double Di = fabs(warp_ref(i,j) - warp(i,j));
