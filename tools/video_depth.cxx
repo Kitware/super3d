@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2016 by Kitware, Inc.
+* Copyright 2017 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
         super3d::filter_visible_landmarks(cameras[ref_frame], 0, ni, 0, nj, landmarks);
       if (use_world_planes)
       {
-        super3d::compute_offset_range(visible_landmarks, normal, depth_min, depth_max, 0.2, 0.5);
+        super3d::compute_offset_range(visible_landmarks, normal, depth_min, depth_max, 0.0, 0.5);
         std::cout << "Max estimated offset: " << depth_max << "\n";
         std::cout << "Min estimated offset: " << depth_min << "\n";
         ws = new super3d::world_angled_frustum(cameras[ref_frame], normal, depth_min, depth_max, ni, nj);
