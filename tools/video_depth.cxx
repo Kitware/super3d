@@ -1,4 +1,5 @@
 /*ckwg +29
+ *
 * Copyright 2017 by Kitware, Inc.
 * All rights reserved.
 *
@@ -92,6 +93,14 @@ int main(int argc, char* argv[])
       mask_file_stream.close();
     }
 
+    std::string outdir = cfg->get_value<std::string>("outdir");
+    std::ofstream vtiList(outdir + "/vtiList.txt");
+    std::ofstream kList(outdir + "/kList.txt");
+    if( !vtiList || !kList )
+    {
+      std::cerr << "unable to open vtiList.txt or kList.txt for writing" << std::endl;
+      return EXIT_FAILURE;
+    }
 
     bool use_world_planes = false;
     vnl_double_3 normal;
@@ -126,11 +135,16 @@ int main(int argc, char* argv[])
       std::vector<vpgl_perspective_camera<double> >  cameras;
 
       super3d::load_frames(support_frames, frames, cfg->get_value<bool>("use_color"), cfg->get_value<bool>("use_rgb12"));
+      std::string ref_cam_name;
       for (unsigned int f = 0; f < support_frames.size(); f++)
       {
         std::string camname = support_frames[f];
         unsigned int found = camname.find_last_of("/\\");
         camname = camname.substr(found + 1, camname.size() - 4 - found - 1);
+        if (f==halfsupport)
+        {
+          ref_cam_name = camname;
+        }
         camname = cfg->get_value<std::string>("camera_dir") + "/" + camname + ".krtd";
         cameras.push_back(super3d::load_cam(camname));
 
@@ -211,11 +225,9 @@ int main(int argc, char* argv[])
       double sec = 1e-3 * timer.real();
       std::cout << "super3d took " << sec << " seconds.\n";
 
-      std::string outdir = cfg->get_value<std::string>("outdir");
-      std::ostringstream depth_name;
-      depth_name << outdir << "/" << i;
+      std::string depth_name = outdir + "/" + ref_cam_name;
 
-      super3d::save_depth_to_vtp((depth_name.str() + ".vtp").c_str(), depth, frames[ref_frame], ref_cam, ws);
+      super3d::save_depth_to_vtp((depth_name + ".vtp").c_str(), depth, frames[ref_frame], ref_cam, ws);
 
       // map depth from normalized range back into true depth
       double depth_scale = depth_max - depth_min;
@@ -238,11 +250,11 @@ int main(int argc, char* argv[])
       vil_convert_stretch_range(depth, bmap);
       // depth map are drawn inverted (white == closest) for viewing
       vil_math_scale_and_offset_values(bmap, -1.0, 255);
-      std::string depthmap_file = depth_name.str() + "_depth.png";
+      std::string depthmap_file = depth_name + "_depth.png";
       vil_save(bmap, depthmap_file.c_str());
       // save byte height map
       vil_convert_stretch_range(height_map, bmap);
-      std::string heightmap_file = depth_name.str() + "_height.png";
+      std::string heightmap_file = depth_name + "_height.png";
       vil_save(bmap, heightmap_file.c_str());
 
       double minv, maxv;
@@ -252,12 +264,17 @@ int main(int argc, char* argv[])
       std::cout << "Height range: " << minv << " - " << maxv << "\n";
 
       vil_image_view<vxl_byte> ref_img_color = vil_load(support_frames[ref_frame].c_str());
-      super3d::save_depth_to_vti((depth_name.str() + ".vti").c_str(), depth, ref_img_color);
-      std::cout << "Saved : " << depth_name.str() + ".vti" << std::endl;
+      super3d::save_depth_to_vti((depth_name + ".vti").c_str(), depth, ref_img_color);
+      std::cout << "Saved : " << depth_name + ".vti" << std::endl;
+
+      vtiList << i << " " << ref_cam_name + ".vti\n";
+      kList << i << " ../krtd/" << ref_cam_name << ".krtd\n";
 
 
       if (ws) delete ws;
     }
+    vtiList.close();
+    kList.close();
 
   }
   catch (const super3d::config::cfg_exception &e)
