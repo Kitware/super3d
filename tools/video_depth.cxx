@@ -267,8 +267,8 @@ int main(int argc, char* argv[])
       super3d::save_depth_to_vti((depth_name + ".vti").c_str(), depth, ref_img_color);
       std::cout << "Saved : " << depth_name + ".vti" << std::endl;
 
-      vtiList << i << " " << ref_cam_name + ".vti\n";
-      kList << i << " ../krtd/" << ref_cam_name << ".krtd\n";
+      vtiList << i << " " << ref_cam_name + ".vti" << std::endl;
+      kList << i << " ../krtd/" << ref_cam_name << ".krtd" << std::endl;
 
 
       if (ws) delete ws;
