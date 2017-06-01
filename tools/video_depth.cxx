@@ -120,13 +120,13 @@ int main(int argc, char* argv[])
       std::vector<std::string> support_frames(filenames.begin() + (i - halfsupport), filenames.begin() + (i + halfsupport));
 
       std::vector<std::string> support_masks;
-      if (!masknames.empty())
+      if (masknames.size() == 1)
+      {
+        support_masks = std::vector<std::string>(support_frames.size(), masknames[0]);
+      }
+      else if (!masknames.empty())
       {
         support_masks = std::vector<std::string>(masknames.begin() + (i - halfsupport), masknames.begin() + (i + halfsupport));
-      }
-      else if (masknames.size() == 1)
-      {
-        support_masks = std::vector<std::string>(2 * halfsupport, masknames[0]);
       }
       std::cout << support_frames.size() << std::endl;
 
@@ -267,8 +267,8 @@ int main(int argc, char* argv[])
       super3d::save_depth_to_vti((depth_name + ".vti").c_str(), depth, ref_img_color);
       std::cout << "Saved : " << depth_name + ".vti" << std::endl;
 
-      vtiList << i << " " << ref_cam_name + ".vti\n";
-      kList << i << " ../krtd/" << ref_cam_name << ".krtd\n";
+      vtiList << i << " " << ref_cam_name + ".vti" << std::endl;
+      kList << i << " ../krtd/" << ref_cam_name << ".krtd" << std::endl;
 
 
       if (ws) delete ws;
