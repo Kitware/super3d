@@ -61,7 +61,7 @@ target_link_libraries(super_res_video
 super3d_add_executable(super_res_opt_flow super_res_opt_flow.cxx)
 target_link_libraries(super_res_opt_flow
   super3d_depth super3d_image super3d_imesh_algo
-  vil vpgl vgl vnl vul vil_algo
+  vil vpgl vnl vul vil_algo
   )
 
 if (viscl_FOUND)

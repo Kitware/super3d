@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2016 by Kitware, Inc.
+ * Copyright 2012-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,7 +75,8 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
                           vil_image_view<double> &cost_volume,
                           double intesity_weight,
                           double gradient_weight,
-                          double census_weight)
+                          double census_weight,
+                          std::vector<vil_image_view<double> > *masks)
 {
   const vil_image_view<double> &ref = frames[ref_frame];
   cost_volume = vil_image_view<double>(ws->ni(), ws->nj(), 1, S);
@@ -95,6 +96,7 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
   int ni = ws->ni(), nj = ws->nj();
   vil_image_view<double> warp_ref(ni, nj, 1), warp(ni, nj, 1);
   vil_image_view<double> warp_ref_grad(ni, nj, 2), warp_grad(ni, nj, 2);
+  vil_image_view<double> warp_ref_mask(ni, nj, 1), warp_mask(ni, nj, 1);
 
   vbl_array_2d<vxl_uint_64> warp_ref_census;
   vbl_array_2d<g_census> warp_ref_g_census;
@@ -109,6 +111,8 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
 
     //Warp ref image to world volume
     ws->warp_image_to_depth(ref, warp_ref, warp_cams[ref_frame], s, ref_frame);
+    if (masks) ws->warp_image_to_depth((*masks)[ref_frame], warp_ref_mask, warp_cams[ref_frame], s, ref_frame);
+
     //if (gradient_weight)
     {
       vil_sobel_3x3(warp_ref, warp_ref_grad);
@@ -133,6 +137,8 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
 
       //Warp frame to world volume
       ws->warp_image_to_depth(frames[f], warp, warp_cams[f], s, f);
+      if (masks) ws->warp_image_to_depth((*masks)[f], warp_mask, warp_cams[f], s, f);
+
       //if (gradient_weight)
       {
         vil_sobel_3x3(warp, warp_grad);
@@ -142,7 +148,7 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
       {
         for (unsigned int i = 0; i < warp_ref.ni(); i++)
         {
-          if (warp(i,j) == -1)
+          if (warp(i,j) == -1 || (masks && (warp_ref_mask(i,j) != 0.0 || warp_mask(i,j) != 0.0)))
             continue;
 
           double Di = fabs(warp_ref(i,j) - warp(i,j));
@@ -182,14 +188,17 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
     {
       for (unsigned int i = 0; i < warp_ref.ni(); i++)
       {
-        if (counts(i,j) == 0)
-          cost_volume(i,j,k) = std::numeric_limits<double>::infinity();
+        if (masks && warp_ref_mask(i, j) > 0.0)
+          continue;
+
+        if (counts(i, j) == 0)
+          cost_volume(i, j, k) = std::numeric_limits<double>::infinity();
         else
           cost_volume(i, j, k) /= (double)counts(i,j);
       }
     }
   }
-    //
+
   std::cout << "\n";
 }
 

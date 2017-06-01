@@ -1,5 +1,6 @@
 /*ckwg +29
-* Copyright 2016 by Kitware, Inc.
+ *
+* Copyright 2017 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -72,15 +73,34 @@ int main(int argc, char* argv[])
     std::string camera_dir = cfg->get_value<std::string>("camera_dir");
     std::cout << "Using frame file: " << frame_file << " to find images and " << camera_dir << " to find cameras.\n";
 
-    std::ifstream infile(frame_file.c_str());
+    std::ifstream frame_infile(frame_file.c_str());
     std::vector<std::string> filenames;
     std::string x;
-    while (infile >> x) filenames.push_back(x);
+    while (frame_infile >> x) filenames.push_back(x);
+    frame_infile.close();
 
     int numsupport = cfg->get_value<int>("support_frames");
     int stride = cfg->get_value<int>("stride");
 
     std::cout << "Read " << filenames.size() << " filenames.\n";
+
+    std::vector<std::string> masknames;
+    if (cfg->is_set("mask_list"))
+    {
+      std::string mask_list = cfg->get_value<std::string>("mask_list");
+      std::ifstream mask_file_stream(mask_list.c_str());
+      while (mask_file_stream >> x) masknames.push_back(x);
+      mask_file_stream.close();
+    }
+
+    std::string outdir = cfg->get_value<std::string>("outdir");
+    std::ofstream vtiList(outdir + "/vtiList.txt");
+    std::ofstream kList(outdir + "/kList.txt");
+    if( !vtiList || !kList )
+    {
+      std::cerr << "unable to open vtiList.txt or kList.txt for writing" << std::endl;
+      return EXIT_FAILURE;
+    }
 
     bool use_world_planes = false;
     vnl_double_3 normal;
@@ -98,19 +118,50 @@ int main(int argc, char* argv[])
     {
       std::cout << "Computing depth map on frame: " << i << "\n";
       std::vector<std::string> support_frames(filenames.begin() + (i - halfsupport), filenames.begin() + (i + halfsupport));
+
+      std::vector<std::string> support_masks;
+      if (!masknames.empty())
+      {
+        support_masks = std::vector<std::string>(masknames.begin() + (i - halfsupport), masknames.begin() + (i + halfsupport));
+      }
+      else if (masknames.size() == 1)
+      {
+        support_masks = std::vector<std::string>(2 * halfsupport, masknames[0]);
+      }
       std::cout << support_frames.size() << std::endl;
 
       std::vector<vil_image_view<double> > frames;
+      std::vector<vil_image_view<double> > masks;
       std::vector<vpgl_perspective_camera<double> >  cameras;
 
       super3d::load_frames(support_frames, frames, cfg->get_value<bool>("use_color"), cfg->get_value<bool>("use_rgb12"));
+      std::string ref_cam_name;
       for (unsigned int f = 0; f < support_frames.size(); f++)
       {
         std::string camname = support_frames[f];
         unsigned int found = camname.find_last_of("/\\");
         camname = camname.substr(found + 1, camname.size() - 4 - found - 1);
+        if (f==halfsupport)
+        {
+          ref_cam_name = camname;
+        }
         camname = cfg->get_value<std::string>("camera_dir") + "/" + camname + ".krtd";
         cameras.push_back(super3d::load_cam(camname));
+
+        vil_image_view<double> mask;
+        if (support_masks.empty())
+        {
+          mask = vil_image_view<double>(frames[f].ni(), frames[f].nj(), 1);
+          mask.fill(1.0);
+          vil_crop(mask, 2, mask.ni()-4, 2, mask.nj()-4).fill(0.0);
+        }
+        else
+        {
+          std::cout << support_masks[f] << "\n";
+          vil_image_view<bool> maskb = vil_load(support_masks[f].c_str());
+          vil_convert_cast(maskb, mask);
+        }
+        masks.push_back(mask);
       }
 
       unsigned int ref_frame = halfsupport;
@@ -128,7 +179,7 @@ int main(int argc, char* argv[])
         super3d::filter_visible_landmarks(cameras[ref_frame], 0, ni, 0, nj, landmarks);
       if (use_world_planes)
       {
-        super3d::compute_offset_range(visible_landmarks, normal, depth_min, depth_max, 0, 0.5);
+        super3d::compute_offset_range(visible_landmarks, normal, depth_min, depth_max, 0.0, 0.5);
         std::cout << "Max estimated offset: " << depth_max << "\n";
         std::cout << "Min estimated offset: " << depth_min << "\n";
         ws = new super3d::world_angled_frustum(cameras[ref_frame], normal, depth_min, depth_max, ni, nj);
@@ -156,9 +207,9 @@ int main(int argc, char* argv[])
       double iw = cfg->get_value<double>("intensity_cost_weight");
       double gw = cfg->get_value<double>("gradient_cost_weight");
       double cw = cfg->get_value<double>("census_cost_weight");
-      super3d::compute_world_cost_volume(frames, cameras, ws, ref_frame, S, cost_volume, iw, gw, cw);
+      super3d::compute_world_cost_volume(frames, cameras, ws, ref_frame, S, cost_volume, iw, gw, cw,&masks);
       //compute_cost_volume_warp(frames, cameras, ref_frame, S, depth_min, depth_max, cost_volume);
-      ws->compute_g(frames[ref_frame], g, gw_alpha, 1.0);
+      ws->compute_g(frames[ref_frame], g, gw_alpha, 1.0, &masks[ref_frame]);
 
 
       std::cout << "Refining Depth. ..\n";
@@ -174,11 +225,9 @@ int main(int argc, char* argv[])
       double sec = 1e-3 * timer.real();
       std::cout << "super3d took " << sec << " seconds.\n";
 
-      std::string outdir = cfg->get_value<std::string>("outdir");
-      std::ostringstream depth_name;
-      depth_name << outdir << "/" << i;
+      std::string depth_name = outdir + "/" + ref_cam_name;
 
-      super3d::save_depth_to_vtp((depth_name.str() + ".vtp").c_str(), depth, frames[ref_frame], ref_cam, ws);
+      super3d::save_depth_to_vtp((depth_name + ".vtp").c_str(), depth, frames[ref_frame], ref_cam, ws);
 
       // map depth from normalized range back into true depth
       double depth_scale = depth_max - depth_min;
@@ -201,11 +250,11 @@ int main(int argc, char* argv[])
       vil_convert_stretch_range(depth, bmap);
       // depth map are drawn inverted (white == closest) for viewing
       vil_math_scale_and_offset_values(bmap, -1.0, 255);
-      std::string depthmap_file = depth_name.str() + "_depth.png";
+      std::string depthmap_file = depth_name + "_depth.png";
       vil_save(bmap, depthmap_file.c_str());
       // save byte height map
       vil_convert_stretch_range(height_map, bmap);
-      std::string heightmap_file = depth_name.str() + "_height.png";
+      std::string heightmap_file = depth_name + "_height.png";
       vil_save(bmap, heightmap_file.c_str());
 
       double minv, maxv;
@@ -215,12 +264,17 @@ int main(int argc, char* argv[])
       std::cout << "Height range: " << minv << " - " << maxv << "\n";
 
       vil_image_view<vxl_byte> ref_img_color = vil_load(support_frames[ref_frame].c_str());
-      super3d::save_depth_to_vti((depth_name.str() + ".vti").c_str(), depth, ref_img_color);
-      std::cout << "Saved : " << depth_name.str() + ".vti" << std::endl;
+      super3d::save_depth_to_vti((depth_name + ".vti").c_str(), depth, ref_img_color);
+      std::cout << "Saved : " << depth_name + ".vti" << std::endl;
+
+      vtiList << i << " " << ref_cam_name + ".vti\n";
+      kList << i << " ../krtd/" << ref_cam_name << ".krtd\n";
 
 
       if (ws) delete ws;
     }
+    vtiList.close();
+    kList.close();
 
   }
   catch (const super3d::config::cfg_exception &e)
