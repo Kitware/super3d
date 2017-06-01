@@ -421,7 +421,7 @@ int main(int argc, char* argv[])
     vil_convert_cast<vxl_byte, double>(b_texture, d_texture);
   }
 
-  if (cfg->is_set("ouput_file"))
+  if (cfg->is_set("output_file"))
   {
     std::string output_file_name = cfg->get_value<std::string>("output_file");
     save_depth_to_vtp(output_file_name.c_str(), slice_map, d_texture, ref_cam, ws);
